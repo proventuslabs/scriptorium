@@ -1,6 +1,6 @@
 # getargs - powerful argument parser with support for flags and options with POSIX and GNU-style compliance
 
-typeset -grA GETARGS_ERRORS=(
+typeset -gA GETARGS_ERRORS=(
 	HELP_REQUESTED 1
 	MISSING_ARGUMENTS 2
 	MISSING_VALUE 3
