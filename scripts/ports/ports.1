@@ -1,0 +1,159 @@
+.TH PORTS 1 "2025-06-19" "scriptorium" "User Commands"
+.SH NAME
+ports \- show what processes are listening on which ports
+.SH SYNOPSIS
+.B ports
+.RB [ \-h | \-\-help ]
+.RB [ \-v | \-\-verbose ]
+.RB [ \-a | \-\-all ]
+.RB [ \-k | \-\-kill ]
+.RB [ \-f | \-\-force ]
+.RB [ \-\-pid ]
+.RB [ \-p | \-\-protocol
+.IR protocol ]
+.RI [ port ]
+.SH DESCRIPTION
+.B ports
+shows information about processes listening on network ports. It can display all listening ports or focus on a specific port number. The utility can also terminate processes listening on specified ports.
+
+By default, when given a port number, it shows which process is listening on that port and outputs the process name to stderr and formatted port information to stdout.
+.SH OPTIONS
+.TP
+.BR \-a ", " \-\-all
+Show all listening ports instead of a specific port. When used, no port number should be specified.
+.TP
+.BR \-v ", " \-\-verbose
+Show verbose output with additional details including protocol, address, and command information.
+.TP
+.BR \-k ", " \-\-kill
+Kill the process(es) listening on the specified port. Uses SIGTERM by default for graceful shutdown.
+.TP
+.BR \-f ", " \-\-force
+When used with
+.BR \-\-kill ,
+uses SIGKILL (force kill) instead of SIGTERM. This immediately terminates the process without allowing cleanup.
+.TP
+.BR \-\-pid
+Output only process IDs, one per line. Useful for scripting and piping to other commands.
+.TP
+.BR \-p " " \fIprotocol\fR, " \-\-protocol " \fIprotocol\fR
+Specify the protocol to check. Valid values are
+.I tcp
+or
+.IR udp .
+Defaults to tcp if not specified.
+.TP
+.BR \-h ", " \-\-help
+Show help message and exit.
+.SH ARGUMENTS
+.TP
+.I port
+Port number to check (1-65535). Required unless using
+.BR \-\-all .
+.SH OUTPUT FORMAT
+The default output shows:
+.RS
+.IP \(bu 2
+Process names to stderr (for original script compatibility)
+.IP \(bu 2
+Formatted table with PID, process name, and port to stdout
+.RE
+
+In verbose mode, additional columns show:
+.RS
+.IP \(bu 2
+Protocol (TCP/UDP)
+.IP \(bu 2
+Listening address
+.IP \(bu 2
+Full command line
+.RE
+
+When using
+.BR \-\-pid ,
+only process IDs are output to stdout, one per line.
+.SH EXAMPLES
+.TP
+ports 3000
+Show what process is listening on port 3000.
+.TP
+ports --all
+Show all processes listening on any port.
+.TP
+ports -v 8080
+Show verbose information about port 8080.
+.TP
+ports --pid 3000 | xargs kill
+Get PID for port 3000 and kill the process.
+.TP
+ports --kill 8080
+Gracefully terminate the process on port 8080.
+.TP
+ports --kill --force 3000
+Force kill the process on port 3000.
+.TP
+ports -p udp 53
+Show what's listening on UDP port 53 (DNS).
+.TP
+ports --protocol tcp --all
+Show all TCP listening ports.
+.SH EXIT STATUS
+.TP
+0
+Success
+.TP
+1
+Argument error (invalid port, missing arguments, etc.)
+.TP
+2
+No process found on specified port
+.TP
+3
+Error killing process
+.TP
+4
+Missing required tools (lsof not available)
+.SH DEPENDENCIES
+.B ports
+requires the following external tools:
+.TP
+.B lsof
+For listing open files and network connections
+.TP
+.B ps
+For process information (used when killing processes)
+.TP
+.B kill
+For terminating processes (when using --kill option)
+.SH NOTES
+.PP
+The tool uses
+.B lsof
+internally to gather port information. On some systems, lsof may require special permissions to show information about processes owned by other users.
+
+.PP
+When killing processes, the tool first attempts graceful termination with SIGTERM unless
+.B \-\-force
+is specified. After sending SIGTERM, it waits briefly and checks if the process is still running.
+
+.PP
+Multiple processes can listen on the same port (e.g., with SO_REUSEPORT). The tool will show and can kill all processes listening on the specified port.
+
+.PP
+The output format is designed to be both human-readable and script-friendly. Process names are sent to stderr to maintain compatibility with the original script behavior, allowing the main output to be piped while still showing context.
+.SH SECURITY CONSIDERATIONS
+.PP
+Be careful when using the
+.B \-\-kill
+option, especially with
+.BR \-\-force .
+Always verify which process you're about to terminate.
+
+.PP
+The tool may require elevated privileges to see or kill processes owned by other users.
+.SH SEE ALSO
+.BR lsof (8),
+.BR netstat (8),
+.BR ss (8),
+.BR kill (1),
+.BR ps (1)

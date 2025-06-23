@@ -51,3 +51,15 @@ mkcd directory_name              # Create and enter directory
 mkcd -v directory_name           # Use any `mkdir` flag
 mkcd --help                      # Show help
 ```
+
+### ports
+A shell script that shows what processes are listening on which network ports and can terminate them.
+
+**Usage:**
+```bash
+ports 3000                       # Show what's listening on port 3000
+ports --all                      # Show all listening ports
+ports -v 8080                    # Show verbose information
+ports --kill 3000                # Gracefully terminate process on port 3000
+ports --kill --force 8080        # Force kill process on port 8080
+```
