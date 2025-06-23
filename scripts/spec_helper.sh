@@ -15,6 +15,7 @@ spec_helper_precheck() {
 # This callback function will be invoked after a specfile has been loaded.
 spec_helper_loaded() {
 	:
+	. lib/getargs/getargs.zsh
 }
 
 # This callback function will be invoked after core modules has been loaded.

@@ -1,0 +1,198 @@
+.TH GETARGS 3 "2025-06-20" "scriptorium" "Library Functions"
+.SH NAME
+getargs \- powerful argument parser with support for flags and options
+.SH SYNOPSIS
+.B getargs
+.I func_name parsed_args_name positional_args_name positional_args_min_count options_with_args_name
+.I "$@"
+.SH DESCRIPTION
+.B getargs
+is a comprehensive command-line argument parsing function for zsh scripts. It supports both GNU-style long options and POSIX-style short options, with automatic help handling and flexible argument processing.
+
+The function parses command-line arguments into associative arrays for named options and indexed arrays for positional arguments, providing robust error handling and POSIX compliance.
+.SH PARAMETERS
+.TP
+.I func_name
+The name of the calling function, used in error messages and help display.
+.TP
+.I parsed_args_name
+Name of the associative array variable to store parsed options. This array will be populated with option names as keys and their values.
+.TP
+.I positional_args_name
+Name of the indexed array variable to store positional arguments in order.
+.TP
+.I positional_args_min_count
+Minimum number of positional arguments required. Set to 0 if no positional arguments are required.
+.TP
+.I options_with_args_name
+Name of an associative array that specifies which options require arguments. Pass an empty string ("") to treat all options as flags. When specified, options listed in this array will expect values when parsed using space syntax.
+.TP
+.I "$@"
+The command-line arguments to parse, typically passed as "$@" from the calling function.
+.SH SUPPORTED OPTION FORMATS
+.B getargs
+supports multiple argument formats following both POSIX and GNU conventions:
+
+.B Flag Options (boolean):
+.RS
+.IP \(bu 2
+.B -f
+\- Short flag (sets key 'f' to 'true')
+.IP \(bu 2
+.B --flag
+\- Long flag (sets key 'flag' to 'true')
+.IP \(bu 2
+.B -abc
+\- Combined short flags (sets 'a', 'b', 'c' to 'true')
+.RE
+
+.B Options with Values:
+.RS
+.IP \(bu 2
+.B -o=value
+\- Short option with equals syntax
+.IP \(bu 2
+.B --option=value
+\- Long option with equals syntax
+.IP \(bu 2
+.B -o value
+\- POSIX style space-separated (requires option spec)
+.IP \(bu 2
+.B --option value
+\- GNU style space-separated (requires option spec)
+.RE
+
+.B Special Handling:
+.RS
+.IP \(bu 2
+.B --
+\- Ends option parsing, remaining arguments are positional
+.IP \(bu 2
+.B -
+\- Single dash treated as positional argument
+.IP \(bu 2
+.B -h, --help
+\- Automatically shows help via man command
+.RE
+.SH OPTION BEHAVIOR
+.SS Multiple Values
+When the same option appears multiple times, values are concatenated with spaces. For example:
+.B -e first.env -e second.env
+results in
+.B parsed_args[e]="first.env second.env"
+
+.SS Options Without Specification
+When no options specification is provided (empty string), all options are treated as flags. Options that appear to take values using space syntax will be treated as flags, with the "value" becoming a positional argument.
+
+.SS Combined Short Options with Arguments
+When using combined short options (like
+.BR -abc ),
+only the last option in the group can take an argument via space syntax. For example,
+.B -ve value
+will set 'v' as a flag and 'e' will receive "value" as its argument.
+.SH RETURN VALUES
+The function uses predefined error codes stored in the global associative array
+.BR GETARGS_ERRORS :
+
+.TP
+.B 0
+Success - arguments parsed successfully
+.TP
+.B 1 (HELP_REQUESTED)
+Help was requested via -h or --help
+.TP
+.B 2 (MISSING_ARGUMENTS)
+Insufficient positional arguments provided
+.TP
+.B 3 (MISSING_VALUE)
+An option that requires a value was provided without one
+.SH EXAMPLES
+.SS Basic Usage
+.nf
+#!/usr/bin/env zsh
+
+my_script() {
+    local -A opts=()
+    local -a args=()
+
+    getargs "my_script" opts args 1 "" "$@" || return $?
+
+    [[ -n "${opts[verbose]:-}" ]] && echo "Verbose mode enabled"
+    echo "Processing: ${args[1]}"
+}
+
+# Usage: my_script --verbose file.txt
+.fi
+
+.SS With Option Specifications
+.nf
+#!/usr/bin/env zsh
+
+process_files() {
+    local -A opts=()
+    local -a args=()
+    local -A specs=(
+        [o]=1 [output]=1  # -o and --output require arguments
+        [f]=1 [file]=1    # -f and --file require arguments
+    )
+
+    getargs "process_files" opts args 0 specs "$@" || return $?
+
+    local output_file="${opts[output]:-${opts[o]:-output.txt}}"
+    echo "Output will be written to: $output_file"
+}
+
+# Usage: process_files --output result.txt --verbose input1 input2
+.fi
+.SH GLOBAL VARIABLES
+.TP
+.B GETARGS_ERRORS
+A global associative array containing predefined error codes:
+.RS
+.IP \(bu 2
+HELP_REQUESTED=1
+.IP \(bu 2
+MISSING_ARGUMENTS=2
+.IP \(bu 2
+MISSING_VALUE=3
+.RE
+.SH BEHAVIOR DETAILS
+.SS Option Processing
+Options are processed left-to-right. Arguments after
+.B --
+are always treated as positional arguments.
+
+.SS Help Integration
+When
+.B -h
+or
+.B --help
+is encountered anywhere in the arguments, the function immediately calls
+.B man func_name
+and returns the HELP_REQUESTED error code, ignoring all other arguments.
+
+.SS Array Assignment
+The function uses zsh's
+.B set -A
+command to assign parsed results to the caller's variables. Arrays are properly initialized even when empty.
+.SH NOTES
+.PP
+The options_with_args_name parameter can be an empty string to treat all options as flags, or the name of an associative array where keys are option names and values indicate the option requires an argument.
+
+.PP
+Options with hyphens in their names (like --dry-run) are supported and stored with hyphens preserved.
+
+.PP
+Empty string values are supported using the equals syntax: --option=""
+
+.PP
+The function handles edge cases including empty argument lists, malformed options, and mixed option styles.
+.SH SEE ALSO
+.BR getopt (1),
+.BR getopts (1)
+
+.PP
+Zsh Manual - Parameter Expansion: http://zsh.sourceforge.net/Doc/Release/Expansion.html
+
+.PP
+POSIX Utility Conventions: https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html
