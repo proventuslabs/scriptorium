@@ -1,0 +1,39 @@
+.TH MKCD 1 "2025-06-19" "scriptorium" "User Commands"
+.SH NAME
+mkcd \- create directory and change into it
+.SH SYNOPSIS
+.B mkcd
+.RB [ \-h | \-\-help ]
+.RI [ mkdir_options... ]
+.I directory_name
+.SH DESCRIPTION
+.B mkcd
+creates a directory and immediately changes into it. It accepts and forwards
+all options that
+.BR mkdir (1)
+accepts, making it a drop-in replacement that also changes to the created directory.
+
+The directory name should be the last argument, with all mkdir options preceding it.
+.SH OPTIONS
+.TP
+.BR \-h ", " \-\-help
+Show help message for mkcd (does not forward to mkdir --help)
+.PP
+All other options are forwarded directly to
+.BR mkdir (1).
+.SH EXAMPLES
+.TP
+mkcd -p projects/new-app
+Creates the directory structure and changes into new-app
+.TP
+mkcd -v -m 755 temp
+Creates temp directory with mode 755 and verbose output
+.TP
+mkcd --mode=700 private-dir
+Creates directory with restrictive permissions using mkdir
+.SH EXIT STATUS
+Returns 0 on success, 1 on error from either mkdir or cd operations.
+.SH SEE ALSO
+.BR mkdir (1),
+.BR cd (1),
+.BR command (1)
