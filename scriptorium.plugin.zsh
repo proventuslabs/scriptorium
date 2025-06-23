@@ -30,14 +30,14 @@ for lib_dir in "$plugin_dir/lib"/*(/N); do
 	for section in {1..8}; do
 		if [[ -f "$lib_dir/$lib_name.$section" ]]; then
 			ln -sf "$lib_dir/$lib_name.$section" \
-				   "$install_root/share/man/man$section/$lib_name.$section"
+				"$install_root/share/man/man$section/$lib_name.$section"
 		fi
 	done
 
 	# Link zsh completion
 	if [[ -f "$lib_dir/${lib_name}_comp.zsh" ]]; then
 		ln -sf "$lib_dir/${lib_name}_comp.zsh" \
-			   "$install_root/share/zsh/site-functions/_$lib_name"
+			"$install_root/share/zsh/site-functions/_$lib_name"
 	fi
 done
 
@@ -56,14 +56,14 @@ for script_dir in "$plugin_dir/scripts"/*(/N); do
 	for section in {1..8}; do
 		if [[ -f "$script_dir/$script_name.$section" ]]; then
 			ln -sf "$script_dir/$script_name.$section" \
-				   "$install_root/share/man/man$section/$script_name.$section"
+				"$install_root/share/man/man$section/$script_name.$section"
 		fi
 	done
 
 	# Link zsh completion
 	if [[ -f "$script_dir/${script_name}_comp.zsh" ]]; then
 		ln -sf "$script_dir/${script_name}_comp.zsh" \
-			   "$install_root/share/zsh/site-functions/_$script_name"
+			"$install_root/share/zsh/site-functions/_$script_name"
 	fi
 done
 

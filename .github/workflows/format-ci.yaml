@@ -1,0 +1,30 @@
+name: Format code
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-formatting:
+    name: Check formatting with .editorconfig
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Install editorconfig-checker
+      run: |
+        VERSION="v3.3.0"
+        OS="linux"
+        ARCH="amd64"
+        curl -O -L -C - https://github.com/editorconfig-checker/editorconfig-checker/releases/download/$VERSION/ec-$OS-$ARCH.tar.gz
+        tar xzf ec-$OS-$ARCH.tar.gz
+
+    # REVIEW: consider https://github.com/editorconfig-checker/editorconfig-checker?tab=readme-ov-file#mega-linter
+    - name: Run editorconfig-checker
+      run: |
+        ./bin/ec-linux-amd64
