@@ -14,6 +14,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required for full git diff against base
 
     - name: Install Zsh
       run: |
@@ -24,6 +26,36 @@ jobs:
       run: |
         curl -fsSL https://git.io/shellspec | sh -s -- --yes
         sudo ln -sf "$HOME/.local/bin/shellspec" /usr/local/bin/shellspec
+
+    - name: Enforce spec file for new commands
+      run: |
+        # Get all files added in this PR
+        added_files=$(git diff --name-only --diff-filter=A origin/main...HEAD)
+
+        echo "🆕 Added files:"
+        echo "$added_files"
+
+        missing_specs=()
+
+        # Loop through added .sh files under scripts/, skipping *_spec.sh
+        while IFS= read -r file; do
+          if [[ "$file" =~ ^scripts/([^/]+)/\1\.sh$ ]]; then
+            cmd="${BASH_REMATCH[1]}"
+            expected_spec="scripts/${cmd}/${cmd}_spec.sh"
+            if ! grep -qx "$expected_spec" <<< "$added_files"; then
+              missing_specs+=("$expected_spec")
+            fi
+          fi
+        done <<< "$added_files"
+
+        if [ "${#missing_specs[@]}" -ne 0 ]; then
+          echo "❌ Missing spec files for new commands:"
+          printf '  - %s\n' "${missing_specs[@]}"
+          exit 1
+        else
+          echo "✅ All new commands have matching *_spec.sh test files (or none were added)."
+        fi
+      shell: bash
 
     - name: Run tests
       run: |
