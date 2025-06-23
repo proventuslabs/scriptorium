@@ -1,0 +1,38 @@
+# Ignore everything
+*
+
+# But not these files...
+!.gitignore
+
+# Documentation
+!LICENSE
+!README.md
+!CONTRIBUTING.md
+
+# lib files (implementation, tests, completion, manpages)
+!lib/**/*.zsh
+!lib/**/*_spec.sh
+!lib/**/*_comp.zsh
+!lib/**/*.[1-8]
+!lib/spec_helper.sh
+
+# scripts (implementation, tests, completion, manpages)
+!scripts/**/*.zsh
+!scripts/**/*_spec.sh
+!scripts/**/*_comp.zsh
+!scripts/**/*.[1-8]
+!scripts/spec_helper.sh
+
+# plugin files
+!scriptorium.plugin.zsh
+!scriptorium.uninstall.zsh
+
+# config files
+!Makefile
+!mise.toml
+!.editorconfig
+!.shellspec
+!.github/**/*
+
+# ...even if they are in subdirectories
+!*/

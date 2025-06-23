@@ -1,0 +1,30 @@
+name: Scripts CI
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'lib/**'
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Zsh
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zsh
+
+    - name: Install ShellSpec
+      run: |
+        curl -fsSL https://git.io/shellspec | sh -s -- --yes
+        sudo ln -sf "$HOME/.local/bin/shellspec" /usr/local/bin/shellspec
+
+    - name: Run tests
+      run: |
+        make test-scripts
