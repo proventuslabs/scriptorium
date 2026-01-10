@@ -102,7 +102,7 @@ Describe 'cmd_hook'
 		It 'errors when not in git repo'
 			rm -rf .git
 			When call cmd_hook status
-			The status should equal 3
+			The status should equal 4
 			The stderr should include "not a git repository"
 		End
 	End

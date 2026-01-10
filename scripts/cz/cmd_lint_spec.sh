@@ -19,16 +19,31 @@ Describe 'cmd_lint'
 			The status should be success
 		End
 
-		It 'accepts breaking change with !'
-			Data "feat!: breaking change"
+		It 'accepts breaking change with ! and footer'
+			Data
+				#|feat!: breaking change
+				#|
+				#|BREAKING CHANGE: this breaks things
+			End
 			When call cmd_lint
 			The status should be success
 		End
 
-		It 'accepts breaking change with scope and !'
-			Data "feat(api)!: breaking change"
+		It 'accepts breaking change with scope, ! and footer'
+			Data
+				#|feat(api)!: breaking change
+				#|
+				#|BREAKING CHANGE: this breaks things
+			End
 			When call cmd_lint
 			The status should be success
+		End
+
+		It 'rejects breaking change with ! but no footer'
+			Data "feat!: breaking change"
+			When call cmd_lint
+			The status should equal 1
+			The stderr should include "BREAKING CHANGE:"
 		End
 
 		Parameters

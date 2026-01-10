@@ -50,7 +50,6 @@ cmd_create() {
 	if [[ -n "$allowed_scopes" ]]; then
 		# Build scope choices
 		local scope_choices=()
-		# shellcheck disable=SC2086 # Word splitting intended for space-separated scopes
 		for s in $allowed_scopes; do
 			scope_choices+=("$s")
 		done

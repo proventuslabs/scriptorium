@@ -4,5 +4,14 @@
   "bump-minor-pre-major": true,
   "separate-pull-requests": true,
   "initial-version": "0.1.0",
-  "packages": {}
+  "packages": {
+    "scripts/cz": {
+      "extra-files": [
+        { "type": "generic", "path": "default.nix" },
+        { "type": "generic", "path": "options.sh" },
+        { "type": "generic", "path": "docs/cz.adoc" },
+        { "type": "generic", "path": "docs/gitcommitizen.adoc" }
+      ]
+    }
+  }
 }

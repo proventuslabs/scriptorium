@@ -4,6 +4,7 @@ ProventusLabs
 :doctype: manpage
 :manmanual: User Commands
 :mansource: Scriptorium
+:revnumber: 0.1.0 // x-release-please-version
 :man-linkstyle: pass:[blue R < >]
 
 == NAME
@@ -132,7 +133,10 @@ Install the commit-msg hook::
   Usage error (invalid arguments).
 
 *3*::
-  Configuration or dependency error (missing config file, *gum* not installed).
+  Missing dependency (*gum* not installed).
+
+*4*::
+  Not a git repository (for commands requiring git).
 
 *130*::
   User cancelled (SIGINT).

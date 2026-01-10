@@ -82,5 +82,13 @@ cmd_lint() {
 		return 1
 	fi
 
+	# Validate breaking change has BREAKING CHANGE footer
+	if [[ -n "$breaking" ]]; then
+		if [[ ! "$message" =~ BREAKING[[:space:]]CHANGE: ]]; then
+			[[ -z "${QUIET:-}" ]] && echo "cz: breaking change (!) requires 'BREAKING CHANGE:' footer" >&2
+			return 1
+		fi
+	fi
+
 	return 0
 }

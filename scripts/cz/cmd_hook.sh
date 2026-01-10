@@ -9,7 +9,7 @@ cmd_hook() {
 	local git_dir
 	git_dir="$(git rev-parse --git-dir 2>/dev/null)" || {
 		echo "cz: not a git repository" >&2
-		return 3
+		return 4
 	}
 
 	local hook_path="$git_dir/hooks/commit-msg"

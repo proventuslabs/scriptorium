@@ -1,7 +1,7 @@
 # shellcheck shell=sh disable=SC2034
 
 # @bundle keep
-VERSION=0.1
+VERSION=0.1.0 # x-release-please-version
 # @bundle end
 
 parser_definition() {
