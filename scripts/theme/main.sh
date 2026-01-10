@@ -20,6 +20,9 @@ eval "$(getoptions parser_definition parse)"
 parse "$@" || exit 2
 eval "set -- $REST"
 
+# Set globals for theme functions
+THEME_QUIET="${QUIET:-}"
+
 # Handle flags
 if [[ "${DETECT:-}" == "1" ]]; then
 	theme_detect "${1:-}"

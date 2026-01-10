@@ -100,6 +100,26 @@ Describe 'run'
 		End
 	End
 
+	Describe 'theme_warn'
+		setup_warn() { unset THEME_QUIET; }
+		cleanup_warn() { unset THEME_QUIET; }
+		BeforeEach 'setup_warn'
+		AfterEach 'cleanup_warn'
+
+		It 'outputs warning by default'
+			When call theme_warn "test warning"
+			The status should be success
+			The stderr should equal "theme: warning: test warning"
+		End
+
+		It 'suppresses warning with THEME_QUIET'
+			THEME_QUIET=1
+			When call theme_warn "test warning"
+			The status should be success
+			The stderr should equal ""
+		End
+	End
+
 	Describe 'theme_run with --list'
 		BeforeEach 'setup_list_only'
 		setup_list_only() {

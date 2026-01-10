@@ -4,6 +4,7 @@ ProventusLabs
 :doctype: manpage
 :manmanual: User Commands
 :mansource: Scriptorium
+:revnumber: 0.1.0 // x-release-please-version
 :man-linkstyle: pass:[blue R < >]
 
 == NAME
@@ -40,6 +41,9 @@ from configuration files.
 
 *--list*::
   List the discovered provider and all registered handlers.
+
+*-q*, *--quiet*::
+  Suppress warning messages.
 
 *-h*, *--help*::
   Show help message and exit.

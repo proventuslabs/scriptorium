@@ -6,6 +6,13 @@
 # @bundle source
 . ./discover.sh
 
+# Warning helper
+theme_warn() {
+	[[ -n "${THEME_QUIET:-}" ]] && return 0
+	echo "theme: warning: $1" >&2
+	return 0
+}
+
 # Main orchestration function
 # Usage: theme_run [--detect|--list|dark|light]
 theme_run() {
@@ -51,7 +58,7 @@ theme_run() {
 
 	local handler
 	for handler in "${THEME_HANDLERS[@]}"; do
-		"$handler" || echo "theme: warning: handler '$handler' failed" >&2
+		"$handler" || theme_warn "handler '$handler' failed"
 	done
 
 	return 0
