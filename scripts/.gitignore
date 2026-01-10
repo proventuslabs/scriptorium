@@ -7,6 +7,10 @@
 !*.adoc
 !spec_helper.sh
 
+# Track test fixtures
+!**/fixtures/
+!**/fixtures/*.pem
+
 # Track completion files
 !**/completions/
 !**/completions/*.bash

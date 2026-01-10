@@ -1,0 +1,219 @@
+= JWT(1)
+ProventusLabs
+:docdate: 2025
+:doctype: manpage
+:manmanual: User Commands
+:mansource: Scriptorium
+:man-linkstyle: pass:[blue R < >]
+
+== NAME
+
+jwt - decode and verify JSON Web Tokens
+
+== SYNOPSIS
+
+*jwt* [_OPTIONS_] [_TOKEN_]
+
+== DESCRIPTION
+
+*jwt* decodes and optionally verifies JSON Web Tokens (JWTs). It can display
+the header, payload, or signature of a JWT token, and verify the signature
+using various algorithms.
+
+By default, the payload is displayed. The token can be provided as an argument
+or read from standard input. The token must be in the standard JWT format with
+three base64url-encoded parts separated by dots.
+
+== OPTIONS
+
+=== Output Selection
+
+These options are mutually exclusive. Specifying more than one is an error.
+
+*-H*, *--header*::
+  Display the JWT header (algorithm, type, etc.).
+
+*-P*, *--payload*::
+  Display the JWT payload/claims. This is the default.
+
+*-S*, *--signature*::
+  Display the raw signature (base64url decoded).
+
+*-A*, *--all*::
+  Display all parts as a JSON object with *header*, *payload*, and
+  *signature* keys.
+
+=== Verification
+
+*-v*, *--verify*=_SECRET_OR_KEY_::
+  Verify the JWT signature. The value can be:
++
+--
+  * A literal string secret for HMAC algorithms (HS256, HS384, HS512)
+  * `@file` to read the key from a file (for RSA/ECDSA public keys)
+  * `@-` or `-` to read the secret or key from standard input (token must be provided as argument)
+--
+
+=== General
+
+*-h*, *--help*::
+  Show help message and exit.
+
+== ARGUMENTS
+
+_TOKEN_::
+  The JWT token to decode or verify. Must be in standard JWT format:
+  header.payload.signature. If not provided as an argument, the token is
+  read from standard input.
+
+== SUPPORTED ALGORITHMS
+
+*jwt* supports verification of the following JWT signature algorithms:
+
+HMAC Algorithms (shared secret)::
+  * HS256 - HMAC using SHA-256
+  * HS384 - HMAC using SHA-384
+  * HS512 - HMAC using SHA-512
+
+RSA Algorithms (public key)::
+  * RS256 - RSA signature with SHA-256
+  * RS384 - RSA signature with SHA-384
+  * RS512 - RSA signature with SHA-512
+
+RSA-PSS Algorithms (public key, requires OpenSSL 3.x)::
+  * PS256 - RSA-PSS signature with SHA-256
+  * PS384 - RSA-PSS signature with SHA-384
+  * PS512 - RSA-PSS signature with SHA-512
+
+ECDSA Algorithms (public key)::
+  * ES256 - ECDSA using P-256 curve and SHA-256
+  * ES384 - ECDSA using P-384 curve and SHA-384
+  * ES512 - ECDSA using P-521 curve and SHA-512
+
+EdDSA Algorithms (public key, requires OpenSSL 3.x)::
+  * EdDSA - Ed25519 signature
+
+== EXAMPLES
+
+Decode and display the JWT payload (default)::
+
+  jwt eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Display the JWT header::
+
+  jwt --header eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Display all parts as JSON::
+
+  jwt --all eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Verify HMAC signature with secret::
+
+  jwt --verify=secret123 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Verify RSA signature using public key file::
+
+  jwt --verify=@/path/to/public.pem eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Verify and show header::
+
+  jwt --verify=secret123 --header eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+Read token from stdin::
+
+  echo $TOKEN | jwt
+  cat token.txt | jwt --header
+
+Read key from stdin::
+
+  echo "secret" | jwt -v @- "$TOKEN"
+  jwt -v - "$TOKEN" < keyfile.pem
+
+== EXIT STATUS
+
+*0*::
+  Success - token decoded successfully, signature verified if requested.
+
+*1*::
+  Argument error - insufficient arguments or conflicting output options.
+
+*2*::
+  Format error - invalid JWT format or malformed JSON content.
+
+*3*::
+  Verification error - signature verification failed.
+
+*4*::
+  Cryptographic error - invalid signature encoding, key format, or
+  cryptographic operation failed.
+
+*5*::
+  Missing tools - required external tools are not available.
+
+*6*::
+  File error - cannot read specified key file.
+
+*7*::
+  Unsupported - unsupported algorithm, curve, or operation.
+
+*8*::
+  Version error - algorithm requires a newer OpenSSL version (e.g., PS256/EdDSA require OpenSSL 3.x).
+
+== DEPENDENCIES
+
+*openssl*(1)::
+  For cryptographic operations (signature verification).
+
+*xxd*(1)::
+  For hexadecimal encoding/decoding (ECDSA signatures only).
+
+== COMPATIBILITY
+
+.Algorithm Support by OpenSSL Version
+[cols="2,1,1,1",options="header"]
+|===
+|Algorithm |LibreSSL |OpenSSL 1.x |OpenSSL 3.x
+
+|HS256/384/512 |✓ |✓ |✓
+|RS256/384/512 |✓ |✓ |✓
+|ES256/384/512 |✓ |✓ |✓
+|PS256/384/512 |✗ |✗ |✓
+|EdDSA (Ed25519) |✗ |✗ |✓
+|===
+
+macOS ships with LibreSSL by default. To use PS256 or EdDSA algorithms,
+install OpenSSL via Homebrew:
+
+  brew install openssl
+  export PATH="/opt/homebrew/opt/openssl/bin:$PATH"
+
+== NOTES
+
+The tool automatically detects the signature algorithm from the JWT header
+and uses the appropriate verification method.
+
+For HMAC algorithms, the verification secret should be the same secret used
+to sign the token. For RSA and ECDSA algorithms, you need the public key
+corresponding to the private key used to sign the token.
+
+JWT tokens often contain sensitive information. Be careful when sharing or
+logging tokens, especially in production environments.
+
+== SECURITY CONSIDERATIONS
+
+Always verify JWT signatures in production environments. Unverified JWTs
+should never be trusted.
+
+Keep signing secrets and private keys secure. Use environment variables or
+secure key management systems rather than hardcoding secrets.
+
+The JWT payload is only base64url-encoded, not encrypted. Anyone can decode
+and read the payload without the signing key.
+
+== SEE ALSO
+
+*openssl*(1)
+
+https://tools.ietf.org/html/rfc7519[RFC 7519 - JSON Web Token (JWT)]
+
+https://tools.ietf.org/html/rfc7515[RFC 7515 - JSON Web Signature (JWS)]
