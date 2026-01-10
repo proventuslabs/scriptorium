@@ -16,10 +16,10 @@
 - [ ] `release-please-config.json` - Added script component
 - [ ] `flake.nix` - Imported script in root flake
 - [ ] `README.md` - Added script entry with link to docs
-- [ ] Built artifacts committed (`make build-script NAME=<name>`)
+- [ ] Built artifacts committed (`make build NAME=<name>`)
 
 ### For all changes
 
-- [ ] Tests pass (`make test-script NAME=<name>`)
-- [ ] Linting passes (`make lint-script NAME=<name>`)
-- [ ] Artifacts up to date (`make build-script NAME=<name>`)
+- [ ] Tests pass (`make test NAME=<name>`)
+- [ ] Linting passes (`make lint NAME=<name>`)
+- [ ] Artifacts up to date (`make build NAME=<name>`)

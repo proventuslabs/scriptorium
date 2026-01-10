@@ -12,20 +12,20 @@ A collection of useful shell scripts and utilities targeting Bash 4+.
 
 ```bash
 # Install individual script
-nix profile install github:user/scriptorium#dotenv
+nix profile install github:proventuslabs/scriptorium#dotenv
 
 # Install all scripts
-nix profile install github:user/scriptorium
+nix profile install github:proventuslabs/scriptorium
 
 # Run without installing
-nix run github:user/scriptorium#dotenv -- --help
+nix run github:proventuslabs/scriptorium#dotenv -- --help
 ```
 
 ### From source
 
 ```bash
 # Clone and build
-git clone https://github.com/user/scriptorium.git
+git clone https://github.com/proventuslabs/scriptorium.git
 cd scriptorium
 nix develop  # or install dependencies manually
 make build

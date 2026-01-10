@@ -46,11 +46,11 @@ jobs:
 
       - name: Check formatting
         run: |
-          nix develop --command make fmt-script NAME=${{ inputs.script }}
+          nix develop --command make fmt NAME=${{ inputs.script }}
           changed=$(git diff --name-only -- 'scripts/${{ inputs.script }}/*.sh')
           if [ -n "$changed" ]; then
             echo "$changed" | while IFS= read -r file; do
-              echo "::error file=$file::Needs formatting. Run 'make fmt'"
+              echo "::error file=$file::Needs formatting. Run 'make fmt NAME=${{ inputs.script }}'"
             done
             exit 1
           fi
@@ -58,7 +58,7 @@ jobs:
       - name: Lint
         run: |
           set -o pipefail
-          nix develop --command make lint-script NAME=${{ inputs.script }} SHELLCHECK_FORMAT="-f gcc" 2>&1 | \
+          nix develop --command make lint NAME=${{ inputs.script }} SHELLCHECK_FORMAT="-f gcc" 2>&1 | \
             sed -E 's/^([^:]+):([0-9]+):([0-9]+): (error|warning): (.*)$/::\4 file=\1,line=\2,col=\3::\5/; s/^([^:]+):([0-9]+):([0-9]+): (info): (.*)$/::notice file=\1,line=\2,col=\3::\5/'
 
   test:
@@ -70,7 +70,7 @@ jobs:
       - uses: cachix/install-nix-action@v30
 
       - name: Run tests
-        run: nix develop --command make test-script NAME=${{ inputs.script }}
+        run: nix develop --command make test NAME=${{ inputs.script }}
 
   build:
     name: Build
@@ -81,14 +81,14 @@ jobs:
       - uses: cachix/install-nix-action@v30
 
       - name: Build script
-        run: nix develop --command make build-script NAME=${{ inputs.script }}
+        run: nix develop --command make build NAME=${{ inputs.script }}
 
       - name: Verify artifacts are up to date
         run: |
-          changed_files=$(git diff --name-only bin/${{ inputs.script }} man/ completions/)
+          changed_files=$(git diff --name-only dist/${{ inputs.script }}/)
           if [ -n "$changed_files" ]; then
             echo "$changed_files" | while IFS= read -r file; do
-              echo "::error file=$file::Artifact out of sync with source. Run 'make build-script NAME=${{ inputs.script }}' and commit."
+              echo "::error file=$file::Artifact out of sync with source. Run 'make build NAME=${{ inputs.script }}' and commit."
             done
             echo ""
             echo "❌ Committed artifacts don't match source."

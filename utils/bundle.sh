@@ -126,7 +126,7 @@ bundle_file() {
 							emit "$cmd_indent" "# --- keep from: ${ref_path#"$PWD/"} ---"
 							while IFS= read -r keep_line; do
 								emit "$cmd_indent" "$keep_line"
-							done <<< "$keep_content"
+							done <<<"$keep_content"
 						fi
 					fi
 				fi

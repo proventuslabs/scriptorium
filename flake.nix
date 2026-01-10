@@ -17,29 +17,39 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
-        # Helper to build script packages
-        mkScript = { name, version, description, src }:
+        # Build tools needed for scripts
+        buildTools = with pkgs; [
+          bash
+          gnumake
+          coreutils
+          getoptions
+          asciidoctor
+        ];
+
+        # Bash 4+ runtime dependency
+        bash4 = pkgs.bash;
+
+        # Helper to build individual script packages
+        mkScript =
+          {
+            name,
+            version,
+            description,
+          }:
           pkgs.stdenv.mkDerivation {
             pname = name;
-            inherit version src;
+            inherit version;
+            src = self;
 
-            nativeBuildInputs = with pkgs; [ bash getoptions ];
+            nativeBuildInputs = buildTools;
+            propagatedBuildInputs = [ bash4 ];
 
             buildPhase = ''
-              # Bundle script using project bundler
-              ${pkgs.bash}/bin/bash ${./utils/bundle.sh} main.sh > ${name}
+              make build NAME=${name}
             '';
 
             installPhase = ''
-              mkdir -p $out/bin $out/share/man/man1 $out/share/man/man5
-              install -m755 ${name} $out/bin/
-
-              # Install manpages if they exist
-              for section in 1 5; do
-                if [ -f "${name}.$section" ]; then
-                  install -m644 "${name}.$section" "$out/share/man/man$section/"
-                fi
-              done
+              make install NAME=${name} DESTDIR=$out
             '';
 
             meta = with pkgs.lib; {
@@ -53,32 +63,48 @@
         # Import script packages (added as scripts are merged)
         # Example: dotenv = import ./scripts/dotenv { inherit pkgs mkScript; };
 
-        allScripts = [
-          # Scripts added here as they're merged
-        ];
+        scripts = {
+          # Scripts imported here as they're merged
+        };
       in
       {
-        packages = {
-          # Individual script packages added here as they're merged
-          # Example: inherit dotenv;
+        packages = scripts // {
+          # Individual scripts exposed via: nix build .#<name>
 
-          # Meta-package with all scripts
-          default = pkgs.symlinkJoin {
-            name = "scriptorium";
-            paths = allScripts;
+          # Meta-package with all scripts and plugins
+          default = pkgs.stdenv.mkDerivation {
+            pname = "scriptorium";
+            version = "0.1.0";
+            src = self;
+
+            nativeBuildInputs = buildTools;
+            propagatedBuildInputs = [ bash4 ];
+
+            buildPhase = ''
+              make build
+            '';
+
+            installPhase = ''
+              make install DESTDIR=$out
+            '';
+
+            meta = with pkgs.lib; {
+              description = "Shell script collection";
+              license = licenses.mit;
+              platforms = platforms.unix;
+            };
           };
         };
 
         devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            bash
-            zsh
-            shellspec
-            shellcheck
-            shfmt
-            getoptions
-            asciidoctor
-          ];
+          buildInputs =
+            buildTools
+            ++ (with pkgs; [
+              zsh
+              shellspec
+              shellcheck
+              shfmt
+            ]);
 
           shellHook = ''
             export RUBYOPT="-W0"
