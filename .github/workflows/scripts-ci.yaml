@@ -1,0 +1,55 @@
+name: Scripts CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "scripts/**"
+
+jobs:
+  detect-changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      scripts: ${{ steps.build-matrix.outputs.scripts }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          list-files: json
+          filters: |
+            scripts:
+              - 'scripts/**'
+
+      - name: Build script matrix
+        id: build-matrix
+        run: |
+          if [ "${{ steps.filter.outputs.scripts }}" = "true" ]; then
+            changed='${{ steps.filter.outputs.scripts_files }}'
+            # Only extract from paths with 3+ components (scripts/name/file) to exclude files directly in scripts/
+            scripts=$(echo "$changed" | jq -r '.[]' | grep -E '^scripts/[^/]+/' | cut -d'/' -f2 | sort -u | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          else
+            scripts='[]'
+          fi
+          echo "scripts=$scripts" >> "$GITHUB_OUTPUT"
+          echo "Changed scripts: $scripts"
+
+  ci:
+    name: ${{ matrix.script }}
+    needs: detect-changes
+    if: needs.detect-changes.outputs.scripts != '[]'
+    strategy:
+      fail-fast: false
+      matrix:
+        script: ${{ fromJson(needs.detect-changes.outputs.scripts) }}
+    uses: ./.github/workflows/_template.scripts-ci.yaml
+    with:
+      script: ${{ matrix.script }}
