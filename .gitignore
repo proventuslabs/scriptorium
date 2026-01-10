@@ -14,6 +14,8 @@
 !flake.lock
 !scriptorium.plugin.sh
 !scriptorium.plugin.zsh
+!release-please-config.json
+!.release-please-manifest.json
 
 # Track subdirectories (each has its own .gitignore)
 !*/
