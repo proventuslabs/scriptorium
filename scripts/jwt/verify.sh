@@ -1,6 +1,13 @@
 # shellcheck shell=bash
 # JWT verification functions
 
+# Warning helper
+jwt_warn() {
+	[[ -n "${JWT_QUIET:-}" ]] && return 0
+	echo "jwt: warning: $1" >&2
+	return 0
+}
+
 # Check required dependencies are available
 # $1: algorithm (optional) - if ECDSA, also checks for xxd
 check_dependencies() {
@@ -37,7 +44,7 @@ get_openssl_major_version() {
 }
 
 # Check if OpenSSL version supports an algorithm
-# Returns 0 if supported, 1 if not
+# Returns 0 if supported, 8 if not
 check_algorithm_support() {
 	local alg=$1
 	local major_version
@@ -47,7 +54,7 @@ check_algorithm_support() {
 		PS256 | PS384 | PS512 | EdDSA)
 			# These require OpenSSL 3.x
 			if [[ "$major_version" -lt 3 ]]; then
-				echo "jwt: algorithm '$alg' requires OpenSSL 3.x (found: $(openssl version))" >&2
+				jwt_warn "algorithm '$alg' requires OpenSSL 3.x (found: $(openssl version))"
 				return 8
 			fi
 			;;

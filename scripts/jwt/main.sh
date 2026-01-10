@@ -18,6 +18,9 @@ eval "$(getoptions parser_definition parse)"
 parse "$@" || exit 2
 eval "set -- $REST"
 
+# Set globals for jwt functions
+JWT_QUIET="${QUIET:-}"
+
 # Handle -v value: secret string, @file, @-, or -
 # Always pass content to verify_signature (it handles temp files for asymmetric)
 verify_key=${VERIFY:-}

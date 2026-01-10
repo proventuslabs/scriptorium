@@ -197,6 +197,26 @@ Describe 'verify'
 		End
 	End
 
+	Describe 'jwt_warn'
+		setup() { unset JWT_QUIET; }
+		cleanup() { unset JWT_QUIET; }
+		BeforeEach 'setup'
+		AfterEach 'cleanup'
+
+		It 'outputs warning by default'
+			When call jwt_warn "test warning"
+			The status should be success
+			The stderr should equal "jwt: warning: test warning"
+		End
+
+		It 'suppresses warning with JWT_QUIET'
+			JWT_QUIET=1
+			When call jwt_warn "test warning"
+			The status should be success
+			The stderr should equal ""
+		End
+	End
+
 	Describe 'verify_signature'
 		It 'verifies valid HS256 token through dispatcher'
 			jwt_split "$hs256_token"
