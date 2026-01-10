@@ -4,6 +4,7 @@ ProventusLabs
 :doctype: manpage
 :manmanual: User Commands
 :mansource: Scriptorium
+:revnumber: 0.1.0 // x-release-please-version
 :man-linkstyle: pass:[blue R < >]
 
 == NAME
@@ -13,7 +14,7 @@ dotenv - load environment variables from .env files and execute command
 == SYNOPSIS
 
 *dotenv* [*-h* | *--help*] +
-*dotenv* [*-x* | *--exec*] [*-s* | *--strict*] [*-q* | *--silent*] [*-e* _FILE_]... _COMMAND_ [_ARGS_...]
+*dotenv* [*-x* | *--exec*] [*-s* | *--strict*] [*-q* | *--quiet*] [*-e* _FILE_]... _COMMAND_ [_ARGS_...]
 
 == DESCRIPTION
 
@@ -43,7 +44,7 @@ information, see *env*(5).
   Fail with exit code 1 when warnings occur (e.g., missing .env files,
   unclosed quotes).
 
-*-q*, *--silent*::
+*-q*, *--quiet*::
   Suppress warning messages. Does not affect error behavior.
 
 *-h*, *--help*::

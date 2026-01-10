@@ -9,7 +9,7 @@ _dotenv() {
 		'--version[Show version]' \
 		'(-x --exec)'{-x,--exec}'[Replace process with exec]' \
 		'(-s --strict)'{-s,--strict}'[Fail on warnings]' \
-		'(-q --silent)'{-q,--silent}'[Suppress warnings]' \
+		'(-q --quiet)'{-q,--quiet}'[Suppress warnings]' \
 		'*-e[Specify .env file to load]:env file:_files -g "*(.)"' \
 		'*::command:->command'
 

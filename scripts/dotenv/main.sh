@@ -27,7 +27,7 @@ fi
 
 # Set globals for dotenv functions
 DOTENV_STRICT="$STRICT"
-DOTENV_SILENT="$SILENT"
+DOTENV_QUIET="$QUIET"
 DOTENV_EXEC="$EXEC_MODE"
 
 # Load environment and execute command

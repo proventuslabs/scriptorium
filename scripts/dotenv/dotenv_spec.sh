@@ -7,12 +7,12 @@ Describe 'dotenv'
 	setup() {
 		TEST_DIR=$(mktemp -d)
 		# Clear any test vars
-		unset DOTENV_STRICT DOTENV_SILENT DOTENV_EXEC
+		unset DOTENV_STRICT DOTENV_QUIET DOTENV_EXEC
 		unset FOO BAR DOTENV_TEST_VAR
 	}
 	cleanup() {
 		rm -rf "$TEST_DIR"
-		unset DOTENV_STRICT DOTENV_SILENT DOTENV_EXEC
+		unset DOTENV_STRICT DOTENV_QUIET DOTENV_EXEC
 		unset FOO BAR DOTENV_TEST_VAR
 	}
 	BeforeEach 'setup'
@@ -70,8 +70,8 @@ Describe 'dotenv'
 				The error should include "not found"
 			End
 
-			It 'suppresses warnings with DOTENV_SILENT'
-				DOTENV_SILENT=1
+			It 'suppresses warnings with DOTENV_QUIET'
+				DOTENV_QUIET=1
 				When call dotenv_exec 1 "$TEST_DIR/missing.env" true
 				The status should be success
 				The error should equal ""
@@ -116,7 +116,7 @@ Describe 'dotenv'
 			The variable ENV_FILES[0] should equal "$TEST_DIR/a.env"
 			The variable ENV_FILES[1] should equal "$TEST_DIR/b.env"
 			The variable STRICT should equal "1"
-			The variable SILENT should equal "1"
+			The variable QUIET should equal "1"
 		End
 	End
 End

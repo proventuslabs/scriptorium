@@ -7,14 +7,14 @@
 
 # Warning helper
 dotenv_warn() {
-	[[ -n "${DOTENV_SILENT:-}" ]] && return 0
+	[[ -n "${DOTENV_QUIET:-}" ]] && return 0
 	echo "dotenv: warning: $1" >&2
 	return 0
 }
 
 # Load .env files and execute command using env(1)
 # Usage: dotenv_exec <num_files> file... command [args...]
-# Globals: DOTENV_STRICT, DOTENV_SILENT, DOTENV_EXEC
+# Globals: DOTENV_STRICT, DOTENV_QUIET, DOTENV_EXEC
 dotenv_exec() {
 	local num_files=$1
 	shift

@@ -66,6 +66,7 @@
         scripts = {
           # Scripts imported here as they're merged
           cz = import ./scripts/cz { inherit mkScript; };
+          dotenv = import ./scripts/dotenv { inherit mkScript; };
         };
       in
       {

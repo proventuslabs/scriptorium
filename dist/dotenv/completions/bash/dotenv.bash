@@ -5,7 +5,7 @@ _dotenv() {
 	COMPREPLY=()
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
-	opts="-e -x --exec -s --strict -q --silent -h --help --version"
+	opts="-e -x --exec -s --strict -q --quiet -h --help --version"
 
 	# Complete .env files after -e
 	if [[ "$prev" == "-e" ]]; then

@@ -12,6 +12,14 @@
         { "type": "generic", "path": "docs/cz.adoc" },
         { "type": "generic", "path": "docs/gitcommitizen.adoc" }
       ]
+    },
+    "scripts/dotenv": {
+      "extra-files": [
+        { "type": "generic", "path": "default.nix" },
+        { "type": "generic", "path": "options.sh" },
+        { "type": "generic", "path": "docs/dotenv.adoc" },
+        { "type": "generic", "path": "docs/env.adoc" }
+      ]
     }
   }
 }

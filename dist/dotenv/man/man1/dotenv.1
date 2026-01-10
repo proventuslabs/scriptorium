@@ -33,7 +33,7 @@ dotenv \- load environment variables from .env files and execute command
 .sp
 \fBdotenv\fP [\fB\-h\fP | \fB\-\-help\fP]
 .br
-\fBdotenv\fP [\fB\-x\fP | \fB\-\-exec\fP] [\fB\-s\fP | \fB\-\-strict\fP] [\fB\-q\fP | \fB\-\-silent\fP] [\fB\-e\fP \fIFILE\fP].\|.\|. \fICOMMAND\fP [\fIARGS\fP.\|.\|.]
+\fBdotenv\fP [\fB\-x\fP | \fB\-\-exec\fP] [\fB\-s\fP | \fB\-\-strict\fP] [\fB\-q\fP | \fB\-\-quiet\fP] [\fB\-e\fP \fIFILE\fP].\|.\|. \fICOMMAND\fP [\fIARGS\fP.\|.\|.]
 .SH "DESCRIPTION"
 .sp
 \fBdotenv\fP loads environment variables from one or more .env files and executes
@@ -67,7 +67,7 @@ Fail with exit code 1 when warnings occur (e.g., missing .env files,
 unclosed quotes).
 .RE
 .sp
-\fB\-q\fP, \fB\-\-silent\fP
+\fB\-q\fP, \fB\-\-quiet\fP
 .RS 4
 Suppress warning messages. Does not affect error behavior.
 .RE

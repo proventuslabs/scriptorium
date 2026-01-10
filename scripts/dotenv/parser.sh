@@ -9,7 +9,7 @@ _SQ_ESCAPE="'\\''"
 # Usage: parse_env <callback_fn>
 # Callback receives: callback_fn "KEY" "value"
 # Returns: 0 on success, 1 if warnings occurred
-# Globals: DOTENV_SILENT (suppress warnings), DOTENV_STRICT (unused here, checked by caller)
+# Globals: DOTENV_QUIET (suppress warnings), DOTENV_STRICT (unused here, checked by caller)
 parse_env() {
 	local callback=$1
 	local line key value
@@ -86,23 +86,23 @@ parse_env() {
 				"$callback" "$key" "$value"
 			fi
 		elif [[ "$line" =~ ^[0-9] ]]; then
-			[[ -z "${DOTENV_SILENT:-}" ]] && echo "dotenv: warning: invalid key starting with digit: ${line%%=*}" >&2
+			[[ -z "${DOTENV_QUIET:-}" ]] && echo "dotenv: warning: invalid key starting with digit: ${line%%=*}" >&2
 			had_warnings=true
 		else
-			[[ -z "${DOTENV_SILENT:-}" ]] && echo "dotenv: warning: unrecognized line: $line" >&2
+			[[ -z "${DOTENV_QUIET:-}" ]] && echo "dotenv: warning: unrecognized line: $line" >&2
 			had_warnings=true
 		fi
 	done
 
 	# Handle unclosed quotes
 	if $in_single_quote; then
-		[[ -z "${DOTENV_SILENT:-}" ]] && echo "dotenv: warning: unclosed single quote for key: $current_key" >&2
+		[[ -z "${DOTENV_QUIET:-}" ]] && echo "dotenv: warning: unclosed single quote for key: $current_key" >&2
 		had_warnings=true
 		# Still emit what we have
 		value="${accumulated_value#\'}"
 		"$callback" "$current_key" "$value"
 	elif $in_double_quote; then
-		[[ -z "${DOTENV_SILENT:-}" ]] && echo "dotenv: warning: unclosed double quote for key: $current_key" >&2
+		[[ -z "${DOTENV_QUIET:-}" ]] && echo "dotenv: warning: unclosed double quote for key: $current_key" >&2
 		had_warnings=true
 		value="${accumulated_value#\"}"
 		value=$(_process_escapes "$value")

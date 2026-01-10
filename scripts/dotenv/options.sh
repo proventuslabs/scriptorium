@@ -1,7 +1,7 @@
 # shellcheck shell=bash disable=SC2034
 
 # @bundle keep
-VERSION=0.1
+VERSION=0.1.0 # x-release-please-version
 
 # Initialize defaults
 # Helper for array accumulation (used by parser)
@@ -18,7 +18,7 @@ parser_definition() {
 	param :append_env_file -e var:FILE init:'ENV_FILES=()' -- ".env file to load (repeatable)"
 	flag  EXEC_MODE -x --exec  -- "Replace process with exec"
 	flag  STRICT    -s --strict -- "Fail on warnings"
-	flag  SILENT    -q --silent -- "Suppress warnings"
+	flag  QUIET     -q --quiet -- "Suppress warnings"
 	disp  :usage    -h --help
 	disp  VERSION      --version
 }
