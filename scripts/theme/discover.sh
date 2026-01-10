@@ -88,9 +88,6 @@ theme_source_config() {
 
 # List discovered provider and handlers
 theme_list() {
-	local provider
-	local handlers
-
 	theme_discover_provider || true
 	theme_discover_handlers
 

@@ -35,7 +35,7 @@ theme_run() {
 
 	# Detect appearance (with optional override)
 	local override=""
-	if [[ "$arg" == "dark" || "$arg" == "light" ]]; then
+	if [[ "${arg,,}" == "dark" || "${arg,,}" == "light" ]]; then
 		override="$arg"
 	fi
 
@@ -51,7 +51,7 @@ theme_run() {
 
 	local handler
 	for handler in "${THEME_HANDLERS[@]}"; do
-		"$handler"
+		"$handler" || echo "theme: warning: handler '$handler' failed" >&2
 	done
 
 	return 0
