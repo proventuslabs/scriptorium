@@ -1,0 +1,102 @@
+.TH DOTENV 1 "2025-06-19" "scriptorium" "User Commands"
+.SH NAME
+dotenv \- load environment variables from .env files and execute command
+.SH SYNOPSIS
+.B dotenv
+.RB [ \-h | \-\-help ]
+.RB [ \-x | \-\-exec ]
+.RB [ \-s | \-\-strict ]
+.RB [ \-q | \-\-silent ]
+.RB [ \-e
+.IR file ]...
+.I command
+.RI [ args... ]
+.SH DESCRIPTION
+.B dotenv
+loads environment variables from one or more .env files and executes a command with the loaded environment. It supports multiline values, quoted strings, and comments.
+
+Environment variables that are already set in the calling environment take precedence over variables defined in .env files. This allows for easy overriding of .env file values.
+
+The .env file format follows common conventions. For detailed syntax information, see
+.BR dotenv (5).
+.SH OPTIONS
+.TP
+.BR \-e " " \fIfile\fR
+Specify .env file to load. Can be specified multiple times to load multiple files. If not specified, defaults to
+.IR .env .
+Files are processed in order, with later files overriding variables from earlier files.
+.TP
+.BR \-x ", " \-\-exec
+Replace the current shell process with the executed command instead of running it in a subprocess.
+.TP
+.BR \-s ", " \-\-strict
+Fail with exit code 1 when warnings occur (e.g., missing .env files, unclosed quotes).
+.TP
+.BR \-q ", " \-\-silent
+Suppress warning messages. Does not affect error behavior.
+.TP
+.BR \-h ", " \-\-help
+Show help message and exit.
+.SH ARGUMENTS
+.TP
+.I command
+Command to execute with the loaded environment variables.
+.TP
+.I args...
+Arguments to pass to the command.
+.SH VARIABLE PRECEDENCE
+Variables are resolved in the following order (highest to lowest precedence):
+.RS
+.IP 1. 4
+Environment variables set in the calling shell
+.IP 2. 4
+Variables from .env files (processed in command-line order)
+.RE
+
+This means that
+.B TEST=override dotenv -e .env command
+will use "override" as the value of TEST, regardless of what .env contains.
+
+When multiple .env files are specified, later files override variables from earlier files, but only if those variables are not already set in the environment.
+.SH EXAMPLES
+.TP
+dotenv go run main.go
+Execute go command with environment from .env file.
+.TP
+dotenv -e .env -e .env.production python app.py
+Load variables from multiple .env files and run Python script.
+.TP
+dotenv -e .env.local npm start
+Use custom .env file with npm.
+.TP
+TEST=override dotenv -e .env printenv TEST
+Override .env file value with environment variable.
+.TP
+dotenv -s -e .env.production python app.py
+Fail if .env.production is missing instead of just warning.
+.TP
+dotenv -q -e missing.env node server.js
+Suppress warning message about missing.env file.
+.TP
+dotenv -x -e .env bash
+Replace current shell with bash using environment from .env file.
+.TP
+dotenv --exec node server.js
+Replace current process with Node.js server using default .env file.
+.SH EXIT STATUS
+.TP
+0
+Success
+.TP
+1
+Error (file not found, parse error, missing command, etc.)
+.SH FILES
+.TP
+.I .env
+Default environment file if no -e option is specified.
+.SH SEE ALSO
+.BR dotenv (5),
+.BR env (1),
+.BR export (1),
+.BR source (1),
+.BR exec (1)

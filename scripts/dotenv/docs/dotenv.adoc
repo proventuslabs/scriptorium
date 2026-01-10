@@ -1,0 +1,129 @@
+= DOTENV(1)
+ProventusLabs
+:docdate: 2025
+:doctype: manpage
+:manmanual: User Commands
+:mansource: Scriptorium
+:man-linkstyle: pass:[blue R < >]
+
+== NAME
+
+dotenv - load environment variables from .env files and execute command
+
+== SYNOPSIS
+
+*dotenv* [*-h* | *--help*] +
+*dotenv* [*-x* | *--exec*] [*-s* | *--strict*] [*-q* | *--silent*] [*-e* _FILE_]... _COMMAND_ [_ARGS_...]
+
+== DESCRIPTION
+
+*dotenv* loads environment variables from one or more .env files and executes
+a command with the loaded environment. It supports multiline values, quoted
+strings, and comments.
+
+Environment variables that are already set in the calling environment take
+precedence over variables defined in .env files. This allows for easy
+overriding of .env file values.
+
+The .env file format follows common conventions. For detailed syntax
+information, see *env*(5).
+
+== OPTIONS
+
+*-e* _FILE_::
+  Specify .env file to load. Can be specified multiple times to load multiple
+  files. If not specified, defaults to *.env*. Files are processed in order,
+  with later files overriding variables from earlier files.
+
+*-x*, *--exec*::
+  Replace the current shell process with the executed command instead of
+  running it in a subprocess.
+
+*-s*, *--strict*::
+  Fail with exit code 1 when warnings occur (e.g., missing .env files,
+  unclosed quotes).
+
+*-q*, *--silent*::
+  Suppress warning messages. Does not affect error behavior.
+
+*-h*, *--help*::
+  Show help message and exit.
+
+== ARGUMENTS
+
+_COMMAND_::
+  Command to execute with the loaded environment variables.
+
+_ARGS_...::
+  Arguments to pass to the command.
+
+== VARIABLE PRECEDENCE
+
+Variables are resolved in the following order (highest to lowest precedence):
+
+1. Environment variables set in the calling shell
+2. Variables from .env files (processed in command-line order)
+
+This means that *TEST=override dotenv -e .env command* will use "override" as
+the value of TEST, regardless of what .env contains.
+
+When multiple .env files are specified, later files override variables from
+earlier files, but only if those variables are not already set in the
+environment.
+
+== EXAMPLES
+
+Execute go command with environment from .env file::
+
+  dotenv go run main.go
+
+Load variables from multiple .env files and run Python script::
+
+  dotenv -e .env -e .env.production python app.py
+
+Use custom .env file with npm::
+
+  dotenv -e .env.local npm start
+
+Override .env file value with environment variable::
+
+  TEST=override dotenv -e .env printenv TEST
+
+Fail if .env.production is missing instead of just warning::
+
+  dotenv -s -e .env.production python app.py
+
+Suppress warning message about missing.env file::
+
+  dotenv -q -e missing.env node server.js
+
+Replace current shell with bash using environment from .env file::
+
+  dotenv -x -e .env bash
+
+Replace current process with Node.js server using default .env file::
+
+  dotenv --exec node server.js
+
+== EXIT STATUS
+
+*0*::
+  Success.
+
+*1*::
+  Runtime error (file not found in strict mode, parse error).
+
+*2*::
+  Usage error (missing command, invalid options).
+
+*N*::
+  Exit status of the executed command.
+
+== FILES
+
+*.env*::
+  Default environment file if no *-e* option is specified.
+
+== SEE ALSO
+
+*env*(5), *env*(1), *export*(1), *source*(1), *exec*(1)

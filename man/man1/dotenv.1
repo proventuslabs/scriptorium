@@ -1,0 +1,195 @@
+'\" t
+.\"     Title: dotenv
+.\"    Author: ProventusLabs
+.\" Generator: Asciidoctor 2.0.26
+.\"      Date: 2025
+.\"    Manual: User Commands
+.\"    Source: Scriptorium
+.\"  Language: English
+.\"
+.TH "DOTENV" "1" "2025" "Scriptorium" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+dotenv \- load environment variables from .env files and execute command
+.SH "SYNOPSIS"
+.sp
+\fBdotenv\fP [\fB\-h\fP | \fB\-\-help\fP]
+.br
+\fBdotenv\fP [\fB\-x\fP | \fB\-\-exec\fP] [\fB\-s\fP | \fB\-\-strict\fP] [\fB\-q\fP | \fB\-\-silent\fP] [\fB\-e\fP \fIFILE\fP].\|.\|. \fICOMMAND\fP [\fIARGS\fP.\|.\|.]
+.SH "DESCRIPTION"
+.sp
+\fBdotenv\fP loads environment variables from one or more .env files and executes
+a command with the loaded environment. It supports multiline values, quoted
+strings, and comments.
+.sp
+Environment variables that are already set in the calling environment take
+precedence over variables defined in .env files. This allows for easy
+overriding of .env file values.
+.sp
+The .env file format follows common conventions. For detailed syntax
+information, see \fBenv\fP(5).
+.SH "OPTIONS"
+.sp
+\fB\-e\fP \fIFILE\fP
+.RS 4
+Specify .env file to load. Can be specified multiple times to load multiple
+files. If not specified, defaults to \fB.env\fP. Files are processed in order,
+with later files overriding variables from earlier files.
+.RE
+.sp
+\fB\-x\fP, \fB\-\-exec\fP
+.RS 4
+Replace the current shell process with the executed command instead of
+running it in a subprocess.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-strict\fP
+.RS 4
+Fail with exit code 1 when warnings occur (e.g., missing .env files,
+unclosed quotes).
+.RE
+.sp
+\fB\-q\fP, \fB\-\-silent\fP
+.RS 4
+Suppress warning messages. Does not affect error behavior.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Show help message and exit.
+.RE
+.SH "ARGUMENTS"
+.sp
+\fICOMMAND\fP
+.RS 4
+Command to execute with the loaded environment variables.
+.RE
+.sp
+\fIARGS\fP.\|.\|.
+.RS 4
+Arguments to pass to the command.
+.RE
+.SH "VARIABLE PRECEDENCE"
+.sp
+Variables are resolved in the following order (highest to lowest precedence):
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 1." 4.2
+.\}
+Environment variables set in the calling shell
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 2." 4.2
+.\}
+Variables from .env files (processed in command\-line order)
+.RE
+.sp
+This means that \fBTEST=override dotenv \-e .env command\fP will use "override" as
+the value of TEST, regardless of what .env contains.
+.sp
+When multiple .env files are specified, later files override variables from
+earlier files, but only if those variables are not already set in the
+environment.
+.SH "EXAMPLES"
+.sp
+Execute go command with environment from .env file
+.RS 4
+dotenv go run main.go
+.RE
+.sp
+Load variables from multiple .env files and run Python script
+.RS 4
+dotenv \-e .env \-e .env.production python app.py
+.RE
+.sp
+Use custom .env file with npm
+.RS 4
+dotenv \-e .env.local npm start
+.RE
+.sp
+Override .env file value with environment variable
+.RS 4
+TEST=override dotenv \-e .env printenv TEST
+.RE
+.sp
+Fail if .env.production is missing instead of just warning
+.RS 4
+dotenv \-s \-e .env.production python app.py
+.RE
+.sp
+Suppress warning message about missing.env file
+.RS 4
+dotenv \-q \-e missing.env node server.js
+.RE
+.sp
+Replace current shell with bash using environment from .env file
+.RS 4
+dotenv \-x \-e .env bash
+.RE
+.sp
+Replace current process with Node.js server using default .env file
+.RS 4
+dotenv \-\-exec node server.js
+.RE
+.SH "EXIT STATUS"
+.sp
+\fB0\fP
+.RS 4
+Success.
+.RE
+.sp
+\fB1\fP
+.RS 4
+Runtime error (file not found in strict mode, parse error).
+.RE
+.sp
+\fB2\fP
+.RS 4
+Usage error (missing command, invalid options).
+.RE
+.sp
+\fBN\fP
+.RS 4
+Exit status of the executed command.
+.RE
+.SH "FILES"
+.sp
+\fB.env\fP
+.RS 4
+Default environment file if no \fB\-e\fP option is specified.
+.RE
+.SH "SEE ALSO"
+.sp
+\fBenv\fP(5), \fBenv\fP(1), \fBexport\fP(1), \fBsource\fP(1), \fBexec\fP(1)
+.SH "AUTHOR"
+.sp
+ProventusLabs
