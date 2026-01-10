@@ -41,9 +41,10 @@ scriptorium/
 │   └── bundle_spec.sh          # Bundler tests
 ├── bin/                        # Built executables (generated)
 ├── man/                        # Built manpages (generated)
+├── templates/                  # Script templates for new-script
 ├── scriptorium.plugin.sh       # Bash plugin (source in .bashrc)
 ├── scriptorium.plugin.zsh      # Zsh plugin (source in .zshrc)
-├── flake.nix                   # Nix development environment
+├── flake.nix                   # Nix packages and dev environment
 └── Makefile                    # Build targets
 ```
 
@@ -63,6 +64,7 @@ scriptorium/
 | `make test-utils` | Run utils tests |
 | `make lint` | Run shellcheck and check formatting |
 | `make fmt` | Format shell scripts with shfmt |
+| `make new-script NAME=x` | Create a new script from templates |
 
 ### Bundler
 
@@ -91,12 +93,24 @@ VERSION=1.0
 # @bundle end
 ```
 
+## Versioning
+
+Scripts are versioned independently using [Semantic Versioning](https://semver.org/). Releases are automated via [release-please](https://github.com/googleapis/release-please).
+
 ## Adding a New Script
 
-1. Create directory: `scripts/<name>/`
-2. Add `main.sh` (entry point with `#!/usr/bin/env bash` shebang)
-3. Add `options.sh` (CLI options in getoptions format)
-4. Add `docs/<name>.adoc` (manpage documentation)
-5. Add `<name>_spec.sh` (tests)
-6. Optionally add `completions/<name>.bash` and `completions/_<name>` for shell completions
-7. Build: `make build-script NAME=<name>`
+```bash
+make new-script NAME=<name>
+```
+
+This creates `scripts/<name>/` with `main.sh`, `options.sh`, and `default.nix` from templates.
+
+Then:
+1. Implement your script in `main.sh`
+2. Add CLI options in `options.sh`
+3. Update description in `default.nix`
+4. Add component to `release-please-config.json`
+5. Import script in root `flake.nix` (add to `let` block and `packages`)
+6. Add `docs/<name>.adoc` for manpage
+7. Add `<name>_spec.sh` for tests
+8. Build: `make build-script NAME=<name>`
