@@ -1,9 +1,15 @@
 # shellcheck shell=bash
 # shellcheck disable=SC1003  # Intentional backslash comparison
 
+# The '\'' pattern: close quote, escaped quote, open quote (4 chars)
+# Used to detect single-quote escape sequences spanning line boundaries
+_SQ_ESCAPE="'\\''"
+
 # Parse .env content from stdin, call callback for each key=value
 # Usage: parse_env <callback_fn>
 # Callback receives: callback_fn "KEY" "value"
+# Returns: 0 on success, 1 if warnings occurred
+# Globals: DOTENV_SILENT (suppress warnings), DOTENV_STRICT (unused here, checked by caller)
 parse_env() {
 	local callback=$1
 	local line key value
@@ -11,6 +17,7 @@ parse_env() {
 	local in_double_quote=false
 	local accumulated_value=""
 	local current_key=""
+	local had_warnings=false
 
 	while IFS= read -r line || [[ -n "$line" ]]; do
 		# If we're in a multiline quoted value, append to it
@@ -51,8 +58,8 @@ parse_env() {
 			value="${line#*=}"
 
 			# Check for quoted values
-			if [[ "$value" =~ ^\'(.*)\'([[:space:]]*(#.*)?)?$ ]]; then
-				# Complete single-quoted value on one line
+			if [[ "$value" =~ ^\'(.*)\'([[:space:]]*(#.*)?)?$ ]] && [[ "${value: -4}" != "$_SQ_ESCAPE" ]]; then
+				# Complete single-quoted value on one line (but not if ending with '\'' which continues)
 				value="${BASH_REMATCH[1]}"
 				# Handle escaped single quotes (end quote, escaped quote, start quote)
 				value="${value//\'\\\'\'/\'}"
@@ -79,34 +86,45 @@ parse_env() {
 				"$callback" "$key" "$value"
 			fi
 		elif [[ "$line" =~ ^[0-9] ]]; then
-			echo "dotenv: warning: invalid key name starting with digit: ${line%%=*}" >&2
+			[[ -z "${DOTENV_SILENT:-}" ]] && echo "dotenv: warning: invalid key starting with digit: ${line%%=*}" >&2
+			had_warnings=true
+		else
+			[[ -z "${DOTENV_SILENT:-}" ]] && echo "dotenv: warning: unrecognized line: $line" >&2
+			had_warnings=true
 		fi
 	done
 
 	# Handle unclosed quotes
 	if $in_single_quote; then
-		echo "dotenv: warning: unclosed single quote for key: $current_key" >&2
+		[[ -z "${DOTENV_SILENT:-}" ]] && echo "dotenv: warning: unclosed single quote for key: $current_key" >&2
+		had_warnings=true
 		# Still emit what we have
 		value="${accumulated_value#\'}"
 		"$callback" "$current_key" "$value"
 	elif $in_double_quote; then
-		echo "dotenv: warning: unclosed double quote for key: $current_key" >&2
+		[[ -z "${DOTENV_SILENT:-}" ]] && echo "dotenv: warning: unclosed double quote for key: $current_key" >&2
+		had_warnings=true
 		value="${accumulated_value#\"}"
 		value=$(_process_escapes "$value")
 		value=$(_substitute_vars "$value")
 		"$callback" "$current_key" "$value"
 	fi
 
+	$had_warnings && return 1
 	return 0
 }
 
 # Check if string ends with unescaped single quote
 _ends_single_quote() {
 	local s=$1
-	# Single quotes: only '\'' escapes a quote (end, escape, begin pattern)
-	# For simplicity, check if it ends with ' and count quotes
-	[[ "$s" =~ \'([[:space:]]*(#.*)?)?$ ]] && return 0
-	return 1
+	# '\'' at end means close-escape-open, so string continues
+	[[ "${s: -4}" == "$_SQ_ESCAPE" ]] && return 1
+	# Strip trailing comment if present (# after quote)
+	[[ "$s" == *"'"*"#"* ]] && s="${s%%"'"*"#"*}'"
+	# Strip trailing whitespace
+	s="${s%"${s##*[![:space:]]}"}"
+	# Check if ends with single quote
+	[[ "${s: -1}" == "'" ]]
 }
 
 # Check if string ends with unescaped double quote

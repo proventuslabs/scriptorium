@@ -38,7 +38,9 @@ dotenv_exec() {
 			[[ -n "${DOTENV_STRICT:-}" ]] && return 1
 			continue
 		fi
-		parse_env _dotenv_callback <"$file"
+		if ! parse_env _dotenv_callback <"$file"; then
+			[[ -n "${DOTENV_STRICT:-}" ]] && return 1
+		fi
 	done
 
 	# Build env args (skip vars already in environment)

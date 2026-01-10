@@ -71,6 +71,10 @@ When multiple .env files are specified, later files override variables from
 earlier files, but only if those variables are not already set in the
 environment.
 
+NOTE: An environment variable set to an empty string is still considered "set"
+and will take precedence over .env file values. Use *unset VAR* to allow the
+.env value to be used.
+
 == EXAMPLES
 
 Execute go command with environment from .env file::

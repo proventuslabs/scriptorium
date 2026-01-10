@@ -287,6 +287,17 @@ line2"
 			The variable "PARSED_VARS[0]" should equal "KEY=line1
 line2"
 		End
+
+		It "handles '\\'' escape spanning lines"
+			Data
+				#|KEY='line1'\''
+				#|line2'
+			End
+			When call parse_env collector
+			The status should be success
+			The variable "PARSED_VARS[0]" should equal "KEY=line1'
+line2"
+		End
 	End
 
 	Describe 'variable substitution'
@@ -377,7 +388,7 @@ line2"
 				#|2FAST=value
 			End
 			When call parse_env collector
-			The status should be success
+			The status should equal 1
 			The error should include "invalid"
 		End
 
@@ -386,7 +397,7 @@ line2"
 				#|KEY='unclosed
 			End
 			When call parse_env collector
-			The status should be success
+			The status should equal 1
 			The error should include "unclosed"
 		End
 
@@ -395,8 +406,17 @@ line2"
 				#|KEY="unclosed
 			End
 			When call parse_env collector
-			The status should be success
+			The status should equal 1
 			The error should include "unclosed"
+		End
+
+		It 'warns on unrecognized line'
+			Data
+				#|this is not valid
+			End
+			When call parse_env collector
+			The status should equal 1
+			The error should include "unrecognized"
 		End
 	End
 End
