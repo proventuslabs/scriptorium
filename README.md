@@ -4,7 +4,9 @@ A collection of useful shell scripts and utilities targeting Bash 4+.
 
 ## Scripts
 
-*No scripts yet - contributions welcome!*
+| Script | Description | Dependencies |
+|--------|-------------|--------------|
+| [cz](scripts/cz/docs/cz.adoc) | Conventional commit message builder | [`gum`](https://github.com/charmbracelet/gum) (interactive mode) |
 
 ## Installation
 

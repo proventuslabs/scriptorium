@@ -1,0 +1,157 @@
+'\" t
+.\"     Title: gitcommitizen
+.\"    Author: ProventusLabs
+.\" Generator: Asciidoctor 2.0.26
+.\"      Date: 2025-10-04
+.\"    Manual: gitcommitizen
+.\"    Source: Scriptorium
+.\"  Language: English
+.\"
+.TH "GITCOMMITIZEN" "5" "2025-10-04" "Scriptorium" "gitcommitizen"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+gitcommitizen \- configuration file for conventional commit linting
+.SH "SYNOPSIS"
+.sp
+\fB.gitcommitizen\fP
+.SH "DESCRIPTION"
+.sp
+The \fB.gitcommitizen\fP file defines commit message types and scopes for validating conventional commits.
+It allows specifying global scopes, type\-specific scopes, and exceptions to ensure consistent commit messages.
+.SH "FILE FORMAT"
+.sp
+Each line is pipe\-delimited:
+.sp
+.if n .RS 4
+.nf
+.fam C
+<type>|<description>|<scope>[,<scope>]...
+.fam
+.fi
+.if n .RE
+.sp
+\fBtype\fP
+.RS 4
+Commit type (e.g., \f(CRfeat\fP, \f(CRfix\fP).
+.RE
+.sp
+\fBdescription\fP
+.RS 4
+Human\-readable description of the type.
+.RE
+.sp
+\fBscopes\fP
+.RS 4
+Comma\-separated list of scopes with optional prefixes.
+Types inherit all global scopes by default. Use prefixes to modify:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CRscope\fP or \f(CR+scope\fP adds to inherited scopes
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CR\-scope\fP removes from inherited scopes
+.RE
+.RE
+.sp
+Global scopes are defined with \f(CR*\fP as the type:
+.sp
+.if n .RS 4
+.nf
+.fam C
+*|<description>|<scope>[,<scope>]...
+.fam
+.fi
+.if n .RE
+.sp
+The last definition of a type takes precedence.
+.SH "SYNTAX"
+.sp
+Lines starting with \f(CR#\fP are comments. Blank lines are ignored.
+.SH "EXAMPLES"
+.sp
+.if n .RS 4
+.nf
+.fam C
+# Global scopes available to all types
+*||api,core
+
+# Types with descriptions and scope overrides
+feat|A new feature|ui
+fix|A bug fix|
+docs|Documentation changes|\-api
+.fam
+.fi
+.if n .RE
+.SH "FILE LOCATION"
+.sp
+Place \fB.gitcommitizen\fP in the root of a Git repository.
+.SH "NOTES"
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Types are lowercase identifiers (e.g., \f(CRfeat\fP, \f(CRfix\fP).
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Scopes may include letters, numbers, dashes, underscores, and \f(CR@\fP (e.g., \f(CR@types/node\fP).
+.RE
+.SH "SEE ALSO"
+.sp
+git\-commit(1)
+.RS 4
+Git commit command.
+.RE
+.sp
+.URL "https://www.conventionalcommits.org" "" ""
+.RS 4
+Official conventional commit spec.
+.RE
+.SH "AUTHOR"
+.sp
+ProventusLabs

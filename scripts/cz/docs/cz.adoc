@@ -1,0 +1,150 @@
+= CZ(1)
+ProventusLabs
+:docdate: 2025
+:doctype: manpage
+:manmanual: User Commands
+:mansource: Scriptorium
+:man-linkstyle: pass:[blue R < >]
+
+== NAME
+
+cz - conventional commit message builder
+
+== SYNOPSIS
+
+*cz* [*-c* _FILE_] [_SUBCOMMAND_]
+
+*cz* *create* [*-s*] +
+*cz* *lint* [*-q*] +
+*cz* *parse* +
+*cz* *init* [*-f*] +
+*cz* *hook* [*install* | *uninstall* | *status*]
+
+== DESCRIPTION
+
+*cz* is an interactive tool for creating commit messages that follow the
+Conventional Commits specification. It can also lint existing messages or
+display the resolved configuration.
+
+When invoked without a subcommand, *cz* defaults to *create* mode if run
+in a terminal, or *lint* mode if receiving input on standard input.
+
+== SUBCOMMANDS
+
+*create* [*-s*]::
+  Compose a commit message interactively using *gum*(1). Prompts for type,
+  scope, breaking change indicator, description, body, and footer. Output
+  is written to standard output. Default when run interactively.
+  Requires *gum* to be installed.
++
+--
+*-s*, *--strict-scopes*:::
+  Only allow scopes defined in configuration, disabling custom input.
+  By default, configured scopes are shown as suggestions with an option
+  to enter a custom scope.
+--
+
+*lint* [*-q*]::
+  Validate a commit message against the Conventional Commits rules and the
+  *.gitcommitizen*(5) configuration. Reads from standard input. Prints
+  diagnostic messages explaining any errors. Exits non-zero if validation
+  fails.
++
+--
+*-q*, *--quiet*:::
+  Suppress output. Only set the exit status.
+--
+
+*parse*::
+  Display configuration with all values expanded. Useful for debugging.
+
+*init* [*-f*]::
+  Generate a starter *.gitcommitizen* file in the current directory.
++
+--
+*-f*, *--force*:::
+  Overwrite an existing file.
+--
+
+*hook* *install* | *uninstall* | *status*::
+  Manage the *commit-msg* git hook. *install* creates the hook to run
+  *cz lint* on each commit. *uninstall* removes it. *status* shows whether
+  the hook is installed.
+
+== OPTIONS
+
+*-c*, *--config-file* _FILE_::
+  Use _FILE_ instead of *.gitcommitizen*. Searches parent directories if
+  not specified.
+
+*-h*, *--help*::
+  Display usage information and exit.
+
+*--version*::
+  Display version information and exit.
+
+== FILES
+
+*.gitcommitizen*::
+  Project configuration file. See *gitcommitizen*(5) for format. If no
+  configuration is found, the Angular convention is used (feat, fix, docs,
+  style, refactor, perf, test, build, ci, chore, revert).
+
+== EXAMPLES
+
+Create and commit interactively::
+
+  git commit -m "$(cz)"
+
+Lint the last commit message::
+
+  git log -1 --pretty=%B | cz lint
+
+Lint before committing (commit-msg hook)::
+
+  cz lint < "$1"
+
+Lint silently (exit status only)::
+
+  cz lint -q < "$1" || exit 1
+
+Show resolved configuration::
+
+  cz parse
+
+Generate a starter configuration::
+
+  cz init
+
+Install the commit-msg hook::
+
+  cz hook install
+
+== EXIT STATUS
+
+*0*::
+  Success.
+
+*1*::
+  Lint validation failed.
+
+*2*::
+  Usage error (invalid arguments).
+
+*3*::
+  Configuration or dependency error (missing config file, *gum* not installed).
+
+*130*::
+  User cancelled (SIGINT).
+
+== DEPENDENCIES
+
+*gum*(1)::
+  Required for interactive mode (*create*). Install from
+  https://github.com/charmbracelet/gum
+
+== SEE ALSO
+
+*git-commit*(1), *gitcommitizen*(5), *gum*(1)
+
+https://www.conventionalcommits.org[Conventional Commits]

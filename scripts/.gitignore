@@ -1,5 +1,6 @@
 # Track script source files
 !*.sh
+!*.nix
 !*_spec.sh
 !*_comp.sh
 !*_comp.zsh
