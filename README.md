@@ -8,6 +8,19 @@ A collection of useful shell scripts and utilities targeting Bash 4+.
 
 ## Installation
 
+### Via Nix
+
+```bash
+# Install individual script
+nix profile install github:user/scriptorium#dotenv
+
+# Install all scripts
+nix profile install github:user/scriptorium
+
+# Run without installing
+nix run github:user/scriptorium#dotenv -- --help
+```
+
 ### From source
 
 ```bash
