@@ -1,0 +1,22 @@
+## Summary
+
+<!-- Brief description of the changes -->
+
+## Checklist
+
+### For new scripts
+
+- [ ] `scripts/<name>/main.sh` - Entry point with `#!/usr/bin/env bash`
+- [ ] `scripts/<name>/options.sh` - CLI options (getoptions DSL)
+- [ ] `scripts/<name>/*_spec.sh` - Tests (ShellSpec)
+- [ ] `scripts/<name>/docs/<name>.adoc` - Manpage documentation
+- [ ] `scripts/<name>/completions/<name>.bash` - Bash completions
+- [ ] `scripts/<name>/completions/_<name>` - Zsh completions
+- [ ] `README.md` - Added script entry with link to docs
+- [ ] Built artifacts committed (`make build-script NAME=<name>`)
+
+### For all changes
+
+- [ ] Tests pass (`make test-script NAME=<name>`)
+- [ ] Linting passes (`make lint-script NAME=<name>`)
+- [ ] Artifacts up to date (`make build-script NAME=<name>`)
