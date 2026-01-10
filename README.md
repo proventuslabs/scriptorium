@@ -8,6 +8,7 @@ A collection of useful shell scripts and utilities targeting Bash 4+.
 |--------|-------------|--------------|
 | [cz](scripts/cz/docs/cz.adoc) | Conventional commit message builder | [`gum`](https://github.com/charmbracelet/gum) (interactive mode) |
 | [dotenv](scripts/dotenv/docs/dotenv.adoc) | Load environment variables from .env files | None |
+| [theme](scripts/theme/docs/theme.adoc) | Extensible theme orchestrator for shell environments | None |
 
 ## Installation
 
