@@ -96,8 +96,34 @@ Describe 'verify'
 	End
 
 	Describe 'check_dependencies'
-		It 'succeeds when openssl is available'
+		It 'succeeds when openssl is available (no algorithm)'
 			When call check_dependencies
+			The status should be success
+		End
+
+		It 'succeeds for HMAC algorithms (no xxd needed)'
+			When call check_dependencies "HS256"
+			The status should be success
+		End
+
+		It 'succeeds for RSA algorithms (no xxd needed)'
+			When call check_dependencies "RS256"
+			The status should be success
+		End
+
+		It 'succeeds for ECDSA when xxd is available'
+			# xxd should be available in test environment
+			When call check_dependencies "ES256"
+			The status should be success
+		End
+
+		It 'checks xxd for ES384'
+			When call check_dependencies "ES384"
+			The status should be success
+		End
+
+		It 'checks xxd for ES512'
+			When call check_dependencies "ES512"
 			The status should be success
 		End
 	End
@@ -168,6 +194,46 @@ Describe 'verify'
 			JWT_ALG="EdDSA"
 			When call get_openssl_digest
 			The output should equal ""
+		End
+	End
+
+	Describe 'verify_signature'
+		It 'verifies valid HS256 token through dispatcher'
+			jwt_split "$hs256_token"
+			jwt_decode_header
+			When call verify_signature "$hs256_secret"
+			The status should be success
+		End
+
+		It 'verifies valid HS384 token through dispatcher'
+			jwt_split "$hs384_token"
+			jwt_decode_header
+			When call verify_signature "$hs384_secret"
+			The status should be success
+		End
+
+		It 'verifies valid HS512 token through dispatcher'
+			jwt_split "$hs512_token"
+			jwt_decode_header
+			When call verify_signature "$hs512_secret"
+			The status should be success
+		End
+
+		It 'rejects HS256 with wrong secret'
+			jwt_split "$hs256_token"
+			jwt_decode_header
+			When call verify_signature "wrong-secret"
+			The status should equal 3
+			The stderr should include "verification failed"
+		End
+
+		It 'rejects unsupported algorithm'
+			jwt_split "$hs256_token"
+			jwt_decode_header
+			JWT_ALG="UNSUPPORTED"
+			When call verify_signature "any-key"
+			The status should equal 7
+			The stderr should include "unsupported algorithm"
 		End
 	End
 End

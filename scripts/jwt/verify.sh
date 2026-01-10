@@ -2,11 +2,24 @@
 # JWT verification functions
 
 # Check required dependencies are available
+# $1: algorithm (optional) - if ECDSA, also checks for xxd
 check_dependencies() {
+	local alg=${1:-}
+
 	if ! command -v openssl &>/dev/null; then
 		echo "jwt: openssl not found" >&2
 		return 5
 	fi
+
+	# xxd required for ECDSA signature conversion
+	case $alg in
+		ES256 | ES384 | ES512)
+			if ! command -v xxd &>/dev/null; then
+				echo "jwt: xxd not found (required for ECDSA)" >&2
+				return 5
+			fi
+			;;
+	esac
 }
 
 # Get OpenSSL major version number
@@ -245,6 +258,8 @@ verify_eddsa() {
 # $1: secret string for HMAC, or PEM public key content for asymmetric
 verify_signature() {
 	local key=$1
+
+	check_dependencies "$JWT_ALG" || return $?
 
 	case $JWT_ALG in
 		HS256 | HS384 | HS512)
