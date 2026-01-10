@@ -23,11 +23,11 @@ jobs:
 
       - name: Check formatting
         run: |
-          nix develop --command make fmt-utils
+          nix develop --command make fmt NAME=utils
           changed=$(git diff --name-only -- 'utils/*.sh')
           if [ -n "$changed" ]; then
             echo "$changed" | while IFS= read -r file; do
-              echo "::error file=$file::Needs formatting. Run 'make fmt'"
+              echo "::error file=$file::Needs formatting. Run 'make fmt NAME=utils'"
             done
             exit 1
           fi
@@ -35,7 +35,7 @@ jobs:
       - name: Lint
         run: |
           set -o pipefail
-          nix develop --command make lint-utils SHELLCHECK_FORMAT="-f gcc" 2>&1 | \
+          nix develop --command make lint NAME=utils SHELLCHECK_FORMAT="-f gcc" 2>&1 | \
             sed -E 's/^([^:]+):([0-9]+):([0-9]+): (error|warning): (.*)$/::\4 file=\1,line=\2,col=\3::\5/; s/^([^:]+):([0-9]+):([0-9]+): (info): (.*)$/::notice file=\1,line=\2,col=\3::\5/'
 
   test:
@@ -47,4 +47,4 @@ jobs:
       - uses: cachix/install-nix-action@v30
 
       - name: Run tests
-        run: nix develop --command make test-utils
+        run: nix develop --command make test NAME=utils

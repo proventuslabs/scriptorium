@@ -1,5 +1,5 @@
 {
-  description = "Shell script development environment for scriptorium";
+  description = "Shell script collection for scriptorium";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
@@ -16,28 +16,101 @@
       system:
       let
         pkgs = import nixpkgs { inherit system; };
+
+        # Build tools needed for scripts
+        buildTools = with pkgs; [
+          bash
+          gnumake
+          coreutils
+          getoptions
+          asciidoctor
+        ];
+
+        # Bash 4+ runtime dependency
+        bash4 = pkgs.bash;
+
+        # Helper to build individual script packages
+        mkScript =
+          {
+            name,
+            version,
+            description,
+          }:
+          pkgs.stdenv.mkDerivation {
+            pname = name;
+            inherit version;
+            src = self;
+
+            nativeBuildInputs = buildTools;
+            propagatedBuildInputs = [ bash4 ];
+
+            buildPhase = ''
+              make build NAME=${name}
+            '';
+
+            installPhase = ''
+              make install NAME=${name} DESTDIR=$out
+            '';
+
+            meta = with pkgs.lib; {
+              inherit description;
+              license = licenses.mit;
+              platforms = platforms.unix;
+              mainProgram = name;
+            };
+          };
+
+        # Import script packages (added as scripts are merged)
+        # Example: dotenv = import ./scripts/dotenv { inherit pkgs mkScript; };
+
+        scripts = {
+          # Scripts imported here as they're merged
+        };
       in
       {
+        packages = scripts // {
+          # Individual scripts exposed via: nix build .#<name>
+
+          # Meta-package with all scripts and plugins
+          default = pkgs.stdenv.mkDerivation {
+            pname = "scriptorium";
+            version = "0.1.0";
+            src = self;
+
+            nativeBuildInputs = buildTools;
+            propagatedBuildInputs = [ bash4 ];
+
+            buildPhase = ''
+              make build
+            '';
+
+            installPhase = ''
+              make install DESTDIR=$out
+            '';
+
+            meta = with pkgs.lib; {
+              description = "Shell script collection";
+              license = licenses.mit;
+              platforms = platforms.unix;
+            };
+          };
+        };
+
         devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            bash
-            zsh
-            shellspec
-            shellcheck
-            shfmt
-            getoptions
-            asciidoctor
-            zsh
-          ];
+          buildInputs =
+            buildTools
+            ++ (with pkgs; [
+              zsh
+              shellspec
+              shellcheck
+              shfmt
+            ]);
 
           shellHook = ''
-            # Suppress Ruby/Bundler warnings about local gems
             export RUBYOPT="-W0"
-
             echo "Scriptorium dev environment loaded"
             echo "ShellSpec: $(shellspec --version)"
 
-            # Only exec into zsh for interactive shells (not when using --command)
             if [[ $- == *i* ]]; then
               export SHELL=${pkgs.zsh}/bin/zsh
               exec $SHELL
