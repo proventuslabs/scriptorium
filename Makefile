@@ -1,7 +1,7 @@
 # Scriptorium Makefile
 # A collection of useful shell functions, scripts and utilities targeting Bash 4+
 
-.PHONY: help test-scripts test-utils test test-script build build-man build-bin build-completions build-script clean lint lint-script lint-utils fmt fmt-script fmt-utils
+.PHONY: help test-scripts test-utils test test-script build build-man build-bin build-completions build-script clean lint lint-script lint-utils fmt fmt-script fmt-utils new-script
 
 # Directories
 SCRIPTS_DIR := scripts
@@ -37,6 +37,7 @@ help:
 	@echo "  fmt                 - Format shell scripts with shfmt"
 	@echo "  fmt-script NAME=x   - Format a specific script"
 	@echo "  fmt-utils           - Format utils only"
+	@echo "  new-script NAME=x   - Create a new script from templates"
 
 # Build targets
 build: build-man build-bin build-completions
@@ -214,3 +215,30 @@ fmt-utils:
 	@echo "Formatting utils..."
 	@find utils/ -name '*.sh' -type f $(SHFMT_EXCLUDES) | xargs shfmt -w $(SHFMT_OPTS)
 	@echo "Done."
+
+# Create a new script from templates: make new-script NAME=foo
+TEMPLATES_DIR := templates
+
+new-script:
+ifndef NAME
+	$(error NAME is required. Usage: make new-script NAME=<script-name>)
+endif
+	@if [ -d "$(SCRIPTS_DIR)/$(NAME)" ]; then \
+		echo "Error: script '$(NAME)' already exists in $(SCRIPTS_DIR)/"; \
+		exit 1; \
+	fi
+	@echo "Creating new script: $(NAME)"
+	@mkdir -p $(SCRIPTS_DIR)/$(NAME)/docs $(SCRIPTS_DIR)/$(NAME)/completions
+	@sed 's/<name>/$(NAME)/g' $(TEMPLATES_DIR)/main.sh > $(SCRIPTS_DIR)/$(NAME)/main.sh
+	@sed 's/<name>/$(NAME)/g' $(TEMPLATES_DIR)/options.sh > $(SCRIPTS_DIR)/$(NAME)/options.sh
+	@sed 's/<name>/$(NAME)/g; s/<version>/0.1.0/g; s/<description>/TODO: Add description/g' $(TEMPLATES_DIR)/default.nix > $(SCRIPTS_DIR)/$(NAME)/default.nix
+	@echo "Created $(SCRIPTS_DIR)/$(NAME)/"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  1. Edit $(SCRIPTS_DIR)/$(NAME)/main.sh - implement your script"
+	@echo "  2. Edit $(SCRIPTS_DIR)/$(NAME)/options.sh - add CLI options"
+	@echo "  3. Edit $(SCRIPTS_DIR)/$(NAME)/default.nix - update description"
+	@echo "  4. Add component to release-please-config.json"
+	@echo "  5. Import script in root flake.nix (add to let block and packages)"
+	@echo "  6. Create $(SCRIPTS_DIR)/$(NAME)/docs/$(NAME).adoc for manpage"
+	@echo "  7. Create $(SCRIPTS_DIR)/$(NAME)/*_spec.sh for tests"

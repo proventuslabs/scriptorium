@@ -1,0 +1,8 @@
+# Ignore everything by default
+*
+
+# Track template files
+!.gitignore
+!main.sh
+!options.sh
+!default.nix

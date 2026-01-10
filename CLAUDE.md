@@ -8,9 +8,12 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development commands and build system
 
 - `scripts/<name>/main.sh` - Script entry point
 - `scripts/<name>/options.sh` - CLI options (getoptions DSL)
+- `scripts/<name>/default.nix` - Nix package definition
 - `scripts/<name>/docs/<name>.adoc` - Manpage (AsciiDoc)
 - `scripts/<name>/completions/` - Shell completions (`.bash`, `_zsh`)
 - `scripts/<name>/*_spec.sh` - Tests (ShellSpec)
+- `templates/` - Script templates for `make new-script`
+- `flake.nix` - Nix packages and dev environment
 - `utils/bundle.sh` - Bundles scripts into single executables
 
 ## Conventions
