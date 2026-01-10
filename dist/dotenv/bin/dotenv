@@ -109,7 +109,11 @@ parse() {
 				break ;;
 			[-]?*) set "unknown" "$1"; break ;;
 			*)
-				REST="${REST} \"\${$(($OPTIND-$#))}\""
+				while [ $# -gt 0 ]; do
+					REST="${REST} \"\${$(($OPTIND-$#))}\""
+					shift
+				done
+				break ;;
 		esac
 		shift
 	done

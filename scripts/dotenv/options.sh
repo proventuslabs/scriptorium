@@ -11,7 +11,7 @@ append_env_file() {
 # @bundle end
 
 parser_definition() {
-	setup REST help:usage abbr:true -- \
+	setup REST help:usage abbr:true mode:+ -- \
 		"Usage: dotenv [options...] command [args...]"
 	msg -- '' 'Load environment from .env files and execute command' ''
 	msg -- 'Options:'
