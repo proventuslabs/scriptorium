@@ -1,0 +1,15 @@
+# Track script source files
+!*.sh
+!*_spec.sh
+!*_comp.sh
+!*_comp.zsh
+!*.adoc
+!spec_helper.sh
+
+# Track completion files
+!**/completions/
+!**/completions/*.bash
+!**/completions/_*
+
+# Track subdirectories
+!*/

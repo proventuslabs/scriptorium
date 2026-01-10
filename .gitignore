@@ -1,0 +1,20 @@
+# Ignore everything by default
+*
+
+# Track these root files
+!.gitignore
+!LICENSE
+!README.md
+!CONTRIBUTING.md
+!CLAUDE.md
+!Makefile
+!.editorconfig
+!.shellspec
+!flake.nix
+!flake.lock
+!scriptorium.plugin.sh
+!scriptorium.plugin.zsh
+
+# Track subdirectories (each has its own .gitignore)
+!*/
+!.github/
