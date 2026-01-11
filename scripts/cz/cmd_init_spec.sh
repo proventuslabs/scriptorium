@@ -39,16 +39,34 @@ Describe 'cmd_init'
 		The contents of file ".gitcommitizen" should not equal "old content"
 	End
 
-	It 'creates file with feat type'
+	It 'creates file with feat type in INI format'
 		When call cmd_init
 		The output should equal "Created .gitcommitizen"
-		The contents of file ".gitcommitizen" should include "feat|A new feature|"
+		The contents of file ".gitcommitizen" should include "feat = A new feature"
 	End
 
-	It 'creates file with fix type'
+	It 'creates file with fix type in INI format'
 		When call cmd_init
 		The output should equal "Created .gitcommitizen"
-		The contents of file ".gitcommitizen" should include "fix|A bug fix|"
+		The contents of file ".gitcommitizen" should include "fix = A bug fix"
+	End
+
+	It 'creates file with [types] section'
+		When call cmd_init
+		The output should equal "Created .gitcommitizen"
+		The contents of file ".gitcommitizen" should include "[types]"
+	End
+
+	It 'creates file with [settings] section'
+		When call cmd_init
+		The output should equal "Created .gitcommitizen"
+		The contents of file ".gitcommitizen" should include "[settings]"
+	End
+
+	It 'creates file with [scopes] section'
+		When call cmd_init
+		The output should equal "Created .gitcommitizen"
+		The contents of file ".gitcommitizen" should include "[scopes]"
 	End
 
 	It 'includes usage comments'

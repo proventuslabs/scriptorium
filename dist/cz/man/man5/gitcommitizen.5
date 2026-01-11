@@ -34,91 +34,157 @@ gitcommitizen \- configuration file for conventional commit linting
 \fB.gitcommitizen\fP
 .SH "DESCRIPTION"
 .sp
-The \fB.gitcommitizen\fP file defines commit message types and scopes for validating conventional commits.
-It allows specifying global scopes, type\-specific scopes, and exceptions to ensure consistent commit messages.
+The \fB.gitcommitizen\fP file defines commit message types, scopes, and validation
+settings for conventional commits. It uses INI\-style configuration with three
+sections: settings, scopes, and types.
 .SH "FILE FORMAT"
 .sp
-Each line is pipe\-delimited:
+INI\-style configuration with three sections:
 .sp
 .if n .RS 4
 .nf
 .fam C
-<type>|<description>|<scope>[,<scope>]...
+[settings]
+strict = false
+multi\-scope = false
+multi\-scope\-separator = ,
+
+[scopes]
+name = glob\-pattern[, glob\-pattern]...
+
+[types]
+name = description
 .fam
 .fi
 .if n .RE
+.SS "Settings"
 .sp
-\fBtype\fP
+\fBstrict\fP
 .RS 4
-Commit type (e.g., \f(CRfeat\fP, \f(CRfix\fP).
+Enable strict scope validation (default: false). When enabled, any scope
+used must be defined in \f(CR[scopes]\fP. Also requires a scope when files match
+defined scope patterns.
 .RE
 .sp
-\fBdescription\fP
+\fBmulti\-scope\fP
 .RS 4
-Human\-readable description of the type.
+Allow multiple scopes like \f(CRfeat(api,db):\fP (default: false).
 .RE
 .sp
-\fBscopes\fP
+\fBmulti\-scope\-separator\fP
 .RS 4
-Comma\-separated list of scopes with optional prefixes.
-Types inherit all global scopes by default. Use prefixes to modify:
-.sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.  sp -1
-.  IP \(bu 2.3
-.\}
-\f(CRscope\fP or \f(CR+scope\fP adds to inherited scopes
+Separator character for multi\-scopes: \f(CR,\fP, \f(CR/\fP, or \f(CR+\fP (default: \f(CR,\fP).
 .RE
+.SS "Scopes"
 .sp
-.RS 4
-.ie n \{\
-\h'-04'\(bu\h'+03'\c
-.\}
-.el \{\
-.  sp -1
-.  IP \(bu 2.3
-.\}
-\f(CR\-scope\fP removes from inherited scopes
-.RE
-.RE
+Maps scope names to glob patterns. Multiple patterns are separated by commas.
+When validating with \f(CR\-\-files\fP, the scope is checked against these patterns
+to ensure commits use appropriate scopes for the files being changed.
 .sp
-Global scopes are defined with \f(CR*\fP as the type:
+Special scope \f(CR*\fP matches any files (wildcard). This allows any scope to be used
+regardless of which files are staged.
+.SS "Types"
 .sp
-.if n .RS 4
-.nf
-.fam C
-*|<description>|<scope>[,<scope>]...
-.fam
-.fi
-.if n .RE
-.sp
-The last definition of a type takes precedence.
+Maps type names to their descriptions. These are shown during interactive commit
+creation and used for validation.
 .SH "SYNTAX"
 .sp
-Lines starting with \f(CR#\fP are comments. Blank lines are ignored.
+Lines starting with \f(CR#\fP or \f(CR;\fP are comments. Blank lines are ignored.
+Whitespace around \f(CR=\fP is optional.
 .SH "EXAMPLES"
 .sp
 .if n .RS 4
 .nf
 .fam C
-# Global scopes available to all types
-*||api,core
+[settings]
+strict = true
+multi\-scope = true
+multi\-scope\-separator = ,
 
-# Types with descriptions and scope overrides
-feat|A new feature|ui
-fix|A bug fix|
-docs|Documentation changes|\-api
+[scopes]
+# API and database scopes
+api = src/api/**, tests/api/**
+db = src/db/**, migrations/**
+ui = src/components/**, src/pages/**
+docs = docs/**, *.md
+* = .github/**, scripts/**
+
+[types]
+feat = A new feature
+fix = A bug fix
+docs = Documentation only changes
+style = Code style changes (formatting, semicolons)
+refactor = Code refactoring without behavior change
+perf = Performance improvements
+test = Adding or updating tests
+build = Build system or dependencies
+ci = CI/CD configuration changes
+chore = Maintenance tasks
+revert = Revert a previous commit
 .fam
 .fi
 .if n .RE
+.sp
+This configuration:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Enables strict scope validation (\f(CRstrict = true\fP)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Allows multi\-scopes like \f(CRfeat(api,db):\fP for cross\-cutting changes
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Maps scopes to file patterns for path\-based validation
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Defines standard commit types with descriptions
+.RE
 .SH "FILE LOCATION"
 .sp
 Place \fB.gitcommitizen\fP in the root of a Git repository.
 .SH "NOTES"
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Section names (\f(CR[settings]\fP, \f(CR[scopes]\fP, \f(CR[types]\fP) are case\-insensitive.
+.RE
 .sp
 .RS 4
 .ie n \{\
@@ -140,6 +206,17 @@ Types are lowercase identifiers (e.g., \f(CRfeat\fP, \f(CRfix\fP).
 .  IP \(bu 2.3
 .\}
 Scopes may include letters, numbers, dashes, underscores, and \f(CR@\fP (e.g., \f(CR@types/node\fP).
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Glob patterns follow standard shell globbing with \f(CR**\fP for recursive matching.
 .RE
 .SH "SEE ALSO"
 .sp

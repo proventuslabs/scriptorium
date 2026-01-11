@@ -31,11 +31,11 @@
 cz \- conventional commit message builder
 .SH "SYNOPSIS"
 .sp
-\fBcz\fP [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
+\fBcz\fP [\fB\-q\fP] [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
 .sp
 \fBcz\fP \fBcreate\fP [\fB\-s\fP]
 .br
-\fBcz\fP \fBlint\fP [\fB\-q\fP]
+\fBcz\fP \fBlint\fP [\fB\-f\fP \fIFILES\fP] [\fB\-s\fP | \fB\-\-no\-strict\fP]
 .br
 \fBcz\fP \fBparse\fP
 .br
@@ -67,16 +67,33 @@ to enter a custom scope.
 .RE
 .RE
 .sp
-\fBlint\fP [\fB\-q\fP]
+\fBlint\fP [\fB\-f\fP \fIFILES\fP] [\fB\-s\fP | \fB\-\-no\-strict\fP]
 .RS 4
 Validate a commit message against the Conventional Commits rules and the
 \fB.gitcommitizen\fP(5) configuration. Reads from standard input. Prints
 diagnostic messages explaining any errors. Exits non\-zero if validation
 fails.
 .sp
-\fB\-q\fP, \fB\-\-quiet\fP
+\fB\-f\fP, \fB\-\-files\fP \fIFILES\fP
 .RS 4
-Suppress output. Only set the exit status.
+Validate that the commit scope matches the specified file paths. Accepts a
+space\-separated list of paths. Uses glob patterns from the \f(CR[scopes]\fP
+section of the configuration to verify the scope is appropriate for the
+files being committed.
+.RE
+.sp
+\fB\-s\fP, \fB\-\-strict\fP
+.RS 4
+Enable strict scope validation. Requires that any scope used in the commit
+message is defined in the \f(CR[scopes]\fP section of the configuration. Also
+requires a scope when specified files match defined scope patterns.
+Overrides the \f(CRstrict\fP setting in the configuration file.
+.RE
+.sp
+\fB\-\-no\-strict\fP
+.RS 4
+Allow commits without scope even when files match scope patterns.
+Overrides the \f(CRstrict\fP setting in the configuration file.
 .RE
 .RE
 .sp
@@ -107,6 +124,11 @@ the hook is installed.
 .RS 4
 Use \fIFILE\fP instead of \fB.gitcommitizen\fP. Searches parent directories if
 not specified.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-quiet\fP
+.RS 4
+Suppress warnings and non\-essential output.
 .RE
 .sp
 \fB\-h\fP, \fB\-\-help\fP
@@ -146,6 +168,16 @@ cz lint < "$1"
 Lint silently (exit status only)
 .RS 4
 cz lint \-q < "$1" || exit 1
+.RE
+.sp
+Lint with scope validation against specific files
+.RS 4
+echo "feat(api): add endpoint" | cz lint \-\-files "src/api/routes.ts"
+.RE
+.sp
+Lint with strict mode (require scope for scoped files)
+.RS 4
+cz lint \-\-files "$(git diff \-\-cached \-\-name\-only)" \-\-strict < "$1"
 .RE
 .sp
 Show resolved configuration

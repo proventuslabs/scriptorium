@@ -10,6 +10,7 @@ parser_definition() {
 	msg -- '' 'Conventional commit message builder' ''
 	msg -- 'Options:'
 	param   CONFIG_FILE  -c --config-file -- "Config file path"
+	flag    QUIET        -q --quiet       -- "Suppress warnings and non-essential output"
 	disp    :usage       -h --help
 	disp    VERSION         --version
 
@@ -35,8 +36,10 @@ parser_definition_lint() {
 		"Usage: cz lint [options...]"
 	msg -- '' 'Validate a commit message from stdin' ''
 	msg -- 'Options:'
-	flag    QUIET   -q --quiet -- "Suppress output, exit status only"
-	disp    :usage  -h --help
+	param   FILES       -f --files      -- "Validate scope against file paths (space-separated)"
+	flag    STRICT      -s --strict     -- "Require scope for scoped files"
+	flag    NO_STRICT      --no-strict  -- "Allow missing scope (override config)"
+	disp    :usage      -h --help
 }
 
 parser_definition_init() {

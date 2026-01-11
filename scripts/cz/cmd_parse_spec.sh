@@ -39,9 +39,16 @@ Describe 'cmd_parse'
 	Describe 'with config file'
 		setup_config() {
 			cat > .gitcommitizen << 'EOF'
-*||api,core
-feat|Custom feature|ui
-fix|Custom fix|-api
+[settings]
+strict = true
+
+[scopes]
+api = src/api/**
+ui = src/ui/**
+
+[types]
+feat = Custom feature
+fix = Custom fix
 EOF
 		}
 
@@ -53,9 +60,17 @@ EOF
 			The output should include ".gitcommitizen"
 		End
 
-		It 'shows global scopes'
+		It 'shows settings'
 			When call cmd_parse
-			The output should include "Global scopes: api core"
+			The output should include "Settings:"
+			The output should include "strict = true"
+		End
+
+		It 'shows scopes with patterns'
+			When call cmd_parse
+			The output should include "Scopes:"
+			The output should include "api = src/api/**"
+			The output should include "ui = src/ui/**"
 		End
 
 		It 'shows custom types'
@@ -63,23 +78,13 @@ EOF
 			The output should include "feat"
 			The output should include "Custom feature"
 		End
-
-		It 'shows resolved scopes'
-			When call cmd_parse
-			The output should include "[api, core, ui]"
-		End
-
-		It 'shows scopes with removals applied'
-			When call cmd_parse
-			The output should include "fix"
-			The output should include "[core]"
-		End
 	End
 
 	Describe 'with explicit config file'
 		It 'uses CONFIG_FILE if set'
 			cat > custom.conf << 'EOF'
-custom|Custom type|
+[types]
+custom = Custom type
 EOF
 			CONFIG_FILE="custom.conf"
 			When call cmd_parse

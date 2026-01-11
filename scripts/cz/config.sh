@@ -36,7 +36,27 @@ load_config() {
 			echo "cz: error: config file not found: $CONFIG_FILE" >&2
 			exit 1
 		fi
+
 		parse_config <"$CONFIG_FILE"
+
+		# If no types defined, fall back to defaults
+		if [[ ${#CFG_TYPE_NAMES[@]} -eq 0 ]]; then
+			[[ -z "${QUIET:-}" ]] && echo "cz: warning: no [types] in $CONFIG_FILE, using defaults" >&2
+			default_config
+			return
+		fi
+
+		# Build TYPES/DESCRIPTIONS arrays from parsed config
+		TYPES=()
+		DESCRIPTIONS=()
+		SCOPES=()
+		GLOBAL_SCOPES=()
+		for type in "${CFG_TYPE_NAMES[@]}"; do
+			TYPES+=("$type")
+			local desc_var="CFG_TYPES_$type"
+			DESCRIPTIONS+=("${!desc_var:-}")
+			SCOPES+=("")
+		done
 	else
 		default_config
 	fi

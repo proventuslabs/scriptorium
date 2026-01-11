@@ -17,50 +17,97 @@ gitcommitizen - configuration file for conventional commit linting
 
 == DESCRIPTION
 
-The **.gitcommitizen** file defines commit message types and scopes for validating conventional commits.
-It allows specifying global scopes, type-specific scopes, and exceptions to ensure consistent commit messages.
+The **.gitcommitizen** file defines commit message types, scopes, and validation
+settings for conventional commits. It uses INI-style configuration with three
+sections: settings, scopes, and types.
 
 == FILE FORMAT
 
-Each line is pipe-delimited:
+INI-style configuration with three sections:
 
 [.literal]
 ----
-<type>|<description>|<scope>[,<scope>]...
+[settings]
+strict = false
+multi-scope = false
+multi-scope-separator = ,
+
+[scopes]
+name = glob-pattern[, glob-pattern]...
+
+[types]
+name = description
 ----
 
-*type*:: Commit type (e.g., `feat`, `fix`).
-*description*:: Human-readable description of the type.
-*scopes*:: Comma-separated list of scopes with optional prefixes.
-  Types inherit all global scopes by default. Use prefixes to modify:
-  - `scope` or `+scope` adds to inherited scopes
-  - `-scope` removes from inherited scopes
+=== Settings
 
-Global scopes are defined with `*` as the type:
+*strict*::
+  Enable strict scope validation (default: false). When enabled, any scope
+  used must be defined in `[scopes]`. Also requires a scope when files match
+  defined scope patterns.
 
-[.literal]
-----
-*|<description>|<scope>[,<scope>]...
-----
+*multi-scope*::
+  Allow multiple scopes like `feat(api,db):` (default: false).
 
-The last definition of a type takes precedence.
+*multi-scope-separator*::
+  Separator character for multi-scopes: `,`, `/`, or `+` (default: `,`).
+
+=== Scopes
+
+Maps scope names to glob patterns. Multiple patterns are separated by commas.
+When validating with `--files`, the scope is checked against these patterns
+to ensure commits use appropriate scopes for the files being changed.
+
+Special scope `*` matches any files (wildcard). This allows any scope to be used
+regardless of which files are staged.
+
+=== Types
+
+Maps type names to their descriptions. These are shown during interactive commit
+creation and used for validation.
 
 == SYNTAX
 
-Lines starting with `#` are comments. Blank lines are ignored.
+Lines starting with `#` or `;` are comments. Blank lines are ignored.
+Whitespace around `=` is optional.
 
 == EXAMPLES
 
 [.literal]
 ----
-# Global scopes available to all types
-*||api,core
+[settings]
+strict = true
+multi-scope = true
+multi-scope-separator = ,
 
-# Types with descriptions and scope overrides
-feat|A new feature|ui
-fix|A bug fix|
-docs|Documentation changes|-api
+[scopes]
+# API and database scopes
+api = src/api/**, tests/api/**
+db = src/db/**, migrations/**
+ui = src/components/**, src/pages/**
+docs = docs/**, *.md
+* = .github/**, scripts/**
+
+[types]
+feat = A new feature
+fix = A bug fix
+docs = Documentation only changes
+style = Code style changes (formatting, semicolons)
+refactor = Code refactoring without behavior change
+perf = Performance improvements
+test = Adding or updating tests
+build = Build system or dependencies
+ci = CI/CD configuration changes
+chore = Maintenance tasks
+revert = Revert a previous commit
 ----
+
+This configuration:
+
+* Enables strict scope validation (`strict = true`)
+* Allows multi-scopes like `feat(api,db):` for cross-cutting changes
+* Maps scopes to file patterns for path-based validation
+* Defines standard commit types with descriptions
 
 == FILE LOCATION
 
@@ -68,8 +115,10 @@ Place **.gitcommitizen** in the root of a Git repository.
 
 == NOTES
 
+* Section names (`[settings]`, `[scopes]`, `[types]`) are case-insensitive.
 * Types are lowercase identifiers (e.g., `feat`, `fix`).
 * Scopes may include letters, numbers, dashes, underscores, and `@` (e.g., `@types/node`).
+* Glob patterns follow standard shell globbing with `**` for recursive matching.
 
 == SEE ALSO
 

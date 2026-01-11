@@ -1,105 +1,103 @@
 # shellcheck shell=bash
 
 # Parse .gitcommitizen configuration from stdin
-# Usage: parse_config < config_file
-# Sets arrays: TYPES, DESCRIPTIONS, SCOPES, GLOBAL_SCOPES
+# Sets variables: CFG_SETTINGS_*, CFG_SCOPES_*, CFG_TYPES_*
+# Also sets arrays: CFG_SCOPE_NAMES, CFG_TYPE_NAMES
 parse_config() {
-	TYPES=()
-	DESCRIPTIONS=()
-	GLOBAL_SCOPES=()
-	SCOPES=()
+	# Clear previous state
+	unset "${!CFG_SETTINGS_@}" "${!CFG_SCOPES_@}" "${!CFG_TYPES_@}"
+	CFG_SCOPE_NAMES=()
+	CFG_TYPE_NAMES=()
 
 	[[ -t 0 ]] && return 0
 
-	# Track type indices (last definition wins)
-	declare -A type_indices
-	local -a type_scope_mods=()
-
-	local line type desc scopes
+	local section="" line key value
 
 	while IFS= read -r line || [[ -n "$line" ]]; do
 		# Skip comments and blank lines
 		[[ "$line" =~ ^[[:space:]]*# ]] && continue
 		[[ "$line" =~ ^[[:space:]]*$ ]] && continue
 
-		# Split by pipe
-		IFS='|' read -r type desc scopes <<<"$line"
+		# Section header
+		if [[ "$line" =~ ^\[([a-z]+)\]$ ]]; then
+			section="${BASH_REMATCH[1]}"
+			continue
+		fi
 
-		# Trim whitespace
-		type="${type#"${type%%[![:space:]]*}"}"
-		type="${type%"${type##*[![:space:]]}"}"
-		desc="${desc#"${desc%%[![:space:]]*}"}"
-		desc="${desc%"${desc##*[![:space:]]}"}"
-		scopes="${scopes#"${scopes%%[![:space:]]*}"}"
-		scopes="${scopes%"${scopes##*[![:space:]]}"}"
+		# Key = value
+		if [[ "$line" =~ ^([^=]+)=(.*)$ ]]; then
+			key="${BASH_REMATCH[1]}"
+			value="${BASH_REMATCH[2]}"
 
-		# Handle global scopes (type is *)
-		if [[ "$type" == '*' ]]; then
-			GLOBAL_SCOPES=()
-			IFS=',' read -ra scope_list <<<"$scopes"
-			for scope in "${scope_list[@]}"; do
-				scope="${scope#"${scope%%[![:space:]]*}"}"
-				scope="${scope%"${scope##*[![:space:]]}"}"
-				scope="${scope#+}"
-				[[ -n "$scope" ]] && GLOBAL_SCOPES+=("$scope")
-			done
-		elif [[ -n "$type" ]]; then
-			# Last definition wins
-			if [[ -v type_indices[$type] ]]; then
-				idx="${type_indices[$type]}"
-				DESCRIPTIONS[idx]="$desc"
-				type_scope_mods[idx]="$scopes"
-			else
-				type_indices[$type]=${#TYPES[@]}
-				TYPES+=("$type")
-				DESCRIPTIONS+=("$desc")
-				type_scope_mods+=("$scopes")
-			fi
+			# Trim whitespace
+			key="${key#"${key%%[![:space:]]*}"}"
+			key="${key%"${key##*[![:space:]]}"}"
+			value="${value#"${value%%[![:space:]]*}"}"
+			value="${value%"${value##*[![:space:]]}"}"
+
+			# Normalize key (replace - with _)
+			local norm_key="${key//-/_}"
+
+			case "$section" in
+				settings)
+					declare -g "CFG_SETTINGS_$norm_key=$value"
+					;;
+				scopes)
+					# Handle wildcard scope specially (bash can't have * in var names)
+					if [[ "$key" == "*" ]]; then
+						declare -g "CFG_SCOPES___wildcard__=$value"
+					else
+						declare -g "CFG_SCOPES_$key=$value"
+					fi
+					CFG_SCOPE_NAMES+=("$key")
+					;;
+				types)
+					declare -g "CFG_TYPES_$key=$value"
+					CFG_TYPE_NAMES+=("$key")
+					;;
+			esac
 		fi
 	done
+}
 
-	# Build SCOPES array by applying modifiers to global scopes
-	for i in "${!TYPES[@]}"; do
-		local -a type_scopes=()
-		local -a adds=() removes=()
+# Get setting value with default
+# Usage: get_setting <key> [default]
+get_setting() {
+	local key="${1//-/_}"
+	local default="${2:-}"
+	local var="CFG_SETTINGS_$key"
+	echo "${!var:-$default}"
+}
 
-		# Start with global scopes
-		type_scopes+=("${GLOBAL_SCOPES[@]}")
+# Check if scope exists
+# Usage: scope_exists <name>
+scope_exists() {
+	local name="$1"
+	local var
+	if [[ "$name" == "*" ]]; then
+		var="CFG_SCOPES___wildcard__"
+	else
+		var="CFG_SCOPES_$name"
+	fi
+	[[ -n "${!var+x}" ]]
+}
 
-		# Parse scope modifiers
-		if [[ -n "${type_scope_mods[$i]}" ]]; then
-			IFS=',' read -ra mods <<<"${type_scope_mods[$i]}"
-			for mod in "${mods[@]}"; do
-				mod="${mod#"${mod%%[![:space:]]*}"}"
-				mod="${mod%"${mod##*[![:space:]]}"}"
-				[[ -z "$mod" ]] && continue
+# Get scope patterns
+# Usage: get_scope_patterns <name>
+get_scope_patterns() {
+	local name="$1"
+	local var
+	if [[ "$name" == "*" ]]; then
+		var="CFG_SCOPES___wildcard__"
+	else
+		var="CFG_SCOPES_$name"
+	fi
+	echo "${!var:-}"
+}
 
-				if [[ "$mod" == -* ]]; then
-					# Remove scope
-					removes+=("${mod#-}")
-				else
-					# Add scope (strip optional +)
-					adds+=("${mod#+}")
-				fi
-			done
-		fi
-
-		# Add new scopes
-		type_scopes+=("${adds[@]}")
-
-		# Remove blacklisted scopes
-		if [[ ${#removes[@]} -gt 0 ]]; then
-			local -a filtered_scopes=()
-			for scope in "${type_scopes[@]}"; do
-				local removed=false
-				for rm_scope in "${removes[@]}"; do
-					[[ "$scope" == "$rm_scope" ]] && removed=true && break
-				done
-				$removed || filtered_scopes+=("$scope")
-			done
-			type_scopes=("${filtered_scopes[@]}")
-		fi
-
-		SCOPES+=("${type_scopes[*]}")
-	done
+# Check if type exists
+# Usage: type_exists <name>
+type_exists() {
+	local var="CFG_TYPES_$1"
+	[[ -n "${!var+x}" ]]
 }

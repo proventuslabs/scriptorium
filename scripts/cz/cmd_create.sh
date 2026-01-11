@@ -34,49 +34,48 @@ cmd_create() {
 	fi
 	local type="${type_selection%% - *}"
 
-	# Find type index for scope lookup
-	local type_index=-1
-	for i in "${!TYPES[@]}"; do
-		if [[ "${TYPES[$i]}" == "$type" ]]; then
-			type_index=$i
-			break
-		fi
-	done
-
 	# Select or input scope
 	local scope=""
-	local allowed_scopes="${SCOPES[$type_index]:-}"
 
-	if [[ -n "$allowed_scopes" ]]; then
-		# Build scope choices
+	if [[ ${#CFG_SCOPE_NAMES[@]} -gt 0 ]]; then
+		# Build scope choices from configured scopes
 		local scope_choices=()
-		for s in $allowed_scopes; do
+		for s in "${CFG_SCOPE_NAMES[@]}"; do
+			# Skip wildcard scope
+			[[ "$s" == "*" ]] && continue
 			scope_choices+=("$s")
 		done
 
-		if [[ -n "${STRICT_SCOPES:-}" ]]; then
-			# Strict mode: only configured scopes
-			scope_choices+=("(none)")
-			local scope_selection
-			if ! scope_selection=$(gum choose --header "Select scope:" "${scope_choices[@]}"); then
-				exit 130
-			fi
-			if [[ "$scope_selection" != "(none)" ]]; then
-				scope="$scope_selection"
-			fi
-		else
-			# Default: configured scopes + custom option
-			scope_choices+=("(custom)" "(none)")
-			local scope_selection
-			if ! scope_selection=$(gum choose --header "Select scope:" "${scope_choices[@]}"); then
-				exit 130
-			fi
-			if [[ "$scope_selection" == "(custom)" ]]; then
-				if ! scope=$(gum input --header "Enter scope:" --placeholder "e.g., api, ui, core"); then
+		if [[ ${#scope_choices[@]} -gt 0 ]]; then
+			if [[ -n "${STRICT_SCOPES:-}" ]]; then
+				# Strict mode: only configured scopes
+				scope_choices+=("(none)")
+				local scope_selection
+				if ! scope_selection=$(gum choose --header "Select scope:" "${scope_choices[@]}"); then
 					exit 130
 				fi
-			elif [[ "$scope_selection" != "(none)" ]]; then
-				scope="$scope_selection"
+				if [[ "$scope_selection" != "(none)" ]]; then
+					scope="$scope_selection"
+				fi
+			else
+				# Default: configured scopes + custom option
+				scope_choices+=("(custom)" "(none)")
+				local scope_selection
+				if ! scope_selection=$(gum choose --header "Select scope:" "${scope_choices[@]}"); then
+					exit 130
+				fi
+				if [[ "$scope_selection" == "(custom)" ]]; then
+					if ! scope=$(gum input --header "Enter scope:" --placeholder "e.g., api, ui, core"); then
+						exit 130
+					fi
+				elif [[ "$scope_selection" != "(none)" ]]; then
+					scope="$scope_selection"
+				fi
+			fi
+		else
+			# Only wildcard scope defined: free-form input
+			if ! scope=$(gum input --header "Scope (optional):" --placeholder "e.g., api, ui, core"); then
+				exit 130
 			fi
 		fi
 	else
