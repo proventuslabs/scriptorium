@@ -6,10 +6,10 @@ _jwt() {
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-	local opts="-H --header -P --payload -S --signature -A --all -v --verify -h --help --version"
+	local opts="-H --header -P --payload -S --signature -A --all --verify -q --quiet -h --help -V --version"
 
-	# Complete file path after -v/--verify (could be key file)
-	if [[ "$prev" == "-v" || "$prev" == "--verify" ]]; then
+	# Complete file path after --verify (could be key file)
+	if [[ "$prev" == "--verify" ]]; then
 		mapfile -t COMPREPLY < <(compgen -f -- "$cur")
 		return 0
 	fi

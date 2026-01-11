@@ -7,7 +7,7 @@ _cz() {
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
 	local commands="create lint parse init hook"
-	local global_opts="-c --config-file -h --help --version"
+	local global_opts="-c --config-file -q --quiet -h --help -V --version"
 
 	# Complete config file path after -c/--config-file
 	if [[ "$prev" == "-c" || "$prev" == "--config-file" ]]; then
@@ -39,7 +39,7 @@ _cz() {
 				mapfile -t COMPREPLY < <(compgen -W "-s --strict-scopes -h --help" -- "$cur")
 				;;
 			lint)
-				mapfile -t COMPREPLY < <(compgen -W "-q --quiet -h --help" -- "$cur")
+				mapfile -t COMPREPLY < <(compgen -W "-f --files -S --strict --no-strict -h --help" -- "$cur")
 				;;
 			init)
 				mapfile -t COMPREPLY < <(compgen -W "-f --force -h --help" -- "$cur")

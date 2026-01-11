@@ -6,7 +6,7 @@ _theme() {
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-	local opts="--detect --list -q --quiet -h --help --version"
+	local opts="-d --detect -l --list -q --quiet -h --help -V --version"
 	local appearances="dark light auto"
 
 	# Complete options

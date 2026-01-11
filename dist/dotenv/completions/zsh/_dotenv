@@ -6,11 +6,11 @@ _dotenv() {
 
 	_arguments -C \
 		'(-h --help)'{-h,--help}'[Show help message]' \
-		'--version[Show version]' \
+		'(-V --version)'{-V,--version}'[Show version]' \
 		'(-x --exec)'{-x,--exec}'[Replace process with exec]' \
 		'(-s --strict)'{-s,--strict}'[Fail on warnings]' \
 		'(-q --quiet)'{-q,--quiet}'[Suppress warnings]' \
-		'*-e[Specify .env file to load]:env file:_files -g "*(.)"' \
+		'*'{-e,--env-file}'[Specify .env file to load]:env file:_files -g "*(.)"' \
 		'*::command:->command'
 
 	case $state in
