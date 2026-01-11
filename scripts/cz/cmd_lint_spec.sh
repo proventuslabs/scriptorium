@@ -358,6 +358,16 @@ src/ui/button.tsx"
 				The stderr should include "strict mode requires scope"
 			End
 
+			It 'rejects any scope in strict mode when no scopes defined'
+				# No scopes defined, just types
+				CFG_SCOPE_NAMES=()
+				STRICT=1
+				Data "feat(anything): add feature"
+				When call cmd_lint
+				The status should be failure
+				The stderr should include "no scopes defined"
+			End
+
 			It 'rejects unknown scope in strict mode (no files)'
 				BeforeCall setup_ini_strict
 				STRICT=1

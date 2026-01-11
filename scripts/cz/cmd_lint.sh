@@ -125,9 +125,6 @@ validate_paths_if_needed() {
 	local files_str
 	local multi_scope_enabled strict_mode
 
-	# Only validate if scopes are defined
-	[[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]] && return 0
-
 	# Check strict mode (--no-strict overrides --strict overrides config)
 	if [[ -n "${NO_STRICT:-}" ]]; then
 		strict_mode="false"
@@ -137,8 +134,15 @@ validate_paths_if_needed() {
 		strict_mode="$(get_setting strict "false")"
 	fi
 
-	# In strict mode, validate scope exists (even without files)
+	# In strict mode with a scope, validate it exists
 	if [[ "$strict_mode" == "true" && -n "$scope" ]]; then
+		# No scopes defined but scope used - reject
+		if [[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]]; then
+			[[ -z "${QUIET:-}" ]] && echo "cz: error: scope '$scope' used but no scopes defined in config" >&2
+			return 1
+		fi
+
+		# Validate scope exists
 		if is_multi_scope "$scope"; then
 			local separator
 			separator="$(get_setting multi-scope-separator ",")"
@@ -159,6 +163,9 @@ validate_paths_if_needed() {
 			return 1
 		fi
 	fi
+
+	# Skip file validation if no scopes defined
+	[[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]] && return 0
 
 	# Get files to validate
 	files_str="$(get_files_to_validate)"
