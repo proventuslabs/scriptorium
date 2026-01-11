@@ -1,4 +1,6 @@
 # shellcheck shell=bash disable=SC2034
+# Note: Some tests require OpenSSL 3.x. If tests fail on your machine (e.g.,
+# LibreSSL on macOS), run: nix develop --command make test NAME=jwt
 
 Describe 'verify'
 	Include ./decode.sh
@@ -133,6 +135,83 @@ Describe 'verify'
 			When call get_openssl_major_version
 			The status should be success
 			The output should match pattern '[0-9]*'
+		End
+	End
+
+	Describe 'check_algorithm_support'
+		# Mock get_openssl_major_version to simulate old OpenSSL
+		mock_old_openssl() { echo "1"; }
+
+		It 'allows HMAC algorithms on any version'
+			get_openssl_major_version() { echo "1"; }
+			When call check_algorithm_support "HS256"
+			The status should be success
+		End
+
+		It 'allows RSA algorithms on any version'
+			get_openssl_major_version() { echo "1"; }
+			When call check_algorithm_support "RS256"
+			The status should be success
+		End
+
+		It 'allows ECDSA algorithms on any version'
+			get_openssl_major_version() { echo "1"; }
+			When call check_algorithm_support "ES256"
+			The status should be success
+		End
+
+		It 'rejects PS256 on OpenSSL 1.x'
+			get_openssl_major_version() { echo "1"; }
+			When call check_algorithm_support "PS256"
+			The status should equal 1
+			The stderr should include "requires OpenSSL 3.x"
+		End
+
+		It 'rejects PS384 on OpenSSL 1.x'
+			get_openssl_major_version() { echo "1"; }
+			When call check_algorithm_support "PS384"
+			The status should equal 1
+			The stderr should include "requires OpenSSL 3.x"
+		End
+
+		It 'rejects PS512 on OpenSSL 1.x'
+			get_openssl_major_version() { echo "1"; }
+			When call check_algorithm_support "PS512"
+			The status should equal 1
+			The stderr should include "requires OpenSSL 3.x"
+		End
+
+		It 'rejects EdDSA on OpenSSL 1.x'
+			get_openssl_major_version() { echo "1"; }
+			When call check_algorithm_support "EdDSA"
+			The status should equal 1
+			The stderr should include "requires OpenSSL 3.x"
+		End
+
+		It 'rejects PS256 on LibreSSL (version 0)'
+			get_openssl_major_version() { echo "0"; }
+			When call check_algorithm_support "PS256"
+			The status should equal 1
+			The stderr should include "requires OpenSSL 3.x"
+		End
+
+		It 'rejects EdDSA on LibreSSL (version 0)'
+			get_openssl_major_version() { echo "0"; }
+			When call check_algorithm_support "EdDSA"
+			The status should equal 1
+			The stderr should include "requires OpenSSL 3.x"
+		End
+
+		It 'allows PS256 on OpenSSL 3.x'
+			get_openssl_major_version() { echo "3"; }
+			When call check_algorithm_support "PS256"
+			The status should be success
+		End
+
+		It 'allows EdDSA on OpenSSL 3.x'
+			get_openssl_major_version() { echo "3"; }
+			When call check_algorithm_support "EdDSA"
+			The status should be success
 		End
 	End
 
