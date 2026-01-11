@@ -1,22 +1,23 @@
 # shellcheck shell=bash
 
-# Format current config as .gitcommitizen file content
-# Requires: TYPES, DESCRIPTIONS, GLOBAL_SCOPES arrays to be set
+# Format current config as .gitcommitizen file content (INI format)
+# Requires: TYPES, DESCRIPTIONS arrays to be set
 format_config() {
 	echo "# Conventional Commits configuration"
-	echo "# See: gitcommitizen(5) or https://www.conventionalcommits.org"
+	echo "# See: gitcommitizen(5)"
 	echo
-
-	if ((${#GLOBAL_SCOPES[@]} > 0)); then
-		local IFS=','
-		echo "# Global scopes (inherited by all types)"
-		echo "*||${GLOBAL_SCOPES[*]}"
-		echo
-	fi
-
-	echo "# Commit types: type|description|scopes"
+	echo "[settings]"
+	echo "# strict = false"
+	echo "# multi-scope = false"
+	echo "# multi-scope-separator = ,"
+	echo
+	echo "[scopes]"
+	echo "# Define scopes and their file patterns"
+	echo "# example = src/example/**"
+	echo
+	echo "[types]"
 	for i in "${!TYPES[@]}"; do
-		echo "${TYPES[$i]}|${DESCRIPTIONS[$i]}|"
+		echo "${TYPES[$i]} = ${DESCRIPTIONS[$i]}"
 	done
 }
 
