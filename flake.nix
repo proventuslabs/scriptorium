@@ -65,6 +65,7 @@
 
         scripts = {
           # Scripts imported here as they're merged
+          cz = import ./scripts/cz { inherit mkScript; };
         };
       in
       {
@@ -104,6 +105,7 @@
               shellspec
               shellcheck
               shfmt
+              gum
             ]);
 
           shellHook = ''

@@ -1,0 +1,80 @@
+= GITCOMMITIZEN(5)
+ProventusLabs
+:docdate: 2025-10-04
+:doctype: manpage
+:manmanual: gitcommitizen
+:mansource: Scriptorium
+:revnumber: 0.1.0 // x-release-please-version
+:man-linkstyle: pass:[blue R < >]
+
+== NAME
+
+gitcommitizen - configuration file for conventional commit linting
+
+== SYNOPSIS
+
+*.gitcommitizen*
+
+== DESCRIPTION
+
+The **.gitcommitizen** file defines commit message types and scopes for validating conventional commits.
+It allows specifying global scopes, type-specific scopes, and exceptions to ensure consistent commit messages.
+
+== FILE FORMAT
+
+Each line is pipe-delimited:
+
+[.literal]
+----
+<type>|<description>|<scope>[,<scope>]...
+----
+
+*type*:: Commit type (e.g., `feat`, `fix`).
+*description*:: Human-readable description of the type.
+*scopes*:: Comma-separated list of scopes with optional prefixes.
+  Types inherit all global scopes by default. Use prefixes to modify:
+  - `scope` or `+scope` adds to inherited scopes
+  - `-scope` removes from inherited scopes
+
+Global scopes are defined with `*` as the type:
+
+[.literal]
+----
+*|<description>|<scope>[,<scope>]...
+----
+
+The last definition of a type takes precedence.
+
+== SYNTAX
+
+Lines starting with `#` are comments. Blank lines are ignored.
+
+== EXAMPLES
+
+[.literal]
+----
+# Global scopes available to all types
+*||api,core
+
+# Types with descriptions and scope overrides
+feat|A new feature|ui
+fix|A bug fix|
+docs|Documentation changes|-api
+----
+
+== FILE LOCATION
+
+Place **.gitcommitizen** in the root of a Git repository.
+
+== NOTES
+
+* Types are lowercase identifiers (e.g., `feat`, `fix`).
+* Scopes may include letters, numbers, dashes, underscores, and `@` (e.g., `@types/node`).
+
+== SEE ALSO
+
+git-commit(1)::
+  Git commit command.
+
+https://www.conventionalcommits.org::
+  Official conventional commit spec.

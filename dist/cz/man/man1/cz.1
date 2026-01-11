@@ -1,0 +1,201 @@
+'\" t
+.\"     Title: cz
+.\"    Author: ProventusLabs
+.\" Generator: Asciidoctor 2.0.26
+.\"      Date: 2025
+.\"    Manual: User Commands
+.\"    Source: Scriptorium
+.\"  Language: English
+.\"
+.TH "CZ" "1" "2025" "Scriptorium" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+cz \- conventional commit message builder
+.SH "SYNOPSIS"
+.sp
+\fBcz\fP [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
+.sp
+\fBcz\fP \fBcreate\fP [\fB\-s\fP]
+.br
+\fBcz\fP \fBlint\fP [\fB\-q\fP]
+.br
+\fBcz\fP \fBparse\fP
+.br
+\fBcz\fP \fBinit\fP [\fB\-f\fP]
+.br
+\fBcz\fP \fBhook\fP [\fBinstall\fP | \fBuninstall\fP | \fBstatus\fP]
+.SH "DESCRIPTION"
+.sp
+\fBcz\fP is an interactive tool for creating commit messages that follow the
+Conventional Commits specification. It can also lint existing messages or
+display the resolved configuration.
+.sp
+When invoked without a subcommand, \fBcz\fP defaults to \fBcreate\fP mode if run
+in a terminal, or \fBlint\fP mode if receiving input on standard input.
+.SH "SUBCOMMANDS"
+.sp
+\fBcreate\fP [\fB\-s\fP]
+.RS 4
+Compose a commit message interactively using \fBgum\fP(1). Prompts for type,
+scope, breaking change indicator, description, body, and footer. Output
+is written to standard output. Default when run interactively.
+Requires \fBgum\fP to be installed.
+.sp
+\fB\-s\fP, \fB\-\-strict\-scopes\fP
+.RS 4
+Only allow scopes defined in configuration, disabling custom input.
+By default, configured scopes are shown as suggestions with an option
+to enter a custom scope.
+.RE
+.RE
+.sp
+\fBlint\fP [\fB\-q\fP]
+.RS 4
+Validate a commit message against the Conventional Commits rules and the
+\fB.gitcommitizen\fP(5) configuration. Reads from standard input. Prints
+diagnostic messages explaining any errors. Exits non\-zero if validation
+fails.
+.sp
+\fB\-q\fP, \fB\-\-quiet\fP
+.RS 4
+Suppress output. Only set the exit status.
+.RE
+.RE
+.sp
+\fBparse\fP
+.RS 4
+Display configuration with all values expanded. Useful for debugging.
+.RE
+.sp
+\fBinit\fP [\fB\-f\fP]
+.RS 4
+Generate a starter \fB.gitcommitizen\fP file in the current directory.
+.sp
+\fB\-f\fP, \fB\-\-force\fP
+.RS 4
+Overwrite an existing file.
+.RE
+.RE
+.sp
+\fBhook\fP \fBinstall\fP | \fBuninstall\fP | \fBstatus\fP
+.RS 4
+Manage the \fBcommit\-msg\fP git hook. \fBinstall\fP creates the hook to run
+\fBcz lint\fP on each commit. \fBuninstall\fP removes it. \fBstatus\fP shows whether
+the hook is installed.
+.RE
+.SH "OPTIONS"
+.sp
+\fB\-c\fP, \fB\-\-config\-file\fP \fIFILE\fP
+.RS 4
+Use \fIFILE\fP instead of \fB.gitcommitizen\fP. Searches parent directories if
+not specified.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Display usage information and exit.
+.RE
+.sp
+\fB\-\-version\fP
+.RS 4
+Display version information and exit.
+.RE
+.SH "FILES"
+.sp
+\fB.gitcommitizen\fP
+.RS 4
+Project configuration file. See \fBgitcommitizen\fP(5) for format. If no
+configuration is found, the Angular convention is used (feat, fix, docs,
+style, refactor, perf, test, build, ci, chore, revert).
+.RE
+.SH "EXAMPLES"
+.sp
+Create and commit interactively
+.RS 4
+git commit \-m "$(cz)"
+.RE
+.sp
+Lint the last commit message
+.RS 4
+git log \-1 \-\-pretty=%B | cz lint
+.RE
+.sp
+Lint before committing (commit\-msg hook)
+.RS 4
+cz lint < "$1"
+.RE
+.sp
+Lint silently (exit status only)
+.RS 4
+cz lint \-q < "$1" || exit 1
+.RE
+.sp
+Show resolved configuration
+.RS 4
+cz parse
+.RE
+.sp
+Generate a starter configuration
+.RS 4
+cz init
+.RE
+.sp
+Install the commit\-msg hook
+.RS 4
+cz hook install
+.RE
+.SH "EXIT STATUS"
+.sp
+\fB0\fP
+.RS 4
+Success.
+.RE
+.sp
+\fB1\fP
+.RS 4
+Runtime error (lint validation failed, missing dependency, config not found,
+not a git repository).
+.RE
+.sp
+\fB2\fP
+.RS 4
+Usage error (invalid arguments).
+.RE
+.sp
+\fB130\fP
+.RS 4
+User cancelled (SIGINT).
+.RE
+.SH "DEPENDENCIES"
+.sp
+\fBgum\fP(1)
+.RS 4
+Required for interactive mode (\fBcreate\fP). Install from
+.URL "https://github.com/charmbracelet/gum" "" ""
+.RE
+.SH "SEE ALSO"
+.sp
+\fBgit\-commit\fP(1), \fBgitcommitizen\fP(5), \fBgum\fP(1)
+.sp
+.URL "https://www.conventionalcommits.org" "Conventional Commits" ""
+.SH "AUTHOR"
+.sp
+ProventusLabs

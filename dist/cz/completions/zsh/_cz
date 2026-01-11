@@ -1,0 +1,56 @@
+#compdef cz
+
+_cz() {
+	local context state line
+	typeset -A opt_args
+
+	_arguments -C \
+		'(-h --help)'{-h,--help}'[Show help message]' \
+		'--version[Show version]' \
+		'(-c --config-file)'{-c,--config-file}'[Config file path]:config file:_files' \
+		'1:command:->commands' \
+		'*::arg:->args'
+
+	case $state in
+		commands)
+			local -a commands=(
+				'create:Compose a commit message interactively'
+				'lint:Validate a commit message from stdin'
+				'parse:Display resolved configuration'
+				'init:Generate a starter .gitcommitizen file'
+				'hook:Manage the commit-msg git hook'
+			)
+			_describe 'command' commands
+			;;
+		args)
+			case $line[1] in
+				create)
+					_arguments \
+						'(-h --help)'{-h,--help}'[Show help message]' \
+						'(-s --strict-scopes)'{-s,--strict-scopes}'[Only allow configured scopes]'
+					;;
+				lint)
+					_arguments \
+						'(-h --help)'{-h,--help}'[Show help message]' \
+						'(-q --quiet)'{-q,--quiet}'[Suppress output, exit status only]'
+					;;
+				init)
+					_arguments \
+						'(-h --help)'{-h,--help}'[Show help message]' \
+						'(-f --force)'{-f,--force}'[Overwrite existing file]'
+					;;
+				hook)
+					_arguments \
+						'(-h --help)'{-h,--help}'[Show help message]' \
+						'1:action:(install uninstall status)'
+					;;
+				parse)
+					_arguments \
+						'(-h --help)'{-h,--help}'[Show help message]'
+					;;
+			esac
+			;;
+	esac
+}
+
+_cz "$@"
