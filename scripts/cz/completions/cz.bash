@@ -39,7 +39,7 @@ _cz() {
 				mapfile -t COMPREPLY < <(compgen -W "-s --strict-scopes -h --help" -- "$cur")
 				;;
 			lint)
-				mapfile -t COMPREPLY < <(compgen -W "-f --files -S --strict --no-strict -h --help" -- "$cur")
+				mapfile -t COMPREPLY < <(compgen -W "-f --files -s --strict --no-strict -h --help" -- "$cur")
 				;;
 			init)
 				mapfile -t COMPREPLY < <(compgen -W "-f --force -h --help" -- "$cur")

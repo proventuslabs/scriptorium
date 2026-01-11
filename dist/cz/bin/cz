@@ -1296,7 +1296,7 @@ case $cmd in
 					-[f]?*) OPTARG=$1; shift
 						eval 'set -- "${OPTARG%"${OPTARG#??}"}" "${OPTARG#??}"' ${1+'"$@"'}
 						;;
-					-[Sh]?*) OPTARG=$1; shift
+					-[sh]?*) OPTARG=$1; shift
 						eval 'set -- "${OPTARG%"${OPTARG#??}"}" -"${OPTARG#??}"' ${1+'"$@"'}
 						case $2 in --*) set -- "$1" unknown "$2" && REST=x; esac;OPTARG= ;;
 				esac
@@ -1306,7 +1306,7 @@ case $cmd in
 						OPTARG=$2
 						FILES="$OPTARG"
 						shift ;;
-					'-S'|'--strict')
+					'-s'|'--strict')
 						[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
 						eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
 						STRICT="$OPTARG"
@@ -1352,7 +1352,7 @@ case $cmd in
 
 		Options:
 		  -f, --files FILES           Validate scope against file paths (space-separated)
-		  -S, --strict                Require scope for scoped files
+		  -s, --strict                Require scope for scoped files
 		      --no-strict             Allow missing scope (override config)
 		  -h, --help                  
 		GETOPTIONSHERE

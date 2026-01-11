@@ -34,7 +34,7 @@ _cz() {
 					_arguments \
 						'(-h --help)'{-h,--help}'[Show help message]' \
 						'(-f --files)'{-f,--files}'[Validate scope against file paths]:files:_files' \
-						'(-S --strict)'{-S,--strict}'[Require scope for scoped files]' \
+						'(-s --strict)'{-s,--strict}'[Require scope for scoped files]' \
 						'--no-strict[Allow missing scope]'
 					;;
 				init)
