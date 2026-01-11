@@ -8,8 +8,6 @@
 . ./config_parser.sh
 # @bundle source
 . ./ini_parser.sh
-# @bundle source
-. ./path_validator.sh
 # Sets: TYPES, DESCRIPTIONS, SCOPES, GLOBAL_SCOPES, CONFIG_FILE, CONFIG_FORMAT
 
 # Find config file by walking up directory tree

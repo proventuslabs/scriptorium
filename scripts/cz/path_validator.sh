@@ -1,7 +1,9 @@
 # shellcheck shell=bash
 
 # Path validator module for matching files against scope glob patterns
-# Depends on: ini_parser.sh
+
+# @bundle source
+. ./ini_parser.sh
 
 # Check if file matches a glob pattern
 # Usage: file_matches_pattern <file> <pattern>

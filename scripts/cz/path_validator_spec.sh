@@ -2,7 +2,6 @@
 # shellcheck disable=SC2329 # Functions invoked indirectly via ShellSpec BeforeCall
 
 Describe 'file_matches_pattern'
-	Include ./ini_parser.sh
 	Include ./path_validator.sh
 
 	It 'matches exact file path'
@@ -77,7 +76,6 @@ Describe 'file_matches_pattern'
 End
 
 Describe 'file_matches_scope'
-	Include ./ini_parser.sh
 	Include ./path_validator.sh
 
 	setup_single_pattern() {
@@ -139,7 +137,6 @@ Describe 'file_matches_scope'
 End
 
 Describe 'find_matching_scope'
-	Include ./ini_parser.sh
 	Include ./path_validator.sh
 
 	setup_scopes() {
@@ -189,7 +186,6 @@ Describe 'find_matching_scope'
 End
 
 Describe 'validate_files_against_scope'
-	Include ./ini_parser.sh
 	Include ./path_validator.sh
 
 	setup_scope() {
@@ -220,7 +216,6 @@ Describe 'validate_files_against_scope'
 End
 
 Describe 'validate_files_against_scopes'
-	Include ./ini_parser.sh
 	Include ./path_validator.sh
 
 	setup_scopes() {
@@ -262,7 +257,6 @@ Describe 'validate_files_against_scopes'
 End
 
 Describe 'validate_strict_no_scope'
-	Include ./ini_parser.sh
 	Include ./path_validator.sh
 
 	setup_scopes() {

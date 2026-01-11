@@ -4,6 +4,8 @@
 
 # @bundle source
 . ./config.sh
+# @bundle source
+. ./path_validator.sh
 
 cmd_lint() {
 	local message
