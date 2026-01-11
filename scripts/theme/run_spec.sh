@@ -69,7 +69,7 @@ Describe 'run'
 		It 'fails when no provider found'
 			unset -f theme_provider_test
 			When call theme_run
-			The status should equal 2
+			The status should equal 1
 			The stderr should include "no provider"
 		End
 	End

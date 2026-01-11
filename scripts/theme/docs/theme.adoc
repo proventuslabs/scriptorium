@@ -211,13 +211,10 @@ Additional `THEME_*` variables may be exported by custom providers.
   Success.
 
 *1*::
-  Argument error or invalid option.
+  Runtime error (no provider found, detection failed).
 
 *2*::
-  No provider found.
-
-*3*::
-  Provider or handler execution failed.
+  Usage error (invalid arguments).
 
 == EXAMPLES
 

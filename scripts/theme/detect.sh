@@ -112,7 +112,7 @@ theme_detect() {
 				return 0
 				;;
 			*)
-				echo "theme: invalid appearance '$override' (must be 'dark' or 'light')" >&2
+				echo "theme: error: invalid appearance '$override' (must be 'dark' or 'light')" >&2
 				return 1
 				;;
 		esac

@@ -36,8 +36,8 @@ theme_run() {
 
 	# Discover provider
 	if ! theme_discover_provider; then
-		echo "theme: no provider found (define a theme_provider_* function)" >&2
-		return 2
+		echo "theme: error: no provider found (define a theme_provider_* function)" >&2
+		return 1
 	fi
 
 	# Detect appearance (with optional override)
