@@ -212,13 +212,16 @@ endif
 	@sed 's|<name>|$(NAME)|g' $(TEMPLATES_DIR)/main.sh > $(SCRIPTS_DIR)/$(NAME)/main.sh
 	@sed 's|<name>|$(NAME)|g' $(TEMPLATES_DIR)/options.sh > $(SCRIPTS_DIR)/$(NAME)/options.sh
 	@sed 's|<name>|$(NAME)|g; s|<version>|0.1.0|g; s|<description>|TODO: Add description|g' $(TEMPLATES_DIR)/default.nix > $(SCRIPTS_DIR)/$(NAME)/default.nix
+	@NAME_UPPER=$$(echo $(NAME) | tr '[:lower:]' '[:upper:]'); \
+		sed "s|<name>|$(NAME)|g; s|<NAME>|$$NAME_UPPER|g; s|<description>|TODO: Add description|g" $(TEMPLATES_DIR)/docs/command.adoc > $(SCRIPTS_DIR)/$(NAME)/docs/$(NAME).adoc
+	@sed 's|<name>|$(NAME)|g' $(TEMPLATES_DIR)/completions/command.bash > $(SCRIPTS_DIR)/$(NAME)/completions/$(NAME).bash
+	@sed 's|<name>|$(NAME)|g' $(TEMPLATES_DIR)/completions/_command > $(SCRIPTS_DIR)/$(NAME)/completions/_$(NAME)
+	@sed 's|<name>|$(NAME)|g' $(TEMPLATES_DIR)/command_spec.sh > $(SCRIPTS_DIR)/$(NAME)/$(NAME)_spec.sh
 	@echo "Created $(SCRIPTS_DIR)/$(NAME)/"
 	@echo ""
 	@echo "Next steps:"
 	@echo "  1. Edit $(SCRIPTS_DIR)/$(NAME)/main.sh - implement your script"
 	@echo "  2. Edit $(SCRIPTS_DIR)/$(NAME)/options.sh - add CLI options"
 	@echo "  3. Edit $(SCRIPTS_DIR)/$(NAME)/default.nix - update description"
-	@echo "  4. Add component to release-please-config.json"
+	@echo "  4. Add package to release-please-config.json"
 	@echo "  5. Import script in root flake.nix"
-	@echo "  6. Create $(SCRIPTS_DIR)/$(NAME)/docs/$(NAME).adoc for manpage"
-	@echo "  7. Create $(SCRIPTS_DIR)/$(NAME)/*_spec.sh for tests"

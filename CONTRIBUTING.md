@@ -68,30 +68,7 @@ scriptorium/
 
 ### Bundler
 
-The bundler (`utils/bundle.sh`) combines source files into single executables:
-
-- Inlines `source`/`.` statements marked with `# @bundle source`
-- Tracks included files to avoid duplicates
-- Preserves shebang from entry file
-
-#### Directives
-
-```bash
-# Inline the next source statement
-# @bundle source
-. ./lib.sh
-
-# Run command at bundle time, skip block until @bundle end
-# @bundle cmd gengetoptions parser -f ./options.sh parser_definition parse
-. ./options.sh
-eval "$(getoptions parser_definition parse)"
-# @bundle end
-
-# Mark content to preserve when referenced by @bundle cmd -f
-# @bundle keep
-VERSION=1.0
-# @bundle end
-```
+The bundler (`utils/bundle.sh`) combines source files into single executables. See the script header for directives and usage.
 
 ## Versioning
 
@@ -109,7 +86,7 @@ Then:
 1. Implement your script in `main.sh`
 2. Add CLI options in `options.sh`
 3. Update description in `default.nix`
-4. Add component to `release-please-config.json`
+4. Add package to `release-please-config.json`
 5. Import script in root `flake.nix` (add to `let` block and `packages`)
 6. Add `docs/<name>.adoc` for manpage
 7. Add `<name>_spec.sh` for tests

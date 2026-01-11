@@ -1,0 +1,59 @@
+= <NAME>(1)
+ProventusLabs
+:docdate: 2025
+:doctype: manpage
+:manmanual: User Commands
+:mansource: Scriptorium
+:revnumber: 0.1.0 // x-release-please-version
+:man-linkstyle: pass:[blue R < >]
+
+== NAME
+
+<name> - <description>
+
+== SYNOPSIS
+
+*<name>* [*-h* | *--help*] +
+*<name>* [_OPTIONS_] [_ARGS_...]
+
+== DESCRIPTION
+
+*<name>* does something useful.
+
+TODO: Describe what the command does.
+
+== OPTIONS
+
+*-h*, *--help*::
+  Show help message and exit.
+
+*--version*::
+  Show version information and exit.
+
+== ARGUMENTS
+
+_ARG_::
+  TODO: Describe positional arguments.
+
+== EXAMPLES
+
+Basic usage::
+
+  <name> arg
+
+TODO: Add more examples.
+
+== EXIT STATUS
+
+*0*::
+  Success.
+
+*1*::
+  Runtime error.
+
+*2*::
+  Usage error (invalid options).
+
+== SEE ALSO
+
+TODO: Add related commands or documentation.

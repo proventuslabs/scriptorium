@@ -3,6 +3,12 @@
 
 # Track template files
 !.gitignore
+!README.md
 !main.sh
 !options.sh
 !default.nix
+!command_spec.sh
+!docs/
+!docs/*
+!completions/
+!completions/*

@@ -13,10 +13,9 @@
 - [ ] `scripts/<name>/docs/<name>.adoc` - Manpage documentation
 - [ ] `scripts/<name>/completions/<name>.bash` - Bash completions
 - [ ] `scripts/<name>/completions/_<name>` - Zsh completions
-- [ ] `release-please-config.json` - Added script component
+- [ ] `release-please-config.json` - Added script package
 - [ ] `flake.nix` - Imported script in root flake
 - [ ] `README.md` - Added script entry with link to docs
-- [ ] Built artifacts committed (`make build NAME=<name>`)
 
 ### For all changes
 

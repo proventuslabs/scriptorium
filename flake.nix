@@ -74,7 +74,7 @@
           # Meta-package with all scripts and plugins
           default = pkgs.stdenv.mkDerivation {
             pname = "scriptorium";
-            version = "0.1.0";
+            version = self.shortRev or self.dirtyShortRev or "dev";
             src = self;
 
             nativeBuildInputs = buildTools;
