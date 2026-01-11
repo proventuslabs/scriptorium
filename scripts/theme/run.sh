@@ -14,7 +14,7 @@ theme_warn() {
 }
 
 # Main orchestration function
-# Usage: theme_run [--detect|--list|dark|light]
+# Usage: theme_run [--detect|--list|dark|light|auto]
 theme_run() {
 	local arg="${1:-}"
 
@@ -42,9 +42,18 @@ theme_run() {
 
 	# Detect appearance (with optional override)
 	local override=""
-	if [[ "${arg,,}" == "dark" || "${arg,,}" == "light" ]]; then
-		override="$arg"
-	fi
+	case "${arg,,}" in
+		"" | auto)
+			# Auto-detect, no override
+			;;
+		dark | light)
+			override="$arg"
+			;;
+		*)
+			echo "theme: error: invalid appearance '$arg' (must be 'dark', 'light', or 'auto')" >&2
+			return 1
+			;;
+	esac
 
 	if ! theme_detect "$override"; then
 		return 1

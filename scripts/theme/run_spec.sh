@@ -72,6 +72,19 @@ Describe 'run'
 			The status should equal 1
 			The stderr should include "no provider"
 		End
+
+		It 'accepts auto as argument (same as no argument)'
+			When call theme_run "auto"
+			The status should be success
+			The variable THEME should be present
+			The variable HANDLER_CALLED should equal 1
+		End
+
+		It 'fails with invalid appearance value'
+			When call theme_run "invalid"
+			The status should equal 1
+			The stderr should include "invalid appearance"
+		End
 	End
 
 	Describe 'theme_run with --detect'

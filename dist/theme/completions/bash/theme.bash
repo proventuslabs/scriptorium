@@ -6,8 +6,8 @@ _theme() {
 	cur="${COMP_WORDS[COMP_CWORD]}"
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
-	local opts="--detect --list -h --help --version"
-	local appearances="dark light"
+	local opts="--detect --list -q --quiet -h --help --version"
+	local appearances="dark light auto"
 
 	# Complete options
 	if [[ "$cur" == -* ]]; then

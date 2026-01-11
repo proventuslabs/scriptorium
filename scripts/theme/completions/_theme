@@ -7,9 +7,10 @@ _theme() {
 	_arguments -C \
 		'--detect[Only detect appearance, do not run handlers]' \
 		'--list[List discovered provider and handlers]' \
+		'(-q --quiet)'{-q,--quiet}'[Suppress warnings]' \
 		'(-h --help)'{-h,--help}'[Show help message]' \
 		'--version[Show version]' \
-		'1:appearance:(dark light)'
+		'1:appearance:(dark light auto)'
 }
 
 _theme "$@"
