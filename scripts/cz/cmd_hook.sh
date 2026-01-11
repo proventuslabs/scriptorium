@@ -49,13 +49,20 @@ hook_install() {
 	fi
 
 	mkdir -p "$(dirname "$hook_path")"
-	cat >"$hook_path" <<EOF
+	cat >"$hook_path" <<'HOOK'
 #!/bin/sh
-$hook_marker
+HOOK
+	echo "$hook_marker" >>"$hook_path"
+	cat >>"$hook_path" <<'HOOK'
 # Validate commit message with cz lint
-# STAGED=1 enables path validation against staged files
-STAGED=1 cz lint <"\$1" || exit 1
-EOF
+# Pass staged files for scope-to-path validation
+files=$(git diff --cached --name-only | tr '\n' ' ')
+if [ -n "$files" ]; then
+    cz lint --files "$files" <"$1" || exit 1
+else
+    cz lint <"$1" || exit 1
+fi
+HOOK
 	chmod +x "$hook_path"
 	echo "Installed commit-msg hook"
 }

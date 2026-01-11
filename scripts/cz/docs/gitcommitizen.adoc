@@ -42,7 +42,7 @@ name = description
 === Settings
 
 *strict*::
-  Require scope when staged files match defined scope patterns (default: false).
+  Require scope when files match defined scope patterns (default: false).
   When enabled, commits touching scoped files must include an appropriate scope.
 
 *multi-scope*::
@@ -54,8 +54,8 @@ name = description
 === Scopes
 
 Maps scope names to glob patterns. Multiple patterns are separated by commas.
-When validating with `--staged` or `--files`, the scope is checked against these
-patterns to ensure commits use appropriate scopes for the files being changed.
+When validating with `--files`, the scope is checked against these patterns
+to ensure commits use appropriate scopes for the files being changed.
 
 Special scope `*` matches any files (wildcard). This allows any scope to be used
 regardless of which files are staged.

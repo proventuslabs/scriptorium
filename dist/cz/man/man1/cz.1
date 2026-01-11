@@ -35,7 +35,7 @@ cz \- conventional commit message builder
 .sp
 \fBcz\fP \fBcreate\fP [\fB\-s\fP]
 .br
-\fBcz\fP \fBlint\fP [\fB\-q\fP] [\fB\-s\fP | \fB\-f\fP \fIFILES\fP] [\fB\-\-strict\fP | \fB\-\-no\-strict\fP]
+\fBcz\fP \fBlint\fP [\fB\-q\fP] [\fB\-f\fP \fIFILES\fP] [\fB\-s\fP | \fB\-\-no\-strict\fP]
 .br
 \fBcz\fP \fBparse\fP
 .br
@@ -67,7 +67,7 @@ to enter a custom scope.
 .RE
 .RE
 .sp
-\fBlint\fP [\fB\-q\fP] [\fB\-s\fP | \fB\-f\fP \fIFILES\fP] [\fB\-\-strict\fP | \fB\-\-no\-strict\fP]
+\fBlint\fP [\fB\-q\fP] [\fB\-f\fP \fIFILES\fP] [\fB\-s\fP | \fB\-\-no\-strict\fP]
 .RS 4
 Validate a commit message against the Conventional Commits rules and the
 \fB.gitcommitizen\fP(5) configuration. Reads from standard input. Prints
@@ -79,23 +79,17 @@ fails.
 Suppress output. Only set the exit status.
 .RE
 .sp
-\fB\-s\fP, \fB\-\-staged\fP
-.RS 4
-Validate that the commit scope matches the staged files. Uses glob patterns
-from the \f(CR[scopes]\fP section of the configuration to verify the scope is
-appropriate for the files being committed. Mutually exclusive with \fB\-\-files\fP.
-.RE
-.sp
 \fB\-f\fP, \fB\-\-files\fP \fIFILES\fP
 .RS 4
-Validate that the commit scope matches the specified files. Accepts a
-comma\-separated list of file paths. Uses glob patterns from the \f(CR[scopes]\fP
-section of the configuration. Mutually exclusive with \fB\-\-staged\fP.
+Validate that the commit scope matches the specified file paths. Accepts a
+space\-separated list of paths. Uses glob patterns from the \f(CR[scopes]\fP
+section of the configuration to verify the scope is appropriate for the
+files being committed.
 .RE
 .sp
-\fB\-\-strict\fP
+\fB\-s\fP, \fB\-\-strict\fP
 .RS 4
-Require a scope when staged/specified files match defined scope patterns.
+Require a scope when specified files match defined scope patterns.
 Overrides the \f(CRstrict\fP setting in the configuration file.
 .RE
 .sp
@@ -174,19 +168,14 @@ Lint silently (exit status only)
 cz lint \-q < "$1" || exit 1
 .RE
 .sp
-Lint with scope validation against staged files
-.RS 4
-git log \-1 \-\-pretty=%B | cz lint \-\-staged
-.RE
-.sp
 Lint with scope validation against specific files
 .RS 4
-echo "feat(api): add endpoint" | cz lint \-\-files src/api/routes.ts
+echo "feat(api): add endpoint" | cz lint \-\-files "src/api/routes.ts"
 .RE
 .sp
 Lint with strict mode (require scope for scoped files)
 .RS 4
-cz lint \-\-staged \-\-strict < "$1"
+cz lint \-\-files "$(git diff \-\-cached \-\-name\-only)" \-\-strict < "$1"
 .RE
 .sp
 Show resolved configuration

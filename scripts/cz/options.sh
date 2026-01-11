@@ -36,9 +36,8 @@ parser_definition_lint() {
 	msg -- '' 'Validate a commit message from stdin' ''
 	msg -- 'Options:'
 	flag    QUIET       -q --quiet      -- "Suppress output, exit status only"
-	flag    STAGED      -s --staged     -- "Validate scope against staged files"
-	param   FILES       -f --files      -- "Validate scope against specified files"
-	flag    STRICT         --strict     -- "Require scope for scoped files"
+	param   FILES       -f --files      -- "Validate scope against file paths (space-separated)"
+	flag    STRICT      -s --strict     -- "Require scope for scoped files"
 	flag    NO_STRICT      --no-strict  -- "Allow missing scope (override config)"
 	disp    :usage      -h --help
 }

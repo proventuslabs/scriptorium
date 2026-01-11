@@ -102,13 +102,11 @@ cmd_lint() {
 
 # Get list of files to validate
 # Usage: get_files_to_validate
-# Returns file list or empty string
+# Returns file list (one per line) or empty string
 get_files_to_validate() {
-	if [[ -n "${FILES:-}" ]]; then
-		echo "$FILES"
-	elif [[ -n "${STAGED:-}" ]]; then
-		git diff --cached --name-only 2>/dev/null
-	fi
+	[[ -z "${FILES:-}" ]] && return
+	# Handle space-separated or newline-separated input
+	echo "$FILES" | tr ' ' '\n' | grep -v '^$'
 }
 
 # Check if scope contains multi-scope separator

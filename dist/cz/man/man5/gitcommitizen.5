@@ -61,7 +61,7 @@ name = description
 .sp
 \fBstrict\fP
 .RS 4
-Require scope when staged files match defined scope patterns (default: false).
+Require scope when files match defined scope patterns (default: false).
 When enabled, commits touching scoped files must include an appropriate scope.
 .RE
 .sp
@@ -77,8 +77,8 @@ Separator character for multi\-scopes: \f(CR,\fP, \f(CR/\fP, or \f(CR+\fP (defau
 .SS "Scopes"
 .sp
 Maps scope names to glob patterns. Multiple patterns are separated by commas.
-When validating with \f(CR\-\-staged\fP or \f(CR\-\-files\fP, the scope is checked against these
-patterns to ensure commits use appropriate scopes for the files being changed.
+When validating with \f(CR\-\-files\fP, the scope is checked against these patterns
+to ensure commits use appropriate scopes for the files being changed.
 .sp
 Special scope \f(CR*\fP matches any files (wildcard). This allows any scope to be used
 regardless of which files are staged.
