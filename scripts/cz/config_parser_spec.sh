@@ -93,6 +93,16 @@ Describe 'parse_config'
 		The variable CFG_SCOPES_nix should equal "flake.nix, flake.lock, */default.nix"
 	End
 
+	It 'handles paths with spaces in scopes'
+		Data
+			#|[scopes]
+			#|docs = docs/my folder/**, src/some path/**
+		End
+		When call parse_config
+		The status should be success
+		The variable CFG_SCOPES_docs should equal "docs/my folder/**, src/some path/**"
+	End
+
 	It 'parses multi-scope-separator setting'
 		Data
 			#|[settings]
@@ -186,6 +196,13 @@ Describe 'scope_exists'
 		EOF
 	}
 
+	setup_wildcard() {
+		parse_config <<-'EOF'
+		[scopes]
+		* = **
+		EOF
+	}
+
 	It 'returns true when scope exists'
 		BeforeCall setup_scope
 		When call scope_exists api
@@ -196,6 +213,12 @@ Describe 'scope_exists'
 		BeforeCall setup_empty
 		When call scope_exists missing
 		The status should be failure
+	End
+
+	It 'returns true for wildcard scope'
+		BeforeCall setup_wildcard
+		When call scope_exists '*'
+		The status should be success
 	End
 End
 

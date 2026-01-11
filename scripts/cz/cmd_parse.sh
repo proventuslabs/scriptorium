@@ -34,13 +34,7 @@ cmd_parse() {
 	if [[ ${#CFG_SCOPE_NAMES[@]} -gt 0 ]]; then
 		echo "Scopes:"
 		for scope in "${CFG_SCOPE_NAMES[@]}"; do
-			local pattern_var="CFG_SCOPES_$scope"
-			# Handle wildcard scope
-			if [[ "$scope" == "*" ]]; then
-				echo "  * = ${CFG_SCOPES___wildcard__:-*}"
-			else
-				echo "  $scope = ${!pattern_var:-}"
-			fi
+			echo "  $scope = $(get_scope_patterns "$scope")"
 		done
 		echo
 	fi

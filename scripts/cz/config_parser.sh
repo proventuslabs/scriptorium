@@ -43,7 +43,12 @@ parse_config() {
 					declare -g "CFG_SETTINGS_$norm_key=$value"
 					;;
 				scopes)
-					declare -g "CFG_SCOPES_$key=$value"
+					# Handle wildcard scope specially (bash can't have * in var names)
+					if [[ "$key" == "*" ]]; then
+						declare -g "CFG_SCOPES___wildcard__=$value"
+					else
+						declare -g "CFG_SCOPES_$key=$value"
+					fi
 					CFG_SCOPE_NAMES+=("$key")
 					;;
 				types)
@@ -67,14 +72,26 @@ get_setting() {
 # Check if scope exists
 # Usage: scope_exists <name>
 scope_exists() {
-	local var="CFG_SCOPES_$1"
+	local name="$1"
+	local var
+	if [[ "$name" == "*" ]]; then
+		var="CFG_SCOPES___wildcard__"
+	else
+		var="CFG_SCOPES_$name"
+	fi
 	[[ -n "${!var+x}" ]]
 }
 
 # Get scope patterns
 # Usage: get_scope_patterns <name>
 get_scope_patterns() {
-	local var="CFG_SCOPES_$1"
+	local name="$1"
+	local var
+	if [[ "$name" == "*" ]]; then
+		var="CFG_SCOPES___wildcard__"
+	else
+		var="CFG_SCOPES_$name"
+	fi
 	echo "${!var:-}"
 }
 

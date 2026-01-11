@@ -73,6 +73,16 @@ Describe 'file_matches_pattern'
 		When call file_matches_pattern "fileXtxt" "file.txt"
 		The status should be failure
 	End
+
+	It 'matches path with spaces'
+		When call file_matches_pattern "docs/my folder/file.txt" "docs/my folder/**"
+		The status should be success
+	End
+
+	It 'matches path with spaces using double star'
+		When call file_matches_pattern "src/some path/nested/file.sh" "src/**"
+		The status should be success
+	End
 End
 
 Describe 'file_matches_scope'
@@ -96,6 +106,13 @@ Describe 'file_matches_scope'
 		parse_config <<-'EOF'
 		[scopes]
 		any = **
+		EOF
+	}
+
+	setup_space_pattern() {
+		parse_config <<-'EOF'
+		[scopes]
+		docs = docs/my folder/**, src/some path/**
 		EOF
 	}
 
@@ -132,6 +149,18 @@ Describe 'file_matches_scope'
 	It 'matches catchall scope with double star pattern'
 		BeforeCall setup_catchall
 		When call file_matches_scope "any/file/anywhere.txt" "any"
+		The status should be success
+	End
+
+	It 'matches file with spaces against scope with space patterns'
+		BeforeCall setup_space_pattern
+		When call file_matches_scope "docs/my folder/readme.txt" "docs"
+		The status should be success
+	End
+
+	It 'matches second pattern with spaces'
+		BeforeCall setup_space_pattern
+		When call file_matches_scope "src/some path/nested/file.sh" "docs"
 		The status should be success
 	End
 End
