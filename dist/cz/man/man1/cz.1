@@ -31,11 +31,11 @@
 cz \- conventional commit message builder
 .SH "SYNOPSIS"
 .sp
-\fBcz\fP [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
+\fBcz\fP [\fB\-q\fP] [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
 .sp
 \fBcz\fP \fBcreate\fP [\fB\-s\fP]
 .br
-\fBcz\fP \fBlint\fP [\fB\-q\fP] [\fB\-f\fP \fIFILES\fP] [\fB\-s\fP | \fB\-\-no\-strict\fP]
+\fBcz\fP \fBlint\fP [\fB\-f\fP \fIFILES\fP] [\fB\-s\fP | \fB\-\-no\-strict\fP]
 .br
 \fBcz\fP \fBparse\fP
 .br
@@ -67,17 +67,12 @@ to enter a custom scope.
 .RE
 .RE
 .sp
-\fBlint\fP [\fB\-q\fP] [\fB\-f\fP \fIFILES\fP] [\fB\-s\fP | \fB\-\-no\-strict\fP]
+\fBlint\fP [\fB\-f\fP \fIFILES\fP] [\fB\-s\fP | \fB\-\-no\-strict\fP]
 .RS 4
 Validate a commit message against the Conventional Commits rules and the
 \fB.gitcommitizen\fP(5) configuration. Reads from standard input. Prints
 diagnostic messages explaining any errors. Exits non\-zero if validation
 fails.
-.sp
-\fB\-q\fP, \fB\-\-quiet\fP
-.RS 4
-Suppress output. Only set the exit status.
-.RE
 .sp
 \fB\-f\fP, \fB\-\-files\fP \fIFILES\fP
 .RS 4
@@ -129,6 +124,11 @@ the hook is installed.
 .RS 4
 Use \fIFILE\fP instead of \fB.gitcommitizen\fP. Searches parent directories if
 not specified.
+.RE
+.sp
+\fB\-q\fP, \fB\-\-quiet\fP
+.RS 4
+Suppress warnings and non\-essential output.
 .RE
 .sp
 \fB\-h\fP, \fB\-\-help\fP

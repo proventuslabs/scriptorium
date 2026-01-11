@@ -13,10 +13,10 @@ cz - conventional commit message builder
 
 == SYNOPSIS
 
-*cz* [*-c* _FILE_] [_SUBCOMMAND_]
+*cz* [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
 
 *cz* *create* [*-s*] +
-*cz* *lint* [*-q*] [*-f* _FILES_] [*-s* | *--no-strict*] +
+*cz* *lint* [*-f* _FILES_] [*-s* | *--no-strict*] +
 *cz* *parse* +
 *cz* *init* [*-f*] +
 *cz* *hook* [*install* | *uninstall* | *status*]
@@ -45,16 +45,13 @@ in a terminal, or *lint* mode if receiving input on standard input.
   to enter a custom scope.
 --
 
-*lint* [*-q*] [*-f* _FILES_] [*-s* | *--no-strict*]::
+*lint* [*-f* _FILES_] [*-s* | *--no-strict*]::
   Validate a commit message against the Conventional Commits rules and the
   *.gitcommitizen*(5) configuration. Reads from standard input. Prints
   diagnostic messages explaining any errors. Exits non-zero if validation
   fails.
 +
 --
-*-q*, *--quiet*:::
-  Suppress output. Only set the exit status.
-
 *-f*, *--files* _FILES_:::
   Validate that the commit scope matches the specified file paths. Accepts a
   space-separated list of paths. Uses glob patterns from the `[scopes]`
@@ -93,6 +90,9 @@ in a terminal, or *lint* mode if receiving input on standard input.
 *-c*, *--config-file* _FILE_::
   Use _FILE_ instead of *.gitcommitizen*. Searches parent directories if
   not specified.
+
+*-q*, *--quiet*::
+  Suppress warnings and non-essential output.
 
 *-h*, *--help*::
   Display usage information and exit.
