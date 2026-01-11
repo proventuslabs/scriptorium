@@ -12,7 +12,7 @@ parser_definition() {
 	param   CONFIG_FILE  -c --config-file -- "Config file path"
 	flag    QUIET        -q --quiet       -- "Suppress warnings and non-essential output"
 	disp    :usage       -h --help
-	disp    VERSION         --version
+	disp    VERSION      -V --version
 
 	msg -- '' 'Commands:'
 	cmd create -- "Compose a commit message interactively"
@@ -37,7 +37,7 @@ parser_definition_lint() {
 	msg -- '' 'Validate a commit message from stdin' ''
 	msg -- 'Options:'
 	param   FILES       -f --files      -- "Validate scope against file paths (space-separated)"
-	flag    STRICT      -s --strict     -- "Require scope for scoped files"
+	flag    STRICT      -S --strict     -- "Require scope for scoped files"
 	flag    NO_STRICT      --no-strict  -- "Allow missing scope (override config)"
 	disp    :usage      -h --help
 }

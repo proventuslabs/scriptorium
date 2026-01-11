@@ -15,10 +15,10 @@ parser_definition() {
 		"Usage: dotenv [options...] command [args...]"
 	msg -- '' 'Load environment from .env files and execute command' ''
 	msg -- 'Options:'
-	param :append_env_file -e var:FILE init:'ENV_FILES=()' -- ".env file to load (repeatable)"
+	param :append_env_file -e --env-file var:FILE init:'ENV_FILES=()' -- ".env file to load (repeatable)"
 	flag  EXEC_MODE -x --exec  -- "Replace process with exec"
 	flag  STRICT    -s --strict -- "Fail on warnings"
 	flag  QUIET     -q --quiet -- "Suppress warnings"
 	disp  :usage    -h --help
-	disp  VERSION      --version
+	disp  VERSION   -V --version
 }
