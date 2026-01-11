@@ -1,0 +1,276 @@
+= THEME(1)
+ProventusLabs
+:docdate: 2025
+:doctype: manpage
+:manmanual: User Commands
+:mansource: Scriptorium
+:revnumber: 0.1.0 // x-release-please-version
+:man-linkstyle: pass:[blue R < >]
+
+== NAME
+
+theme - extensible theme orchestrator for shell environments
+
+== SYNOPSIS
+
+*theme* [_OPTIONS_] [dark|light]
+
+== DESCRIPTION
+
+*theme* detects the system appearance (dark or light mode) and orchestrates
+theme configuration across multiple tools via an extensible provider/handler
+system.
+
+The command performs three steps:
+
+1. *Detection* - Determines system appearance (dark/light) using OS-native
+   methods
+2. *Provider* - Calls a user-registered provider function that maps appearance
+   to theme variables (e.g., THEME_VARIANT, THEME_ACCENT)
+3. *Handlers* - Calls all registered handler functions that configure
+   individual tools using the exported theme variables
+
+Providers and handlers are auto-discovered by function name prefix or loaded
+from configuration files.
+
+== OPTIONS
+
+*--detect*::
+  Only detect and print the system appearance (dark or light). Does not run
+  the provider or handlers.
+
+*--list*::
+  List the discovered provider and all registered handlers.
+
+*-q*, *--quiet*::
+  Suppress warning messages.
+
+*-h*, *--help*::
+  Show help message and exit.
+
+*--version*::
+  Show version information and exit.
+
+== ARGUMENTS
+
+*dark* | *light*::
+  Override the detected appearance. When specified, detection is skipped and
+  this value is passed directly to the provider.
+
+== DETECTION
+
+*theme* uses OS-native methods to detect appearance:
+
+*macOS*::
+  Reads `AppleInterfaceStyle` via `defaults read -g AppleInterfaceStyle`.
+  Returns "dark" if set to "Dark", otherwise "light".
+
+*Linux (GNOME/Unity)*::
+  Queries `org.gnome.desktop.interface color-scheme` via `gsettings`.
+
+*Linux (KDE Plasma)*::
+  Reads `ColorScheme` from `kdeglobals` via `kreadconfig5`.
+
+*Linux (XFCE)*::
+  Queries `/Net/ThemeName` via `xfconf-query`.
+
+*Windows (WSL/Cygwin)*::
+  Queries `AppsUseLightTheme` from Windows registry via `reg.exe`.
+
+*Fallback*::
+  Uses `THEME` environment variable if set, otherwise defaults to "light".
+
+== PROVIDERS
+
+A provider is a shell function that receives the detected appearance and
+exports theme variables for handlers to consume.
+
+=== Provider Contract
+
+Providers must:
+
+* Be named with prefix `theme_provider_` (e.g., `theme_provider_catppuccin`)
+* Accept two arguments: `$1` = appearance (dark|light), `$2` = source
+  (detected|default|override)
+* Export `THEME` and any additional variables handlers need
+
+=== Provider Discovery
+
+Providers are discovered in order:
+
+1. Functions matching `theme_provider_*` in current shell
+2. Functions defined in `~/.config/theme/provider.sh`
+
+Only the first discovered provider is used.
+
+=== Example Provider
+
+[source,bash]
+----
+theme_provider_catppuccin() {
+  local appearance="$1"  # dark | light
+  local source="$2"      # detected | default | override
+
+  export THEME="$appearance"
+
+  case "$appearance" in
+    dark)  export THEME_VARIANT=mocha ;;
+    light) export THEME_VARIANT=latte ;;
+  esac
+
+  export THEME_ACCENT=blue
+}
+----
+
+== HANDLERS
+
+Handlers are shell functions that configure individual tools using the theme
+variables exported by the provider.
+
+=== Handler Contract
+
+Handlers must:
+
+* Be named with prefix `theme_handler_` (e.g., `theme_handler_bat`)
+* Read configuration from `THEME_*` environment variables
+* Configure their target tool (export vars, write config files, etc.)
+
+=== Handler Discovery
+
+Handlers are discovered from:
+
+1. Functions matching `theme_handler_*` in current shell
+2. Functions defined in scripts under `~/.config/theme/handlers.d/*.sh`
+
+All discovered handlers are executed in alphabetical order.
+
+=== Example Handlers
+
+[source,bash]
+----
+theme_handler_bat() {
+  export BAT_THEME="Catppuccin ${THEME_VARIANT^}"
+}
+
+theme_handler_vivid() {
+  export LS_COLORS="$(vivid generate catppuccin-${THEME_VARIANT})"
+}
+
+theme_handler_fzf() {
+  if [[ "$THEME" == "dark" ]]; then
+    export FZF_DEFAULT_OPTS="--color=dark"
+  else
+    export FZF_DEFAULT_OPTS="--color=light"
+  fi
+}
+----
+
+=== External Handler Files
+
+Handlers can be defined in separate files under `~/.config/theme/handlers.d/`:
+
+.~/.config/theme/handlers.d/bottom.sh
+[source,bash]
+----
+#!/usr/bin/env bash
+theme_handler_bottom() {
+  export BTM_CONFIG_FILE="$HOME/.config/bottom/themes/${THEME_VARIANT}.toml"
+}
+----
+
+== FILES
+
+*~/.config/theme/config.sh*::
+  User configuration file. Sourced before provider/handler discovery.
+  Can be used to set default variables or configure behavior.
+
+*~/.config/theme/provider.sh*::
+  Custom provider definition. Sourced during provider discovery.
+
+*~/.config/theme/handlers.d/*.sh*::
+  External handler scripts. All `.sh` files in this directory are sourced
+  during handler discovery.
+
+== ENVIRONMENT
+
+*THEME*::
+  Current theme appearance (dark or light). Set by the provider. Can also
+  be set manually to override detection.
+
+*THEME_VARIANT*::
+  Theme variant name (e.g., mocha, latte). Set by the provider.
+
+*THEME_ACCENT*::
+  Accent color (e.g., blue, pink). Set by the provider.
+
+Additional `THEME_*` variables may be exported by custom providers.
+
+== EXIT STATUS
+
+*0*::
+  Success.
+
+*1*::
+  Runtime error (no provider found, detection failed).
+
+*2*::
+  Usage error (invalid arguments).
+
+== EXAMPLES
+
+Detect appearance and apply theme to all handlers::
++
+  theme
+
+Force dark mode::
++
+  theme dark
+
+Only detect appearance (no handlers)::
++
+  theme --detect
+
+List discovered provider and handlers::
++
+  theme --list
+
+=== Shell Integration
+
+Add to shell configuration for automatic theming on startup:
+
+[source,bash]
+----
+# ~/.bashrc or ~/.zshrc
+source /path/to/theme.sh
+
+# Define provider
+theme_provider_catppuccin() {
+  local appearance="$1"
+  export THEME="$appearance"
+  case "$appearance" in
+    dark)  export THEME_VARIANT=mocha ;;
+    light) export THEME_VARIANT=latte ;;
+  esac
+  export THEME_ACCENT=blue
+}
+
+# Define handlers
+theme_handler_bat() {
+  export BAT_THEME="Catppuccin ${THEME_VARIANT^}"
+}
+
+theme_handler_vivid() {
+  export LS_COLORS="$(vivid generate catppuccin-${THEME_VARIANT})"
+}
+
+# Apply theme on shell startup
+theme
+----
+
+== SEE ALSO
+
+*defaults*(1), *gsettings*(1), *vivid*(1), *bat*(1)
+
+== AUTHORS
+
+Scriptorium contributors.
