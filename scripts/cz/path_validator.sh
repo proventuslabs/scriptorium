@@ -3,7 +3,7 @@
 # Path validator module for matching files against scope glob patterns
 
 # @bundle source
-. ./ini_parser.sh
+. ./config_parser.sh
 
 # Check if file matches a glob pattern
 # Usage: file_matches_pattern <file> <pattern>
@@ -79,7 +79,7 @@ file_matches_scope() {
 find_matching_scope() {
 	local file="$1" scope
 
-	for scope in "${INI_SCOPE_NAMES[@]}"; do
+	for scope in "${CFG_SCOPE_NAMES[@]}"; do
 		# Skip wildcard scope
 		[[ "$scope" == "*" ]] && continue
 		if file_matches_scope "$file" "$scope"; then

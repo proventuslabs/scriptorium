@@ -2,7 +2,7 @@
 # shellcheck disable=SC2329 # Functions invoked indirectly via ShellSpec BeforeCall
 
 Describe 'cmd_lint'
-	Include ./ini_parser.sh
+	Include ./config_parser.sh
 	Include ./path_validator.sh
 	Include ./cmd_lint.sh
 
@@ -163,7 +163,7 @@ Describe 'cmd_lint'
 		# Helper to set up INI config with scopes
 		setup_ini_config() {
 			CONFIG_FORMAT="ini"
-			parse_ini <<-'EOF'
+			parse_config <<-'EOF'
 			[types]
 			feat = New feature
 			fix = Bug fix
@@ -180,14 +180,14 @@ Describe 'cmd_lint'
 
 		setup_ini_with_wildcard() {
 			CONFIG_FORMAT="ini"
-			parse_ini <<-'EOF'
+			parse_config <<-'EOF'
 			[types]
 			feat = New feature
 			[scopes]
 			api = src/api/**
 			EOF
-			# Manually add wildcard scope since bash can't store INI_SCOPES_*
-			INI_SCOPE_NAMES+=("*")
+			# Manually add wildcard scope since bash can't store CFG_SCOPES_*
+			CFG_SCOPE_NAMES+=("*")
 			TYPES=("feat")
 			DESCRIPTIONS=("New feature")
 			SCOPES=("")
@@ -196,7 +196,7 @@ Describe 'cmd_lint'
 
 		setup_ini_multi_scope() {
 			CONFIG_FORMAT="ini"
-			parse_ini <<-'EOF'
+			parse_config <<-'EOF'
 			[settings]
 			multi-scope = true
 			[types]
@@ -213,7 +213,7 @@ Describe 'cmd_lint'
 
 		setup_ini_multi_scope_disabled() {
 			CONFIG_FORMAT="ini"
-			parse_ini <<-'EOF'
+			parse_config <<-'EOF'
 			[settings]
 			multi-scope = false
 			[types]
@@ -230,7 +230,7 @@ Describe 'cmd_lint'
 
 		setup_ini_strict() {
 			CONFIG_FORMAT="ini"
-			parse_ini <<-'EOF'
+			parse_config <<-'EOF'
 			[settings]
 			strict = true
 			[types]
@@ -247,7 +247,7 @@ Describe 'cmd_lint'
 
 		setup_ini_strict_false() {
 			CONFIG_FORMAT="ini"
-			parse_ini <<-'EOF'
+			parse_config <<-'EOF'
 			[settings]
 			strict = false
 			[types]
@@ -378,9 +378,9 @@ src/ui/button.tsx"
 			End
 		End
 
-		Describe 'legacy format skips path validation'
-			It 'does not validate paths for legacy config format'
-				CONFIG_FORMAT="legacy"
+		Describe 'no scopes defined skips path validation'
+			It 'does not validate paths when no scopes configured'
+				CFG_SCOPE_NAMES=()
 				TYPES=("feat")
 				DESCRIPTIONS=("Feature")
 				SCOPES=("")

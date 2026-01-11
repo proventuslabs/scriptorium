@@ -204,120 +204,13 @@ default_config() {
 # shellcheck shell=bash
 
 # Parse .gitcommitizen configuration from stdin
-# Usage: parse_config < config_file
-# Sets arrays: TYPES, DESCRIPTIONS, SCOPES, GLOBAL_SCOPES
+# Sets variables: CFG_SETTINGS_*, CFG_SCOPES_*, CFG_TYPES_*
+# Also sets arrays: CFG_SCOPE_NAMES, CFG_TYPE_NAMES
 parse_config() {
-	TYPES=()
-	DESCRIPTIONS=()
-	GLOBAL_SCOPES=()
-	SCOPES=()
-
-	[[ -t 0 ]] && return 0
-
-	# Track type indices (last definition wins)
-	declare -A type_indices
-	local -a type_scope_mods=()
-
-	local line type desc scopes
-
-	while IFS= read -r line || [[ -n "$line" ]]; do
-		# Skip comments and blank lines
-		[[ "$line" =~ ^[[:space:]]*# ]] && continue
-		[[ "$line" =~ ^[[:space:]]*$ ]] && continue
-
-		# Split by pipe
-		IFS='|' read -r type desc scopes <<<"$line"
-
-		# Trim whitespace
-		type="${type#"${type%%[![:space:]]*}"}"
-		type="${type%"${type##*[![:space:]]}"}"
-		desc="${desc#"${desc%%[![:space:]]*}"}"
-		desc="${desc%"${desc##*[![:space:]]}"}"
-		scopes="${scopes#"${scopes%%[![:space:]]*}"}"
-		scopes="${scopes%"${scopes##*[![:space:]]}"}"
-
-		# Handle global scopes (type is *)
-		if [[ "$type" == '*' ]]; then
-			GLOBAL_SCOPES=()
-			IFS=',' read -ra scope_list <<<"$scopes"
-			for scope in "${scope_list[@]}"; do
-				scope="${scope#"${scope%%[![:space:]]*}"}"
-				scope="${scope%"${scope##*[![:space:]]}"}"
-				scope="${scope#+}"
-				[[ -n "$scope" ]] && GLOBAL_SCOPES+=("$scope")
-			done
-		elif [[ -n "$type" ]]; then
-			# Last definition wins
-			if [[ -v type_indices[$type] ]]; then
-				idx="${type_indices[$type]}"
-				DESCRIPTIONS[idx]="$desc"
-				type_scope_mods[idx]="$scopes"
-			else
-				type_indices[$type]=${#TYPES[@]}
-				TYPES+=("$type")
-				DESCRIPTIONS+=("$desc")
-				type_scope_mods+=("$scopes")
-			fi
-		fi
-	done
-
-	# Build SCOPES array by applying modifiers to global scopes
-	for i in "${!TYPES[@]}"; do
-		local -a type_scopes=()
-		local -a adds=() removes=()
-
-		# Start with global scopes
-		type_scopes+=("${GLOBAL_SCOPES[@]}")
-
-		# Parse scope modifiers
-		if [[ -n "${type_scope_mods[$i]}" ]]; then
-			IFS=',' read -ra mods <<<"${type_scope_mods[$i]}"
-			for mod in "${mods[@]}"; do
-				mod="${mod#"${mod%%[![:space:]]*}"}"
-				mod="${mod%"${mod##*[![:space:]]}"}"
-				[[ -z "$mod" ]] && continue
-
-				if [[ "$mod" == -* ]]; then
-					# Remove scope
-					removes+=("${mod#-}")
-				else
-					# Add scope (strip optional +)
-					adds+=("${mod#+}")
-				fi
-			done
-		fi
-
-		# Add new scopes
-		type_scopes+=("${adds[@]}")
-
-		# Remove blacklisted scopes
-		if [[ ${#removes[@]} -gt 0 ]]; then
-			local -a filtered_scopes=()
-			for scope in "${type_scopes[@]}"; do
-				local removed=false
-				for rm_scope in "${removes[@]}"; do
-					[[ "$scope" == "$rm_scope" ]] && removed=true && break
-				done
-				$removed || filtered_scopes+=("$scope")
-			done
-			type_scopes=("${filtered_scopes[@]}")
-		fi
-
-		SCOPES+=("${type_scopes[*]}")
-	done
-}
-# --- end: scripts/cz/config_parser.sh ---
-# --- begin: scripts/cz/ini_parser.sh ---
-# shellcheck shell=bash
-
-# Parse INI-style .gitcommitizen configuration from stdin
-# Sets variables: INI_SETTINGS_*, INI_SCOPES_*, INI_TYPES_*
-# Also sets arrays: INI_SCOPE_NAMES, INI_TYPE_NAMES
-parse_ini() {
 	# Clear previous state
-	unset "${!INI_SETTINGS_@}" "${!INI_SCOPES_@}" "${!INI_TYPES_@}"
-	INI_SCOPE_NAMES=()
-	INI_TYPE_NAMES=()
+	unset "${!CFG_SETTINGS_@}" "${!CFG_SCOPES_@}" "${!CFG_TYPES_@}"
+	CFG_SCOPE_NAMES=()
+	CFG_TYPE_NAMES=()
 
 	[[ -t 0 ]] && return 0
 
@@ -350,15 +243,15 @@ parse_ini() {
 
 			case "$section" in
 				settings)
-					declare -g "INI_SETTINGS_$norm_key=$value"
+					declare -g "CFG_SETTINGS_$norm_key=$value"
 					;;
 				scopes)
-					declare -g "INI_SCOPES_$key=$value"
-					INI_SCOPE_NAMES+=("$key")
+					declare -g "CFG_SCOPES_$key=$value"
+					CFG_SCOPE_NAMES+=("$key")
 					;;
 				types)
-					declare -g "INI_TYPES_$key=$value"
-					INI_TYPE_NAMES+=("$key")
+					declare -g "CFG_TYPES_$key=$value"
+					CFG_TYPE_NAMES+=("$key")
 					;;
 			esac
 		fi
@@ -370,32 +263,32 @@ parse_ini() {
 get_setting() {
 	local key="${1//-/_}"
 	local default="${2:-}"
-	local var="INI_SETTINGS_$key"
+	local var="CFG_SETTINGS_$key"
 	echo "${!var:-$default}"
 }
 
 # Check if scope exists
 # Usage: scope_exists <name>
 scope_exists() {
-	local var="INI_SCOPES_$1"
+	local var="CFG_SCOPES_$1"
 	[[ -n "${!var+x}" ]]
 }
 
 # Get scope patterns
 # Usage: get_scope_patterns <name>
 get_scope_patterns() {
-	local var="INI_SCOPES_$1"
+	local var="CFG_SCOPES_$1"
 	echo "${!var:-}"
 }
 
 # Check if type exists
 # Usage: type_exists <name>
 type_exists() {
-	local var="INI_TYPES_$1"
+	local var="CFG_TYPES_$1"
 	[[ -n "${!var+x}" ]]
 }
-# --- end: scripts/cz/ini_parser.sh ---
-# Sets: TYPES, DESCRIPTIONS, SCOPES, GLOBAL_SCOPES, CONFIG_FILE, CONFIG_FORMAT
+# --- end: scripts/cz/config_parser.sh ---
+# Sets: TYPES, DESCRIPTIONS, SCOPES, GLOBAL_SCOPES, CONFIG_FILE
 
 # Find config file by walking up directory tree
 # Usage: find_config [start_dir]
@@ -415,45 +308,10 @@ find_config() {
 	return 1
 }
 
-# Detect config file format
-# Usage: detect_config_format <file>
-# Returns: "ini", "legacy", or "unknown"
-detect_config_format() {
-	local file="$1"
-	local line
-
-	while IFS= read -r line || [[ -n "$line" ]]; do
-		# Skip comments and blank lines
-		[[ "$line" =~ ^[[:space:]]*# ]] && continue
-		[[ "$line" =~ ^[[:space:]]*$ ]] && continue
-
-		# Check for INI section header
-		if [[ "$line" =~ ^\[[a-z]+\]$ ]]; then
-			echo "ini"
-			return 0
-		fi
-
-		# Check for pipe delimiter (legacy format)
-		if [[ "$line" == *"|"* ]]; then
-			echo "legacy"
-			return 0
-		fi
-
-		# First non-comment, non-blank line doesn't match either format
-		echo "unknown"
-		return 0
-	done <"$file"
-
-	# Empty file or only comments
-	echo "unknown"
-	return 0
-}
-
 # Load configuration from file or use defaults
 # Usage: load_config
 # Requires: CONFIG_FILE to be set (empty = use defaults)
 # Exits with error if CONFIG_FILE is set but file doesn't exist
-# Sets CONFIG_FORMAT to "ini", "legacy", or "default"
 load_config() {
 	if [[ -n "$CONFIG_FILE" ]]; then
 		if [[ ! -f "$CONFIG_FILE" ]]; then
@@ -461,33 +319,19 @@ load_config() {
 			exit 1
 		fi
 
-		CONFIG_FORMAT="$(detect_config_format "$CONFIG_FILE")"
-
-		case "$CONFIG_FORMAT" in
-			ini)
-				parse_ini <"$CONFIG_FILE"
-				# Build TYPES/DESCRIPTIONS arrays from INI for compatibility
-				TYPES=()
-				DESCRIPTIONS=()
-				SCOPES=()
-				GLOBAL_SCOPES=()
-				for type in "${INI_TYPE_NAMES[@]}"; do
-					TYPES+=("$type")
-					local desc_var="INI_TYPES_$type"
-					DESCRIPTIONS+=("${!desc_var:-}")
-					SCOPES+=("")
-				done
-				;;
-			legacy)
-				parse_config <"$CONFIG_FILE"
-				;;
-			*)
-				echo "cz: error: unknown config format in: $CONFIG_FILE" >&2
-				exit 1
-				;;
-		esac
+		parse_config <"$CONFIG_FILE"
+		# Build TYPES/DESCRIPTIONS arrays from INI for compatibility
+		TYPES=()
+		DESCRIPTIONS=()
+		SCOPES=()
+		GLOBAL_SCOPES=()
+		for type in "${CFG_TYPE_NAMES[@]}"; do
+			TYPES+=("$type")
+			local desc_var="CFG_TYPES_$type"
+			DESCRIPTIONS+=("${!desc_var:-}")
+			SCOPES+=("")
+		done
 	else
-		CONFIG_FORMAT="default"
 		default_config
 	fi
 }
@@ -509,13 +353,31 @@ cmd_parse() {
 	fi
 	echo
 
-	# Show global scopes
-	if [[ ${#GLOBAL_SCOPES[@]} -gt 0 ]]; then
-		echo "Global scopes: ${GLOBAL_SCOPES[*]}"
+	# Show settings
+	if [[ -n "${CFG_SETTINGS_strict:-}" || -n "${CFG_SETTINGS_multi_scope:-}" ]]; then
+		echo "Settings:"
+		[[ -n "${CFG_SETTINGS_strict:-}" ]] && echo "  strict = ${CFG_SETTINGS_strict}"
+		[[ -n "${CFG_SETTINGS_multi_scope:-}" ]] && echo "  multi-scope = ${CFG_SETTINGS_multi_scope}"
+		[[ -n "${CFG_SETTINGS_multi_scope_separator:-}" ]] && echo "  multi-scope-separator = ${CFG_SETTINGS_multi_scope_separator}"
 		echo
 	fi
 
-	# Show types with descriptions and resolved scopes
+	# Show scopes with patterns
+	if [[ ${#CFG_SCOPE_NAMES[@]} -gt 0 ]]; then
+		echo "Scopes:"
+		for scope in "${CFG_SCOPE_NAMES[@]}"; do
+			local pattern_var="CFG_SCOPES_$scope"
+			# Handle wildcard scope
+			if [[ "$scope" == "*" ]]; then
+				echo "  * = ${CFG_SCOPES___wildcard__:-*}"
+			else
+				echo "  $scope = ${!pattern_var:-}"
+			fi
+		done
+		echo
+	fi
+
+	# Show types with descriptions
 	echo "Types:"
 	local max_type_len=0
 	for type in "${TYPES[@]}"; do
@@ -525,17 +387,7 @@ cmd_parse() {
 	for i in "${!TYPES[@]}"; do
 		local type="${TYPES[$i]}"
 		local desc="${DESCRIPTIONS[$i]}"
-		# shellcheck disable=SC2153 # SCOPES is a global array loaded by config.sh, not a misspelling of local scopes.
-		local scopes="${SCOPES[$i]}"
-
-		# Format: type (padded)  description  [scopes]
-		printf "  %-${max_type_len}s  %s" "$type" "$desc"
-		if [[ -n "$scopes" ]]; then
-			# Convert space-separated to comma-separated for display
-			local scope_display="${scopes// /, }"
-			printf "  [%s]" "$scope_display"
-		fi
-		printf "\n"
+		printf "  %-${max_type_len}s  %s\n" "$type" "$desc"
 	done
 }
 # --- end: scripts/cz/cmd_parse.sh ---
@@ -670,7 +522,7 @@ hook_status() {
 
 # Path validator module for matching files against scope glob patterns
 
-# --- skipped (already included): scripts/cz/ini_parser.sh ---
+# --- skipped (already included): scripts/cz/config_parser.sh ---
 
 # Check if file matches a glob pattern
 # Usage: file_matches_pattern <file> <pattern>
@@ -746,7 +598,7 @@ file_matches_scope() {
 find_matching_scope() {
 	local file="$1" scope
 
-	for scope in "${INI_SCOPE_NAMES[@]}"; do
+	for scope in "${CFG_SCOPE_NAMES[@]}"; do
 		# Skip wildcard scope
 		[[ "$scope" == "*" ]] && continue
 		if file_matches_scope "$file" "$scope"; then
@@ -951,8 +803,8 @@ validate_paths_if_needed() {
 	local files_str
 	local multi_scope_enabled strict_mode
 
-	# Only validate for INI format
-	[[ "${CONFIG_FORMAT:-}" != "ini" ]] && return 0
+	# Only validate if scopes are defined
+	[[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]] && return 0
 
 	# Get files to validate
 	files_str="$(get_files_to_validate)"
@@ -998,7 +850,7 @@ validate_paths_if_needed() {
 				s="${s%"${s##*[![:space:]]}"}"
 				if ! scope_exists "$s" && [[ "$s" != "*" ]]; then
 					[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown scope '$s'" >&2
-					[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${INI_SCOPE_NAMES[*]}" >&2
+					[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${CFG_SCOPE_NAMES[*]}" >&2
 					return 1
 				fi
 			done
@@ -1015,7 +867,7 @@ validate_paths_if_needed() {
 			# Single scope - validate it exists (unless wildcard)
 			if [[ "$scope" != "*" ]] && ! scope_exists "$scope"; then
 				[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown scope '$scope'" >&2
-				[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${INI_SCOPE_NAMES[*]}" >&2
+				[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${CFG_SCOPE_NAMES[*]}" >&2
 				return 1
 			fi
 
@@ -1087,49 +939,48 @@ cmd_create() {
 	fi
 	local type="${type_selection%% - *}"
 
-	# Find type index for scope lookup
-	local type_index=-1
-	for i in "${!TYPES[@]}"; do
-		if [[ "${TYPES[$i]}" == "$type" ]]; then
-			type_index=$i
-			break
-		fi
-	done
-
 	# Select or input scope
 	local scope=""
-	local allowed_scopes="${SCOPES[$type_index]:-}"
 
-	if [[ -n "$allowed_scopes" ]]; then
-		# Build scope choices
+	if [[ ${#CFG_SCOPE_NAMES[@]} -gt 0 ]]; then
+		# Build scope choices from configured scopes
 		local scope_choices=()
-		for s in $allowed_scopes; do
+		for s in "${CFG_SCOPE_NAMES[@]}"; do
+			# Skip wildcard scope
+			[[ "$s" == "*" ]] && continue
 			scope_choices+=("$s")
 		done
 
-		if [[ -n "${STRICT_SCOPES:-}" ]]; then
-			# Strict mode: only configured scopes
-			scope_choices+=("(none)")
-			local scope_selection
-			if ! scope_selection=$(gum choose --header "Select scope:" "${scope_choices[@]}"); then
-				exit 130
-			fi
-			if [[ "$scope_selection" != "(none)" ]]; then
-				scope="$scope_selection"
-			fi
-		else
-			# Default: configured scopes + custom option
-			scope_choices+=("(custom)" "(none)")
-			local scope_selection
-			if ! scope_selection=$(gum choose --header "Select scope:" "${scope_choices[@]}"); then
-				exit 130
-			fi
-			if [[ "$scope_selection" == "(custom)" ]]; then
-				if ! scope=$(gum input --header "Enter scope:" --placeholder "e.g., api, ui, core"); then
+		if [[ ${#scope_choices[@]} -gt 0 ]]; then
+			if [[ -n "${STRICT_SCOPES:-}" ]]; then
+				# Strict mode: only configured scopes
+				scope_choices+=("(none)")
+				local scope_selection
+				if ! scope_selection=$(gum choose --header "Select scope:" "${scope_choices[@]}"); then
 					exit 130
 				fi
-			elif [[ "$scope_selection" != "(none)" ]]; then
-				scope="$scope_selection"
+				if [[ "$scope_selection" != "(none)" ]]; then
+					scope="$scope_selection"
+				fi
+			else
+				# Default: configured scopes + custom option
+				scope_choices+=("(custom)" "(none)")
+				local scope_selection
+				if ! scope_selection=$(gum choose --header "Select scope:" "${scope_choices[@]}"); then
+					exit 130
+				fi
+				if [[ "$scope_selection" == "(custom)" ]]; then
+					if ! scope=$(gum input --header "Enter scope:" --placeholder "e.g., api, ui, core"); then
+						exit 130
+					fi
+				elif [[ "$scope_selection" != "(none)" ]]; then
+					scope="$scope_selection"
+				fi
+			fi
+		else
+			# Only wildcard scope defined: free-form input
+			if ! scope=$(gum input --header "Scope (optional):" --placeholder "e.g., api, ui, core"); then
+				exit 130
 			fi
 		fi
 	else

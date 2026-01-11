@@ -127,8 +127,8 @@ validate_paths_if_needed() {
 	local files_str
 	local multi_scope_enabled strict_mode
 
-	# Only validate for INI format
-	[[ "${CONFIG_FORMAT:-}" != "ini" ]] && return 0
+	# Only validate if scopes are defined
+	[[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]] && return 0
 
 	# Get files to validate
 	files_str="$(get_files_to_validate)"
@@ -174,7 +174,7 @@ validate_paths_if_needed() {
 				s="${s%"${s##*[![:space:]]}"}"
 				if ! scope_exists "$s" && [[ "$s" != "*" ]]; then
 					[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown scope '$s'" >&2
-					[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${INI_SCOPE_NAMES[*]}" >&2
+					[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${CFG_SCOPE_NAMES[*]}" >&2
 					return 1
 				fi
 			done
@@ -191,7 +191,7 @@ validate_paths_if_needed() {
 			# Single scope - validate it exists (unless wildcard)
 			if [[ "$scope" != "*" ]] && ! scope_exists "$scope"; then
 				[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown scope '$scope'" >&2
-				[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${INI_SCOPE_NAMES[*]}" >&2
+				[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${CFG_SCOPE_NAMES[*]}" >&2
 				return 1
 			fi
 

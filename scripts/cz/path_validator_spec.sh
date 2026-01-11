@@ -79,21 +79,21 @@ Describe 'file_matches_scope'
 	Include ./path_validator.sh
 
 	setup_single_pattern() {
-		parse_ini <<-'EOF'
+		parse_config <<-'EOF'
 		[scopes]
 		api = src/api/**
 		EOF
 	}
 
 	setup_multi_pattern() {
-		parse_ini <<-'EOF'
+		parse_config <<-'EOF'
 		[scopes]
 		nix = flake.nix, flake.lock, */default.nix
 		EOF
 	}
 
 	setup_catchall() {
-		parse_ini <<-'EOF'
+		parse_config <<-'EOF'
 		[scopes]
 		any = **
 		EOF
@@ -141,7 +141,7 @@ Describe 'find_matching_scope'
 
 	setup_scopes() {
 		# Note: using 'any' instead of '*' since '*' is not a valid bash variable name
-		parse_ini <<-'EOF'
+		parse_config <<-'EOF'
 		[scopes]
 		api = src/api/**
 		ui = src/ui/**
@@ -149,7 +149,7 @@ Describe 'find_matching_scope'
 	}
 
 	setup_no_wildcard() {
-		parse_ini <<-'EOF'
+		parse_config <<-'EOF'
 		[scopes]
 		api = src/api/**
 		ui = src/ui/**
@@ -189,7 +189,7 @@ Describe 'validate_files_against_scope'
 	Include ./path_validator.sh
 
 	setup_scope() {
-		parse_ini <<-'EOF'
+		parse_config <<-'EOF'
 		[scopes]
 		api = src/api/**
 		EOF
@@ -219,7 +219,7 @@ Describe 'validate_files_against_scopes'
 	Include ./path_validator.sh
 
 	setup_scopes() {
-		parse_ini <<-'EOF'
+		parse_config <<-'EOF'
 		[scopes]
 		api = src/api/**
 		ui = src/ui/**
@@ -227,7 +227,7 @@ Describe 'validate_files_against_scopes'
 	}
 
 	setup_with_separator() {
-		parse_ini <<-'EOF'
+		parse_config <<-'EOF'
 		[settings]
 		multi-scope-separator = /
 		[scopes]
@@ -260,7 +260,7 @@ Describe 'validate_strict_no_scope'
 	Include ./path_validator.sh
 
 	setup_scopes() {
-		parse_ini <<-'EOF'
+		parse_config <<-'EOF'
 		[scopes]
 		api = src/api/**
 		ui = src/ui/**

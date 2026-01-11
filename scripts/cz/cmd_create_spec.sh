@@ -175,8 +175,13 @@ MOCK
 	Describe 'with configured scopes'
 		setup_scopes_config() {
 			cat > .gitcommitizen << 'EOF'
-*||api,core
-feat|A new feature|ui
+[scopes]
+api = src/api/**
+core = src/core/**
+ui = src/ui/**
+
+[types]
+feat = A new feature
 EOF
 		}
 
