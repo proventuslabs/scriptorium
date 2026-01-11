@@ -8,8 +8,8 @@ cmd_hook() {
 	# Find git directory
 	local git_dir
 	git_dir="$(git rev-parse --git-dir 2>/dev/null)" || {
-		echo "cz: not a git repository" >&2
-		return 4
+		echo "cz: error: not a git repository" >&2
+		return 1
 	}
 
 	local hook_path="$git_dir/hooks/commit-msg"
@@ -26,7 +26,7 @@ cmd_hook() {
 			hook_status "$hook_path" "$hook_marker"
 			;;
 		*)
-			echo "cz: unknown hook action '$action'" >&2
+			echo "cz: error: unknown hook action '$action'" >&2
 			echo "Usage: cz hook [install|uninstall|status]" >&2
 			return 2
 			;;
@@ -42,7 +42,7 @@ hook_install() {
 			echo "cz: hook already installed"
 			return 0
 		else
-			echo "cz: existing commit-msg hook found" >&2
+			echo "cz: error: existing commit-msg hook found" >&2
 			echo "Remove it manually or add 'cz lint < \"\$1\"' to it" >&2
 			return 1
 		fi
@@ -69,7 +69,7 @@ hook_uninstall() {
 	fi
 
 	if ! grep -q "$hook_marker" "$hook_path" 2>/dev/null; then
-		echo "cz: commit-msg hook was not installed by cz" >&2
+		echo "cz: error: commit-msg hook was not installed by cz" >&2
 		return 1
 	fi
 

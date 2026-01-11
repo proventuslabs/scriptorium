@@ -10,7 +10,7 @@ cmd_lint() {
 	message="$(cat)"
 
 	if [[ -z "$message" ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: empty commit message" >&2
+		[[ -z "${QUIET:-}" ]] && echo "cz: error: empty commit message" >&2
 		return 1
 	fi
 
@@ -27,7 +27,7 @@ cmd_lint() {
 	local pattern='^([a-z]+)(\(([a-zA-Z0-9_@/-]+)\))?(!)?: (.+)$'
 
 	if [[ ! "$first_line" =~ $pattern ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: invalid commit format" >&2
+		[[ -z "${QUIET:-}" ]] && echo "cz: error: invalid commit format" >&2
 		[[ -z "${QUIET:-}" ]] && echo "Expected: <type>[(scope)]: <description>" >&2
 		return 1
 	fi
@@ -49,7 +49,7 @@ cmd_lint() {
 	done
 
 	if [[ "$type_valid" != true ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: unknown type '$type'" >&2
+		[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown type '$type'" >&2
 		[[ -z "${QUIET:-}" ]] && echo "Allowed types: ${TYPES[*]}" >&2
 		return 1
 	fi
@@ -69,7 +69,7 @@ cmd_lint() {
 			done
 
 			if [[ "$scope_valid" != true ]]; then
-				[[ -z "${QUIET:-}" ]] && echo "cz: invalid scope '$scope' for type '$type'" >&2
+				[[ -z "${QUIET:-}" ]] && echo "cz: error: invalid scope '$scope' for type '$type'" >&2
 				[[ -z "${QUIET:-}" ]] && echo "Allowed scopes: $allowed_scopes" >&2
 				return 1
 			fi
@@ -78,14 +78,14 @@ cmd_lint() {
 
 	# Validate description is not empty
 	if [[ -z "$description" || "$description" =~ ^[[:space:]]*$ ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: description cannot be empty" >&2
+		[[ -z "${QUIET:-}" ]] && echo "cz: error: description cannot be empty" >&2
 		return 1
 	fi
 
 	# Validate breaking change has BREAKING CHANGE footer
 	if [[ -n "$breaking" ]]; then
 		if [[ ! "$message" =~ BREAKING[[:space:]]CHANGE: ]]; then
-			[[ -z "${QUIET:-}" ]] && echo "cz: breaking change (!) requires 'BREAKING CHANGE:' footer" >&2
+			[[ -z "${QUIET:-}" ]] && echo "cz: error: breaking change (!) requires 'BREAKING CHANGE:' footer" >&2
 			return 1
 		fi
 	fi

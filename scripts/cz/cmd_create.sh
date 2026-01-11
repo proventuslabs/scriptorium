@@ -8,9 +8,9 @@
 cmd_create() {
 	# Check gum dependency
 	if ! command -v gum &>/dev/null; then
-		echo "cz: gum is required for interactive mode" >&2
+		echo "cz: error: gum is required for interactive mode" >&2
 		echo "See: https://github.com/charmbracelet/gum" >&2
-		exit 3
+		exit 1
 	fi
 
 	# Load config if not already loaded
@@ -99,7 +99,7 @@ cmd_create() {
 			exit 130
 		fi
 		if [[ -z "$description" ]]; then
-			echo "Description cannot be empty" >&2
+			echo "cz: error: description cannot be empty" >&2
 		fi
 	done
 
@@ -119,7 +119,7 @@ cmd_create() {
 				exit 130
 			fi
 			if [[ -z "$breaking_explanation" ]]; then
-				echo "Breaking change explanation is required" >&2
+				echo "cz: error: breaking change explanation is required" >&2
 			fi
 		done
 		footer="BREAKING CHANGE: $breaking_explanation"

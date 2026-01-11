@@ -30,7 +30,7 @@ Describe 'cmd_create'
 				Skip "gum is installed system-wide"
 			fi
 			When run cmd_create
-			The status should equal 3
+			The status should equal 1
 			The stderr should include "gum is required"
 		End
 	End

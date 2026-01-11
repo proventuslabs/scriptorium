@@ -9,7 +9,7 @@ cmd_init() {
 	local target=".gitcommitizen"
 
 	if [[ -f "$target" && -z "${FORCE:-}" ]]; then
-		echo "cz: '$target' already exists (use -f to overwrite)" >&2
+		echo "cz: error: '$target' already exists (use -f to overwrite)" >&2
 		return 1
 	fi
 

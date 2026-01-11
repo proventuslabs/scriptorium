@@ -127,16 +127,11 @@ Install the commit-msg hook::
   Success.
 
 *1*::
-  Lint validation failed.
+  Runtime error (lint validation failed, missing dependency, config not found,
+  not a git repository).
 
 *2*::
   Usage error (invalid arguments).
-
-*3*::
-  Missing dependency (*gum* not installed).
-
-*4*::
-  Not a git repository (for commands requiring git).
 
 *130*::
   User cancelled (SIGINT).

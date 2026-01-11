@@ -33,8 +33,8 @@ find_config() {
 load_config() {
 	if [[ -n "$CONFIG_FILE" ]]; then
 		if [[ ! -f "$CONFIG_FILE" ]]; then
-			echo "cz: config file not found: $CONFIG_FILE" >&2
-			exit 3
+			echo "cz: error: config file not found: $CONFIG_FILE" >&2
+			exit 1
 		fi
 		parse_config <"$CONFIG_FILE"
 	else

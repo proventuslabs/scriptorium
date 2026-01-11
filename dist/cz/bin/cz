@@ -333,8 +333,8 @@ find_config() {
 load_config() {
 	if [[ -n "$CONFIG_FILE" ]]; then
 		if [[ ! -f "$CONFIG_FILE" ]]; then
-			echo "cz: config file not found: $CONFIG_FILE" >&2
-			exit 3
+			echo "cz: error: config file not found: $CONFIG_FILE" >&2
+			exit 1
 		fi
 		parse_config <"$CONFIG_FILE"
 	else
@@ -400,7 +400,7 @@ cmd_init() {
 	local target=".gitcommitizen"
 
 	if [[ -f "$target" && -z "${FORCE:-}" ]]; then
-		echo "cz: '$target' already exists (use -f to overwrite)" >&2
+		echo "cz: error: '$target' already exists (use -f to overwrite)" >&2
 		return 1
 	fi
 
@@ -421,8 +421,8 @@ cmd_hook() {
 	# Find git directory
 	local git_dir
 	git_dir="$(git rev-parse --git-dir 2>/dev/null)" || {
-		echo "cz: not a git repository" >&2
-		return 4
+		echo "cz: error: not a git repository" >&2
+		return 1
 	}
 
 	local hook_path="$git_dir/hooks/commit-msg"
@@ -439,7 +439,7 @@ cmd_hook() {
 			hook_status "$hook_path" "$hook_marker"
 			;;
 		*)
-			echo "cz: unknown hook action '$action'" >&2
+			echo "cz: error: unknown hook action '$action'" >&2
 			echo "Usage: cz hook [install|uninstall|status]" >&2
 			return 2
 			;;
@@ -455,7 +455,7 @@ hook_install() {
 			echo "cz: hook already installed"
 			return 0
 		else
-			echo "cz: existing commit-msg hook found" >&2
+			echo "cz: error: existing commit-msg hook found" >&2
 			echo "Remove it manually or add 'cz lint < \"\$1\"' to it" >&2
 			return 1
 		fi
@@ -482,7 +482,7 @@ hook_uninstall() {
 	fi
 
 	if ! grep -q "$hook_marker" "$hook_path" 2>/dev/null; then
-		echo "cz: commit-msg hook was not installed by cz" >&2
+		echo "cz: error: commit-msg hook was not installed by cz" >&2
 		return 1
 	fi
 
@@ -520,7 +520,7 @@ cmd_lint() {
 	message="$(cat)"
 
 	if [[ -z "$message" ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: empty commit message" >&2
+		[[ -z "${QUIET:-}" ]] && echo "cz: error: empty commit message" >&2
 		return 1
 	fi
 
@@ -537,7 +537,7 @@ cmd_lint() {
 	local pattern='^([a-z]+)(\(([a-zA-Z0-9_@/-]+)\))?(!)?: (.+)$'
 
 	if [[ ! "$first_line" =~ $pattern ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: invalid commit format" >&2
+		[[ -z "${QUIET:-}" ]] && echo "cz: error: invalid commit format" >&2
 		[[ -z "${QUIET:-}" ]] && echo "Expected: <type>[(scope)]: <description>" >&2
 		return 1
 	fi
@@ -559,7 +559,7 @@ cmd_lint() {
 	done
 
 	if [[ "$type_valid" != true ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: unknown type '$type'" >&2
+		[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown type '$type'" >&2
 		[[ -z "${QUIET:-}" ]] && echo "Allowed types: ${TYPES[*]}" >&2
 		return 1
 	fi
@@ -579,7 +579,7 @@ cmd_lint() {
 			done
 
 			if [[ "$scope_valid" != true ]]; then
-				[[ -z "${QUIET:-}" ]] && echo "cz: invalid scope '$scope' for type '$type'" >&2
+				[[ -z "${QUIET:-}" ]] && echo "cz: error: invalid scope '$scope' for type '$type'" >&2
 				[[ -z "${QUIET:-}" ]] && echo "Allowed scopes: $allowed_scopes" >&2
 				return 1
 			fi
@@ -588,14 +588,14 @@ cmd_lint() {
 
 	# Validate description is not empty
 	if [[ -z "$description" || "$description" =~ ^[[:space:]]*$ ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: description cannot be empty" >&2
+		[[ -z "${QUIET:-}" ]] && echo "cz: error: description cannot be empty" >&2
 		return 1
 	fi
 
 	# Validate breaking change has BREAKING CHANGE footer
 	if [[ -n "$breaking" ]]; then
 		if [[ ! "$message" =~ BREAKING[[:space:]]CHANGE: ]]; then
-			[[ -z "${QUIET:-}" ]] && echo "cz: breaking change (!) requires 'BREAKING CHANGE:' footer" >&2
+			[[ -z "${QUIET:-}" ]] && echo "cz: error: breaking change (!) requires 'BREAKING CHANGE:' footer" >&2
 			return 1
 		fi
 	fi
@@ -613,9 +613,9 @@ cmd_lint() {
 cmd_create() {
 	# Check gum dependency
 	if ! command -v gum &>/dev/null; then
-		echo "cz: gum is required for interactive mode" >&2
+		echo "cz: error: gum is required for interactive mode" >&2
 		echo "See: https://github.com/charmbracelet/gum" >&2
-		exit 3
+		exit 1
 	fi
 
 	# Load config if not already loaded
@@ -704,7 +704,7 @@ cmd_create() {
 			exit 130
 		fi
 		if [[ -z "$description" ]]; then
-			echo "Description cannot be empty" >&2
+			echo "cz: error: description cannot be empty" >&2
 		fi
 	done
 
@@ -724,7 +724,7 @@ cmd_create() {
 				exit 130
 			fi
 			if [[ -z "$breaking_explanation" ]]; then
-				echo "Breaking change explanation is required" >&2
+				echo "cz: error: breaking change explanation is required" >&2
 			fi
 		done
 		footer="BREAKING CHANGE: $breaking_explanation"

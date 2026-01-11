@@ -91,7 +91,7 @@ EOF
 		It 'fails if CONFIG_FILE does not exist'
 			CONFIG_FILE="/nonexistent/config"
 			When run cmd_parse
-			The status should equal 3
+			The status should equal 1
 			The stderr should include "config file not found"
 			The stderr should include "/nonexistent/config"
 		End
