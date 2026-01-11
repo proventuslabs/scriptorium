@@ -16,7 +16,7 @@ cz - conventional commit message builder
 *cz* [*-c* _FILE_] [_SUBCOMMAND_]
 
 *cz* *create* [*-s*] +
-*cz* *lint* [*-q*] +
+*cz* *lint* [*-q*] [*-s* | *-f* _FILES_] [*--strict* | *--no-strict*] +
 *cz* *parse* +
 *cz* *init* [*-f*] +
 *cz* *hook* [*install* | *uninstall* | *status*]
@@ -45,7 +45,7 @@ in a terminal, or *lint* mode if receiving input on standard input.
   to enter a custom scope.
 --
 
-*lint* [*-q*]::
+*lint* [*-q*] [*-s* | *-f* _FILES_] [*--strict* | *--no-strict*]::
   Validate a commit message against the Conventional Commits rules and the
   *.gitcommitizen*(5) configuration. Reads from standard input. Prints
   diagnostic messages explaining any errors. Exits non-zero if validation
@@ -54,6 +54,24 @@ in a terminal, or *lint* mode if receiving input on standard input.
 --
 *-q*, *--quiet*:::
   Suppress output. Only set the exit status.
+
+*-s*, *--staged*:::
+  Validate that the commit scope matches the staged files. Uses glob patterns
+  from the `[scopes]` section of the configuration to verify the scope is
+  appropriate for the files being committed. Mutually exclusive with *--files*.
+
+*-f*, *--files* _FILES_:::
+  Validate that the commit scope matches the specified files. Accepts a
+  comma-separated list of file paths. Uses glob patterns from the `[scopes]`
+  section of the configuration. Mutually exclusive with *--staged*.
+
+*--strict*:::
+  Require a scope when staged/specified files match defined scope patterns.
+  Overrides the `strict` setting in the configuration file.
+
+*--no-strict*:::
+  Allow commits without scope even when files match scope patterns.
+  Overrides the `strict` setting in the configuration file.
 --
 
 *parse*::
@@ -108,6 +126,18 @@ Lint before committing (commit-msg hook)::
 Lint silently (exit status only)::
 
   cz lint -q < "$1" || exit 1
+
+Lint with scope validation against staged files::
+
+  git log -1 --pretty=%B | cz lint --staged
+
+Lint with scope validation against specific files::
+
+  echo "feat(api): add endpoint" | cz lint --files src/api/routes.ts
+
+Lint with strict mode (require scope for scoped files)::
+
+  cz lint --staged --strict < "$1"
 
 Show resolved configuration::
 
