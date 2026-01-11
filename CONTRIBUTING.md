@@ -74,6 +74,12 @@ The bundler (`utils/bundle.sh`) combines source files into single executables. S
 
 Scripts are versioned independently using [Semantic Versioning](https://semver.org/). Releases are automated via [release-please](https://github.com/googleapis/release-please).
 
+Each script package in `release-please-config.json` requires:
+- `component`: Script name (e.g., `"cz"`) - **required** for separate release PRs and tags
+- `extra-files`: Files containing version strings to update (default.nix, options.sh, docs)
+
+Tags are formatted as `<component>-v<version>` (e.g., `cz-v0.1.0`).
+
 ## Adding a New Script
 
 ```bash
@@ -86,8 +92,21 @@ Then:
 1. Implement your script in `main.sh`
 2. Add CLI options in `options.sh`
 3. Update description in `default.nix`
-4. Add package to `release-please-config.json`
+4. Add package to `release-please-config.json` with `component` and `extra-files`:
+   ```json
+   "scripts/<name>": {
+     "component": "<name>",
+     "extra-files": [
+       { "type": "generic", "path": "default.nix" },
+       { "type": "generic", "path": "options.sh" },
+       { "type": "generic", "path": "docs/<name>.adoc" }
+     ]
+   }
+   ```
 5. Import script in root `flake.nix` (add to `let` block and `packages`)
 6. Add `docs/<name>.adoc` for manpage
 7. Add `<name>_spec.sh` for tests
 8. Build: `make build NAME=<name>`
+9. Test: `make test NAME=<name>`
+
+When creating the PR, use the [new-script template](?expand=1&template=new-script.md).

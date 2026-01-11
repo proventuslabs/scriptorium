@@ -219,9 +219,4 @@ endif
 	@sed 's|<name>|$(NAME)|g' $(TEMPLATES_DIR)/command_spec.sh > $(SCRIPTS_DIR)/$(NAME)/$(NAME)_spec.sh
 	@echo "Created $(SCRIPTS_DIR)/$(NAME)/"
 	@echo ""
-	@echo "Next steps:"
-	@echo "  1. Edit $(SCRIPTS_DIR)/$(NAME)/main.sh - implement your script"
-	@echo "  2. Edit $(SCRIPTS_DIR)/$(NAME)/options.sh - add CLI options"
-	@echo "  3. Edit $(SCRIPTS_DIR)/$(NAME)/default.nix - update description"
-	@echo "  4. Add package to release-please-config.json"
-	@echo "  5. Import script in root flake.nix"
+	@echo "See CONTRIBUTING.md for next steps."

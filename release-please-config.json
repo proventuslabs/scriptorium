@@ -3,9 +3,11 @@
   "release-type": "simple",
   "bump-minor-pre-major": true,
   "separate-pull-requests": true,
+  "include-component-in-tag": true,
   "initial-version": "0.1.0",
   "packages": {
     "scripts/cz": {
+      "component": "cz",
       "extra-files": [
         { "type": "generic", "path": "default.nix" },
         { "type": "generic", "path": "options.sh" },
@@ -14,6 +16,7 @@
       ]
     },
     "scripts/dotenv": {
+      "component": "dotenv",
       "extra-files": [
         { "type": "generic", "path": "default.nix" },
         { "type": "generic", "path": "options.sh" },
@@ -22,6 +25,7 @@
       ]
     },
     "scripts/jwt": {
+      "component": "jwt",
       "extra-files": [
         { "type": "generic", "path": "default.nix" },
         { "type": "generic", "path": "options.sh" },
@@ -29,6 +33,7 @@
       ]
     },
     "scripts/theme": {
+      "component": "theme",
       "extra-files": [
         { "type": "generic", "path": "default.nix" },
         { "type": "generic", "path": "options.sh" },
