@@ -53,7 +53,8 @@ hook_install() {
 #!/bin/sh
 $hook_marker
 # Validate commit message with cz lint
-cz lint <"\$1" || exit 1
+# STAGED=1 enables path validation against staged files
+STAGED=1 cz lint <"\$1" || exit 1
 EOF
 	chmod +x "$hook_path"
 	echo "Installed commit-msg hook"
