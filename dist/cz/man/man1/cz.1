@@ -102,13 +102,19 @@ Overrides the \f(CRstrict\fP setting in the configuration file.
 Display configuration with all values expanded. Useful for debugging.
 .RE
 .sp
-\fBinit\fP [\fB\-f\fP]
+\fBinit\fP [\fB\-o\fP \fIFILE\fP] [\fB\-f\fP]
 .RS 4
-Generate a starter \fB.gitcommitizen\fP file in the current directory.
+Generate a starter \fB.gitcommitizen\fP configuration. Prints to standard output
+by default, allowing piping or redirection.
+.sp
+\fB\-o\fP, \fB\-\-output\fP \fIFILE\fP
+.RS 4
+Write to \fIFILE\fP instead of stdout.
+.RE
 .sp
 \fB\-f\fP, \fB\-\-force\fP
 .RS 4
-Overwrite an existing file.
+Overwrite an existing file (only with \fB\-o\fP).
 .RE
 .RE
 .sp

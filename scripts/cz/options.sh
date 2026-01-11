@@ -47,8 +47,9 @@ parser_definition_init() {
 		"Usage: cz init [options...]"
 	msg -- '' 'Generate a starter .gitcommitizen file' ''
 	msg -- 'Options:'
-	flag    FORCE   -f --force -- "Overwrite existing file"
-	disp    :usage  -h --help
+	param   OUTPUT_FILE -o --output -- "Write to file instead of stdout"
+	flag    FORCE       -f --force  -- "Overwrite existing file"
+	disp    :usage      -h --help
 }
 
 parser_definition_hook() {

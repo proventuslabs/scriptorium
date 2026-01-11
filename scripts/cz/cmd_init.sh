@@ -6,15 +6,19 @@
 . ./config_defaults.sh
 
 cmd_init() {
-	local target=".gitcommitizen"
+	default_config
 
-	if [[ -f "$target" && -z "${FORCE:-}" ]]; then
-		echo "cz: error: '$target' already exists (use -f to overwrite)" >&2
+	# If no output file specified, print to stdout
+	if [[ -z "${OUTPUT_FILE:-}" ]]; then
+		format_config
+		return 0
+	fi
+
+	# Write to file
+	if [[ -f "$OUTPUT_FILE" && -z "${FORCE:-}" ]]; then
+		echo "cz: error: '$OUTPUT_FILE' already exists (use -f to overwrite)" >&2
 		return 1
 	fi
 
-	default_config
-	format_config >"$target"
-
-	echo "Created $target"
+	format_config >"$OUTPUT_FILE"
 }

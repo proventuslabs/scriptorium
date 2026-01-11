@@ -16,62 +16,80 @@ Describe 'cmd_init'
 	BeforeEach 'setup'
 	AfterEach 'cleanup'
 
-	It 'creates .gitcommitizen file'
-		When call cmd_init
-		The status should be success
-		The output should equal "Created .gitcommitizen"
-		The file ".gitcommitizen" should be exist
+	Describe 'stdout mode (default)'
+		It 'prints config to stdout'
+			When call cmd_init
+			The status should be success
+			The output should include "feat"
+			The output should include "fix"
+		End
+
+		It 'does not create file'
+			When call cmd_init
+			The status should be success
+			The output should include "feat"
+			The file ".gitcommitizen" should not be exist
+		End
 	End
 
-	It 'errors if file exists without -f'
-		touch .gitcommitizen
-		When call cmd_init
-		The status should be failure
-		The stderr should include "already exists"
+	Describe 'file mode (-o)'
+		It 'writes to specified file silently'
+			OUTPUT_FILE="custom-config"
+			When call cmd_init
+			The status should be success
+			The output should equal ""
+			The file "custom-config" should be exist
+			The contents of file "custom-config" should include "feat"
+		End
+
+		It 'errors if file exists without -f'
+			OUTPUT_FILE=".gitcommitizen"
+			touch .gitcommitizen
+			When call cmd_init
+			The status should be failure
+			The stderr should include "already exists"
+		End
+
+		It 'overwrites with FORCE set'
+			OUTPUT_FILE=".gitcommitizen"
+			echo "old content" > .gitcommitizen
+			FORCE=1
+			When call cmd_init
+			The status should be success
+			The output should equal ""
+			The contents of file ".gitcommitizen" should include "feat"
+		End
 	End
 
-	It 'overwrites with FORCE set'
-		echo "old content" > .gitcommitizen
-		FORCE=1
-		When call cmd_init
-		The status should be success
-		The output should equal "Created .gitcommitizen"
-		The contents of file ".gitcommitizen" should not equal "old content"
-	End
+	Describe 'config content'
+		It 'includes feat type in INI format'
+			When call cmd_init
+			The output should include "feat = A new feature"
+		End
 
-	It 'creates file with feat type in INI format'
-		When call cmd_init
-		The output should equal "Created .gitcommitizen"
-		The contents of file ".gitcommitizen" should include "feat = A new feature"
-	End
+		It 'includes fix type in INI format'
+			When call cmd_init
+			The output should include "fix = A bug fix"
+		End
 
-	It 'creates file with fix type in INI format'
-		When call cmd_init
-		The output should equal "Created .gitcommitizen"
-		The contents of file ".gitcommitizen" should include "fix = A bug fix"
-	End
+		It 'includes [types] section'
+			When call cmd_init
+			The output should include "[types]"
+		End
 
-	It 'creates file with [types] section'
-		When call cmd_init
-		The output should equal "Created .gitcommitizen"
-		The contents of file ".gitcommitizen" should include "[types]"
-	End
+		It 'includes [settings] section'
+			When call cmd_init
+			The output should include "[settings]"
+		End
 
-	It 'creates file with [settings] section'
-		When call cmd_init
-		The output should equal "Created .gitcommitizen"
-		The contents of file ".gitcommitizen" should include "[settings]"
-	End
+		It 'includes [scopes] section'
+			When call cmd_init
+			The output should include "[scopes]"
+		End
 
-	It 'creates file with [scopes] section'
-		When call cmd_init
-		The output should equal "Created .gitcommitizen"
-		The contents of file ".gitcommitizen" should include "[scopes]"
-	End
-
-	It 'includes usage comments'
-		When call cmd_init
-		The output should equal "Created .gitcommitizen"
-		The contents of file ".gitcommitizen" should include "# Conventional Commits"
+		It 'includes header comment'
+			When call cmd_init
+			The output should include "# Conventional Commits"
+		End
 	End
 End
