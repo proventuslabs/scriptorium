@@ -35,8 +35,12 @@ parser_definition_lint() {
 		"Usage: cz lint [options...]"
 	msg -- '' 'Validate a commit message from stdin' ''
 	msg -- 'Options:'
-	flag    QUIET   -q --quiet -- "Suppress output, exit status only"
-	disp    :usage  -h --help
+	flag    QUIET       -q --quiet      -- "Suppress output, exit status only"
+	flag    STAGED      -s --staged     -- "Validate scope against staged files"
+	param   FILES       -f --files      -- "Validate scope against specified files"
+	flag    STRICT         --strict     -- "Require scope for scoped files"
+	flag    NO_STRICT      --no-strict  -- "Allow missing scope (override config)"
+	disp    :usage      -h --help
 }
 
 parser_definition_init() {
