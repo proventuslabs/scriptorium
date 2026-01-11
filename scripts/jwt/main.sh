@@ -29,7 +29,7 @@ if [[ -n $verify_key ]]; then
 		- | @-)
 			# Read key from stdin
 			if [[ $# -eq 0 ]]; then
-				echo "jwt: token argument required when reading key from stdin" >&2
+				echo "jwt: error: token argument required when reading key from stdin" >&2
 				exit 1
 			fi
 			# Read all stdin (may be multiline PEM)
@@ -39,8 +39,8 @@ if [[ -n $verify_key ]]; then
 			# Read key from file
 			keyfile=${verify_key#@}
 			if [[ ! -r $keyfile ]]; then
-				echo "jwt: cannot read key file '$keyfile'" >&2
-				exit 6
+				echo "jwt: error: cannot read key file '$keyfile'" >&2
+				exit 1
 			fi
 			verify_key=$(<"$keyfile")
 			;;
@@ -54,7 +54,7 @@ elif [[ ! -t 0 ]]; then
 	# Read from stdin
 	read -r token
 else
-	echo "jwt: no token provided" >&2
+	echo "jwt: error: no token provided" >&2
 	exit 1
 fi
 

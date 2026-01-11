@@ -55,19 +55,19 @@ Describe 'decode'
 
 		It 'rejects empty token'
 			When call jwt_split ""
-			The status should equal 2
+			The status should equal 1
 			The stderr should include "empty token"
 		End
 
 		It 'rejects token with only 2 parts'
 			When call jwt_split "header.payload"
-			The status should equal 2
+			The status should equal 1
 			The stderr should include "invalid JWT format"
 		End
 
 		It 'rejects token with 4 parts'
 			When call jwt_split "a.b.c.d"
-			The status should equal 2
+			The status should equal 1
 			The stderr should include "invalid JWT format"
 		End
 
@@ -93,7 +93,7 @@ Describe 'decode'
 		It 'rejects invalid base64'
 			JWT_HEADER_B64="!!invalid!!"
 			When call jwt_decode_header
-			The status should equal 2
+			The status should equal 1
 			The stderr should include "failed to decode header"
 		End
 
@@ -101,7 +101,7 @@ Describe 'decode'
 			# "not json" in base64url
 			JWT_HEADER_B64="bm90IGpzb24"
 			When call jwt_decode_header
-			The status should equal 2
+			The status should equal 1
 			The stderr should include "invalid header JSON"
 		End
 
@@ -109,7 +109,7 @@ Describe 'decode'
 			# {"typ":"JWT"} in base64url
 			JWT_HEADER_B64="eyJ0eXAiOiJKV1QifQ"
 			When call jwt_decode_header
-			The status should equal 2
+			The status should equal 1
 			The stderr should include "missing 'alg'"
 		End
 	End
@@ -129,7 +129,7 @@ Describe 'decode'
 		It 'rejects invalid base64'
 			JWT_PAYLOAD_B64="!!invalid!!"
 			When call jwt_decode_payload
-			The status should equal 2
+			The status should equal 1
 			The stderr should include "failed to decode payload"
 		End
 
@@ -137,7 +137,7 @@ Describe 'decode'
 			# "not json" in base64url
 			JWT_PAYLOAD_B64="bm90IGpzb24"
 			When call jwt_decode_payload
-			The status should equal 2
+			The status should equal 1
 			The stderr should include "invalid payload JSON"
 		End
 	End

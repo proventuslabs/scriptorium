@@ -14,16 +14,16 @@ check_dependencies() {
 	local alg=${1:-}
 
 	if ! command -v openssl &>/dev/null; then
-		echo "jwt: openssl not found" >&2
-		return 5
+		echo "jwt: error: openssl not found" >&2
+		return 1
 	fi
 
 	# xxd required for ECDSA signature conversion
 	case $alg in
 		ES256 | ES384 | ES512)
 			if ! command -v xxd &>/dev/null; then
-				echo "jwt: xxd not found (required for ECDSA)" >&2
-				return 5
+				echo "jwt: error: xxd not found (required for ECDSA)" >&2
+				return 1
 			fi
 			;;
 	esac
@@ -55,7 +55,7 @@ check_algorithm_support() {
 			# These require OpenSSL 3.x
 			if [[ "$major_version" -lt 3 ]]; then
 				jwt_warn "algorithm '$alg' requires OpenSSL 3.x (found: $(openssl version))"
-				return 8
+				return 1
 			fi
 			;;
 	esac
@@ -72,8 +72,8 @@ get_openssl_digest() {
 		HS512 | RS512 | ES512 | PS512) echo "sha512" ;;
 		EdDSA) echo "" ;; # EdDSA uses built-in hash
 		*)
-			echo "jwt: unsupported algorithm '$JWT_ALG'" >&2
-			return 7
+			echo "jwt: error: unsupported algorithm '$JWT_ALG'" >&2
+			return 1
 			;;
 	esac
 }
@@ -94,8 +94,8 @@ verify_hmac() {
 	actual_sig=${JWT_SIG_B64//=/}
 
 	if [[ "$expected_sig" != "$actual_sig" ]]; then
-		echo "jwt: signature verification failed" >&2
-		return 3
+		echo "jwt: error: signature verification failed" >&2
+		return 1
 	fi
 }
 
@@ -119,8 +119,8 @@ verify_rsa() {
 	# Verify using process substitution for key
 	local signing_input="${JWT_HEADER_B64}.${JWT_PAYLOAD_B64}"
 	if ! printf '%s' "$signing_input" | openssl dgst -"$digest" -verify <(printf '%s\n' "$key") -signature "$sig_file" &>/dev/null; then
-		echo "jwt: signature verification failed" >&2
-		return 3
+		echo "jwt: error: signature verification failed" >&2
+		return 1
 	fi
 }
 
@@ -188,8 +188,8 @@ verify_ecdsa() {
 	local sig_hex der_hex
 	sig_hex=$(base64url_decode "$JWT_SIG_B64" | xxd -p | tr -d '\n')
 	der_hex=$(jwt_sig_to_der "$sig_hex" "$key_bits") || {
-		echo "jwt: failed to convert ECDSA signature" >&2
-		return 4
+		echo "jwt: error: failed to convert ECDSA signature" >&2
+		return 1
 	}
 
 	# Write DER signature as binary
@@ -198,8 +198,8 @@ verify_ecdsa() {
 	# Verify using process substitution for key
 	local signing_input="${JWT_HEADER_B64}.${JWT_PAYLOAD_B64}"
 	if ! printf '%s' "$signing_input" | openssl dgst -"$digest" -verify <(printf '%s\n' "$key") -signature "$sig_file" &>/dev/null; then
-		echo "jwt: signature verification failed" >&2
-		return 3
+		echo "jwt: error: signature verification failed" >&2
+		return 1
 	fi
 }
 
@@ -225,8 +225,8 @@ verify_pss() {
 	# Verify with RSA-PSS padding using process substitution for key
 	local signing_input="${JWT_HEADER_B64}.${JWT_PAYLOAD_B64}"
 	if ! printf '%s' "$signing_input" | openssl dgst -"$digest" -verify <(printf '%s\n' "$key") -signature "$sig_file" -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-1 &>/dev/null; then
-		echo "jwt: signature verification failed" >&2
-		return 3
+		echo "jwt: error: signature verification failed" >&2
+		return 1
 	fi
 }
 
@@ -255,8 +255,8 @@ verify_eddsa() {
 
 	# Verify with pkeyutl using process substitution for key
 	if ! openssl pkeyutl -verify -pubin -inkey <(printf '%s\n' "$key") -rawin -in "$input_file" -sigfile "$sig_file" &>/dev/null; then
-		echo "jwt: signature verification failed" >&2
-		return 3
+		echo "jwt: error: signature verification failed" >&2
+		return 1
 	fi
 }
 
@@ -285,8 +285,8 @@ verify_signature() {
 			verify_eddsa "$key"
 			;;
 		*)
-			echo "jwt: unsupported algorithm '$JWT_ALG'" >&2
-			return 7
+			echo "jwt: error: unsupported algorithm '$JWT_ALG'" >&2
+			return 1
 			;;
 	esac
 }

@@ -37,7 +37,7 @@ Describe 'verify'
 			jwt_split "$hs256_token"
 			jwt_decode_header
 			When call verify_hmac "wrong-secret"
-			The status should equal 3
+			The status should equal 1
 			The stderr should include "verification failed"
 		End
 
@@ -90,7 +90,7 @@ Describe 'verify'
 		It 'fails for unsupported algorithm'
 			JWT_ALG="UNKNOWN"
 			When call get_openssl_digest
-			The status should equal 7
+			The status should equal 1
 			The stderr should include "unsupported algorithm"
 		End
 	End
@@ -149,7 +149,7 @@ Describe 'verify'
 			jwt_decode_header
 			# Use EdDSA key (wrong type) to trigger failure
 			When call verify_pss "$eddsa_pubkey"
-			The status should equal 3
+			The status should equal 1
 			The stderr should include "verification failed"
 		End
 	End
@@ -166,7 +166,7 @@ Describe 'verify'
 			jwt_split "$eddsa_token"
 			jwt_decode_header
 			When call verify_eddsa "$ps256_pubkey"
-			The status should equal 3
+			The status should equal 1
 			The stderr should include "verification failed"
 		End
 	End
@@ -243,7 +243,7 @@ Describe 'verify'
 			jwt_split "$hs256_token"
 			jwt_decode_header
 			When call verify_signature "wrong-secret"
-			The status should equal 3
+			The status should equal 1
 			The stderr should include "verification failed"
 		End
 
@@ -252,7 +252,7 @@ Describe 'verify'
 			jwt_decode_header
 			JWT_ALG="UNSUPPORTED"
 			When call verify_signature "any-key"
-			The status should equal 7
+			The status should equal 1
 			The stderr should include "unsupported algorithm"
 		End
 	End

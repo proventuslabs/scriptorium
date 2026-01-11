@@ -337,48 +337,18 @@ jwt \-v \- "$TOKEN" < keyfile.pem
 .sp
 \fB0\fP
 .RS 4
-Success \- token decoded successfully, signature verified if requested.
+Success.
 .RE
 .sp
 \fB1\fP
 .RS 4
-Argument error \- insufficient arguments or conflicting output options.
+Runtime error (invalid JWT format, verification failed, missing tools,
+cannot read key file, unsupported algorithm).
 .RE
 .sp
 \fB2\fP
 .RS 4
-Format error \- invalid JWT format or malformed JSON content.
-.RE
-.sp
-\fB3\fP
-.RS 4
-Verification error \- signature verification failed.
-.RE
-.sp
-\fB4\fP
-.RS 4
-Cryptographic error \- invalid signature encoding, key format, or
-cryptographic operation failed.
-.RE
-.sp
-\fB5\fP
-.RS 4
-Missing tools \- required external tools are not available.
-.RE
-.sp
-\fB6\fP
-.RS 4
-File error \- cannot read specified key file.
-.RE
-.sp
-\fB7\fP
-.RS 4
-Unsupported \- unsupported algorithm, curve, or operation.
-.RE
-.sp
-\fB8\fP
-.RS 4
-Version error \- algorithm requires a newer OpenSSL version (e.g., PS256/EdDSA require OpenSSL 3.x).
+Usage error (invalid arguments).
 .RE
 .SH "DEPENDENCIES"
 .sp

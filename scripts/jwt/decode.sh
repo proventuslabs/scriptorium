@@ -38,8 +38,8 @@ jwt_split() {
 
 	# Check for empty token
 	if [[ -z $token ]]; then
-		echo "jwt: empty token" >&2
-		return 2
+		echo "jwt: error: empty token" >&2
+		return 1
 	fi
 
 	# Check for exactly 2 dots
@@ -47,8 +47,8 @@ jwt_split() {
 	dot_count=$(tr -cd '.' <<<"$token" | wc -c)
 	dot_count=${dot_count// /} # trim whitespace from wc
 	if [[ $dot_count -ne 2 ]]; then
-		echo "jwt: invalid JWT format (expected exactly 2 dots)" >&2
-		return 2
+		echo "jwt: error: invalid JWT format (expected exactly 2 dots)" >&2
+		return 1
 	fi
 
 	# Split by dots
@@ -56,8 +56,8 @@ jwt_split() {
 
 	# Validate we have all 3 parts
 	if [[ -z $JWT_HEADER_B64 || -z $JWT_PAYLOAD_B64 || -z $JWT_SIG_B64 ]]; then
-		echo "jwt: invalid JWT format (expected header.payload.signature)" >&2
-		return 2
+		echo "jwt: error: invalid JWT format (expected header.payload.signature)" >&2
+		return 1
 	fi
 }
 
@@ -67,14 +67,14 @@ jwt_decode_header() {
 	JWT_HEADER=$(base64url_decode "$JWT_HEADER_B64")
 
 	if [[ -z $JWT_HEADER ]]; then
-		echo "jwt: failed to decode header" >&2
-		return 2
+		echo "jwt: error: failed to decode header" >&2
+		return 1
 	fi
 
 	# Basic JSON validation - should start with { and end with }
 	if [[ ! $JWT_HEADER =~ ^\{.*\}$ ]]; then
-		echo "jwt: invalid header JSON" >&2
-		return 2
+		echo "jwt: error: invalid header JSON" >&2
+		return 1
 	fi
 
 	# Extract algorithm - matches "alg":"VALUE" or "alg": "VALUE"
@@ -82,8 +82,8 @@ jwt_decode_header() {
 		# shellcheck disable=SC2034 # JWT_ALG used by verify.sh
 		JWT_ALG=${BASH_REMATCH[1]}
 	else
-		echo "jwt: missing 'alg' in header" >&2
-		return 2
+		echo "jwt: error: missing 'alg' in header" >&2
+		return 1
 	fi
 }
 
@@ -93,13 +93,13 @@ jwt_decode_payload() {
 	JWT_PAYLOAD=$(base64url_decode "$JWT_PAYLOAD_B64")
 
 	if [[ -z $JWT_PAYLOAD ]]; then
-		echo "jwt: failed to decode payload" >&2
-		return 2
+		echo "jwt: error: failed to decode payload" >&2
+		return 1
 	fi
 
 	# Basic JSON validation
 	if [[ ! $JWT_PAYLOAD =~ ^\{.*\}$ ]]; then
-		echo "jwt: invalid payload JSON" >&2
-		return 2
+		echo "jwt: error: invalid payload JSON" >&2
+		return 1
 	fi
 }

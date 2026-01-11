@@ -136,32 +136,14 @@ Read key from stdin::
 == EXIT STATUS
 
 *0*::
-  Success - token decoded successfully, signature verified if requested.
+  Success.
 
 *1*::
-  Argument error - insufficient arguments or conflicting output options.
+  Runtime error (invalid JWT format, verification failed, missing tools,
+  cannot read key file, unsupported algorithm).
 
 *2*::
-  Format error - invalid JWT format or malformed JSON content.
-
-*3*::
-  Verification error - signature verification failed.
-
-*4*::
-  Cryptographic error - invalid signature encoding, key format, or
-  cryptographic operation failed.
-
-*5*::
-  Missing tools - required external tools are not available.
-
-*6*::
-  File error - cannot read specified key file.
-
-*7*::
-  Unsupported - unsupported algorithm, curve, or operation.
-
-*8*::
-  Version error - algorithm requires a newer OpenSSL version (e.g., PS256/EdDSA require OpenSSL 3.x).
+  Usage error (invalid arguments).
 
 == DEPENDENCIES
 
