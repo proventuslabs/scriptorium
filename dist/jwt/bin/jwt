@@ -74,6 +74,9 @@ parse() {
 				eval 'set -- "${OPTARG%%\=*}" "${OPTARG#*\=}"' ${1+'"$@"'}
 				;;
 			--no-*|--without-*) unset OPTARG ;;
+			-[v]?*) OPTARG=$1; shift
+				eval 'set -- "${OPTARG%"${OPTARG#??}"}" "${OPTARG#??}"' ${1+'"$@"'}
+				;;
 			-[HPSAqhV]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" -"${OPTARG#??}"' ${1+'"$@"'}
 				case $2 in --*) set -- "$1" unknown "$2" && REST=x; esac;OPTARG= ;;
@@ -99,7 +102,7 @@ parse() {
 				eval '[ ${OPTARG+x} ] &&:' && OPTARG='all' || OPTARG=''
 				OUTPUT="$OPTARG"
 				;;
-			'--verify')
+			'-v'|'--verify')
 				[ $# -le 1 ] && set "required" "$1" && break
 				OPTARG=$2
 				VERIFY="$OPTARG"
@@ -155,7 +158,7 @@ Options:
   -A, --all                   Display all parts as JSON
 
   Verification:
-      --verify VERIFY         Verify signature (secret, @file, or @-/- for stdin)
+  -v, --verify VERIFY         Verify signature (secret, @file, or @-/- for stdin)
 
   General:
   -q, --quiet                 Suppress warnings
