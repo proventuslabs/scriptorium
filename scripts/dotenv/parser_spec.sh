@@ -70,6 +70,26 @@ Describe 'parse_env'
 			The status should be success
 			The variable PARSED_VARS[0] should equal "API_V2=enabled"
 		End
+
+		It 'handles empty input'
+			Data
+				#|
+			End
+			When call parse_env collector
+			The status should be success
+			The value "${#PARSED_VARS[@]}" should equal 0
+		End
+
+		It 'handles file with only comments'
+			Data
+				#|# This is a comment
+				#|# Another comment
+				#|   # Indented comment
+			End
+			When call parse_env collector
+			The status should be success
+			The value "${#PARSED_VARS[@]}" should equal 0
+		End
 	End
 
 	Describe 'comments'
