@@ -62,7 +62,9 @@ in a terminal, or *lint* mode if receiving input on standard input.
   files being committed.
 
 *-s*, *--strict*:::
-  Require a scope when specified files match defined scope patterns.
+  Enable strict scope validation. Requires that any scope used in the commit
+  message is defined in the `[scopes]` section of the configuration. Also
+  requires a scope when specified files match defined scope patterns.
   Overrides the `strict` setting in the configuration file.
 
 *--no-strict*:::

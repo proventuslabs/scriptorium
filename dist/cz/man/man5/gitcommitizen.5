@@ -61,8 +61,9 @@ name = description
 .sp
 \fBstrict\fP
 .RS 4
-Require scope when files match defined scope patterns (default: false).
-When enabled, commits touching scoped files must include an appropriate scope.
+Enable strict scope validation (default: false). When enabled, any scope
+used must be defined in \f(CR[scopes]\fP. Also requires a scope when files match
+defined scope patterns.
 .RE
 .sp
 \fBmulti\-scope\fP
@@ -134,7 +135,7 @@ This configuration:
 .  sp -1
 .  IP \(bu 2.3
 .\}
-Requires scope when files match defined patterns (\f(CRstrict = true\fP)
+Enables strict scope validation (\f(CRstrict = true\fP)
 .RE
 .sp
 .RS 4

@@ -42,8 +42,9 @@ name = description
 === Settings
 
 *strict*::
-  Require scope when files match defined scope patterns (default: false).
-  When enabled, commits touching scoped files must include an appropriate scope.
+  Enable strict scope validation (default: false). When enabled, any scope
+  used must be defined in `[scopes]`. Also requires a scope when files match
+  defined scope patterns.
 
 *multi-scope*::
   Allow multiple scopes like `feat(api,db):` (default: false).
@@ -103,7 +104,7 @@ revert = Revert a previous commit
 
 This configuration:
 
-* Requires scope when files match defined patterns (`strict = true`)
+* Enables strict scope validation (`strict = true`)
 * Allows multi-scopes like `feat(api,db):` for cross-cutting changes
 * Maps scopes to file patterns for path-based validation
 * Defines standard commit types with descriptions
