@@ -72,12 +72,16 @@ in a terminal, or *lint* mode if receiving input on standard input.
 *parse*::
   Display configuration with all values expanded. Useful for debugging.
 
-*init* [*-f*]::
-  Generate a starter *.gitcommitizen* file in the current directory.
+*init* [*-o* _FILE_] [*-f*]::
+  Generate a starter *.gitcommitizen* configuration. Prints to standard output
+  by default, allowing piping or redirection.
 +
 --
+*-o*, *--output* _FILE_:::
+  Write to _FILE_ instead of stdout.
+
 *-f*, *--force*:::
-  Overwrite an existing file.
+  Overwrite an existing file (only with *-o*).
 --
 
 *hook* *install* | *uninstall* | *status*::
