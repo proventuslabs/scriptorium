@@ -10,8 +10,9 @@ _jwt() {
 		'(-H --header -P --payload -S --signature -A --all)'{-S,--signature}'[Display raw signature]' \
 		'(-H --header -P --payload -S --signature -A --all)'{-A,--all}'[Display all parts as JSON]' \
 		'(-v --verify)'{-v,--verify}'[Verify signature with secret or key file]:secret or key file:_files' \
+		'(-q --quiet)'{-q,--quiet}'[Suppress warnings]' \
 		'(-h --help)'{-h,--help}'[Show help message]' \
-		'--version[Show version]' \
+		'(-V --version)'{-V,--version}'[Show version]' \
 		'1:token:'
 }
 

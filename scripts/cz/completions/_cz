@@ -6,8 +6,9 @@ _cz() {
 
 	_arguments -C \
 		'(-h --help)'{-h,--help}'[Show help message]' \
-		'--version[Show version]' \
+		'(-V --version)'{-V,--version}'[Show version]' \
 		'(-c --config-file)'{-c,--config-file}'[Config file path]:config file:_files' \
+		'(-q --quiet)'{-q,--quiet}'[Suppress warnings and non-essential output]' \
 		'1:command:->commands' \
 		'*::arg:->args'
 
@@ -32,11 +33,14 @@ _cz() {
 				lint)
 					_arguments \
 						'(-h --help)'{-h,--help}'[Show help message]' \
-						'(-q --quiet)'{-q,--quiet}'[Suppress output, exit status only]'
+						'(-f --files)'{-f,--files}'[Validate scope against file paths]:files:_files' \
+						'(-s --strict)'{-s,--strict}'[Require scope for scoped files]' \
+						'--no-strict[Allow missing scope]'
 					;;
 				init)
 					_arguments \
 						'(-h --help)'{-h,--help}'[Show help message]' \
+						'(-o --output)'{-o,--output}'[Write to file instead of stdout]:file:_files' \
 						'(-f --force)'{-f,--force}'[Overwrite existing file]'
 					;;
 				hook)

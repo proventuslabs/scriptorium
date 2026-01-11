@@ -10,11 +10,11 @@ parser_definition() {
 	msg -- '' 'Extensible theme orchestrator for shell environments'
 	msg -- 'Detects system appearance and applies theme via provider/handlers.' ''
 	msg -- 'Options:'
-	flag    DETECT     --detect  -- "Only detect appearance, do not run handlers"
-	flag    LIST       --list    -- "List discovered provider and handlers"
+	flag    DETECT  -d --detect  -- "Only detect appearance, do not run handlers"
+	flag    LIST    -l --list    -- "List discovered provider and handlers"
 	msg -- ''
 	msg -- '  General:'
 	flag    QUIET   -q --quiet -- "Suppress warnings"
 	disp    :usage  -h --help
-	disp    VERSION    --version
+	disp    VERSION -V --version
 }

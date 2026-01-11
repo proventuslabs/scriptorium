@@ -22,5 +22,5 @@ parser_definition() {
 	msg -- '  General:'
 	flag    QUIET   -q --quiet -- "Suppress warnings"
 	disp    :usage  -h --help
-	disp    VERSION    --version
+	disp    VERSION -V --version
 }

@@ -12,7 +12,7 @@ parser_definition() {
 	param   CONFIG_FILE  -c --config-file -- "Config file path"
 	flag    QUIET        -q --quiet       -- "Suppress warnings and non-essential output"
 	disp    :usage       -h --help
-	disp    VERSION         --version
+	disp    VERSION      -V --version
 
 	msg -- '' 'Commands:'
 	cmd create -- "Compose a commit message interactively"
