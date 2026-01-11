@@ -1,4 +1,4 @@
-# shellcheck shell=bash disable=SC2034
+# shellcheck shell=bash disable=SC2034,SC2329
 # Note: Some tests require OpenSSL 3.x. If tests fail on your machine (e.g.,
 # LibreSSL on macOS), run: nix develop --command make test NAME=jwt
 
