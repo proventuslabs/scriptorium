@@ -67,6 +67,7 @@
           # Scripts imported here as they're merged
           cz = import ./scripts/cz { inherit mkScript; };
           dotenv = import ./scripts/dotenv { inherit mkScript; };
+          jwt = import ./scripts/jwt { inherit mkScript; };
           theme = import ./scripts/theme { inherit mkScript; };
         };
       in
@@ -108,6 +109,7 @@
               shellcheck
               shfmt
               gum
+              openssl
             ]);
 
           shellHook = ''

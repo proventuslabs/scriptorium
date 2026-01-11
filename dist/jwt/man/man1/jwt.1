@@ -1,0 +1,498 @@
+'\" t
+.\"     Title: jwt
+.\"    Author: ProventusLabs
+.\" Generator: Asciidoctor 2.0.26
+.\"      Date: 2025
+.\"    Manual: User Commands
+.\"    Source: Scriptorium
+.\"  Language: English
+.\"
+.TH "JWT" "1" "2025" "Scriptorium" "User Commands"
+.ie \n(.g .ds Aq \(aq
+.el       .ds Aq '
+.ss \n[.ss] 0
+.nh
+.ad l
+.de URL
+\fI\\$2\fP <\\$1>\\$3
+..
+.als MTO URL
+.if \n[.g] \{\
+.  mso www.tmac
+.  am URL
+.    ad l
+.  .
+.  am MTO
+.    ad l
+.  .
+.  LINKSTYLE blue R < >
+.\}
+.SH "NAME"
+jwt \- decode and verify JSON Web Tokens
+.SH "SYNOPSIS"
+.sp
+\fBjwt\fP [\fIOPTIONS\fP] [\fITOKEN\fP]
+.SH "DESCRIPTION"
+.sp
+\fBjwt\fP decodes and optionally verifies JSON Web Tokens (JWTs). It can display
+the header, payload, or signature of a JWT token, and verify the signature
+using various algorithms.
+.sp
+By default, the payload is displayed. The token can be provided as an argument
+or read from standard input. The token must be in the standard JWT format with
+three base64url\-encoded parts separated by dots.
+.SH "OPTIONS"
+.SS "Output Selection"
+.sp
+These options are mutually exclusive. Specifying more than one is an error.
+.sp
+\fB\-H\fP, \fB\-\-header\fP
+.RS 4
+Display the JWT header (algorithm, type, etc.).
+.RE
+.sp
+\fB\-P\fP, \fB\-\-payload\fP
+.RS 4
+Display the JWT payload/claims. This is the default.
+.RE
+.sp
+\fB\-S\fP, \fB\-\-signature\fP
+.RS 4
+Display the raw signature (base64url decoded).
+.RE
+.sp
+\fB\-A\fP, \fB\-\-all\fP
+.RS 4
+Display all parts as a JSON object with \fBheader\fP, \fBpayload\fP, and
+\fBsignature\fP keys.
+.RE
+.SS "Verification"
+.sp
+\fB\-v\fP, \fB\-\-verify\fP=\fISECRET_OR_KEY\fP
+.RS 4
+Verify the JWT signature. The value can be:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+A literal string secret for HMAC algorithms (HS256, HS384, HS512)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CR@file\fP to read the key from a file (for RSA/ECDSA public keys)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\f(CR@\-\fP or \f(CR\-\fP to read the secret or key from standard input (token must be provided as argument)
+.RE
+.RE
+.SS "General"
+.sp
+\fB\-q\fP, \fB\-\-quiet\fP
+.RS 4
+Suppress warning messages.
+.RE
+.sp
+\fB\-h\fP, \fB\-\-help\fP
+.RS 4
+Show help message and exit.
+.RE
+.SH "ARGUMENTS"
+.sp
+\fITOKEN\fP
+.RS 4
+The JWT token to decode or verify. Must be in standard JWT format:
+header.payload.signature. If not provided as an argument, the token is
+read from standard input.
+.RE
+.SH "SUPPORTED ALGORITHMS"
+.sp
+\fBjwt\fP supports verification of the following JWT signature algorithms:
+.sp
+HMAC Algorithms (shared secret)
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+HS256 \- HMAC using SHA\-256
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+HS384 \- HMAC using SHA\-384
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+HS512 \- HMAC using SHA\-512
+.RE
+.RE
+.sp
+RSA Algorithms (public key)
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+RS256 \- RSA signature with SHA\-256
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+RS384 \- RSA signature with SHA\-384
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+RS512 \- RSA signature with SHA\-512
+.RE
+.RE
+.sp
+RSA\-PSS Algorithms (public key, requires OpenSSL 3.x)
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+PS256 \- RSA\-PSS signature with SHA\-256
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+PS384 \- RSA\-PSS signature with SHA\-384
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+PS512 \- RSA\-PSS signature with SHA\-512
+.RE
+.RE
+.sp
+ECDSA Algorithms (public key)
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+ES256 \- ECDSA using P\-256 curve and SHA\-256
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+ES384 \- ECDSA using P\-384 curve and SHA\-384
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+ES512 \- ECDSA using P\-521 curve and SHA\-512
+.RE
+.RE
+.sp
+EdDSA Algorithms (public key, requires OpenSSL 3.x)
+.RS 4
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+EdDSA \- Ed25519 signature
+.RE
+.RE
+.SH "EXAMPLES"
+.sp
+Decode and display the JWT payload (default)
+.RS 4
+jwt eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
+.RE
+.sp
+Display the JWT header
+.RS 4
+jwt \-\-header eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
+.RE
+.sp
+Display all parts as JSON
+.RS 4
+jwt \-\-all eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
+.RE
+.sp
+Verify HMAC signature with secret
+.RS 4
+jwt \-\-verify=secret123 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
+.RE
+.sp
+Verify RSA signature using public key file
+.RS 4
+jwt \-\-verify=@/path/to/public.pem eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
+.RE
+.sp
+Verify and show header
+.RS 4
+jwt \-\-verify=secret123 \-\-header eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
+.RE
+.sp
+Read token from stdin
+.RS 4
+echo $TOKEN | jwt
+cat token.txt | jwt \-\-header
+.RE
+.sp
+Read key from stdin
+.RS 4
+echo "secret" | jwt \-v @\- "$TOKEN"
+jwt \-v \- "$TOKEN" < keyfile.pem
+.RE
+.SH "EXIT STATUS"
+.sp
+\fB0\fP
+.RS 4
+Success.
+.RE
+.sp
+\fB1\fP
+.RS 4
+Runtime error (invalid JWT format, verification failed, missing tools,
+cannot read key file, unsupported algorithm).
+.RE
+.sp
+\fB2\fP
+.RS 4
+Usage error (invalid arguments).
+.RE
+.SH "DEPENDENCIES"
+.sp
+\fBopenssl\fP(1)
+.RS 4
+For cryptographic operations (signature verification).
+.RE
+.sp
+\fBxxd\fP(1)
+.RS 4
+For hexadecimal encoding/decoding (ECDSA signatures only).
+.RE
+.SH "COMPATIBILITY"
+.sp
+.it 1 an-trap
+.nr an-no-space-flag 1
+.nr an-break-flag 1
+.br
+.B Table 1. Algorithm Support by OpenSSL Version
+.TS
+allbox tab(:);
+ltB ltB ltB ltB.
+T{
+.sp
+Algorithm
+T}:T{
+.sp
+LibreSSL
+T}:T{
+.sp
+OpenSSL 1.x
+T}:T{
+.sp
+OpenSSL 3.x
+T}
+.T&
+lt lt lt lt.
+T{
+.sp
+HS256/384/512
+T}:T{
+.sp
+✓
+T}:T{
+.sp
+✓
+T}:T{
+.sp
+✓
+T}
+T{
+.sp
+RS256/384/512
+T}:T{
+.sp
+✓
+T}:T{
+.sp
+✓
+T}:T{
+.sp
+✓
+T}
+T{
+.sp
+ES256/384/512
+T}:T{
+.sp
+✓
+T}:T{
+.sp
+✓
+T}:T{
+.sp
+✓
+T}
+T{
+.sp
+PS256/384/512
+T}:T{
+.sp
+✗
+T}:T{
+.sp
+✗
+T}:T{
+.sp
+✓
+T}
+T{
+.sp
+EdDSA (Ed25519)
+T}:T{
+.sp
+✗
+T}:T{
+.sp
+✗
+T}:T{
+.sp
+✓
+T}
+.TE
+.sp
+.sp
+macOS ships with LibreSSL by default. To use PS256 or EdDSA algorithms,
+install OpenSSL via Homebrew:
+.sp
+.if n .RS 4
+.nf
+.fam C
+brew install openssl
+export PATH="/opt/homebrew/opt/openssl/bin:$PATH"
+.fam
+.fi
+.if n .RE
+.SH "NOTES"
+.sp
+The tool automatically detects the signature algorithm from the JWT header
+and uses the appropriate verification method.
+.sp
+For HMAC algorithms, the verification secret should be the same secret used
+to sign the token. For RSA and ECDSA algorithms, you need the public key
+corresponding to the private key used to sign the token.
+.sp
+JWT tokens often contain sensitive information. Be careful when sharing or
+logging tokens, especially in production environments.
+.SH "SECURITY CONSIDERATIONS"
+.sp
+Always verify JWT signatures in production environments. Unverified JWTs
+should never be trusted.
+.sp
+Keep signing secrets and private keys secure. Use environment variables or
+secure key management systems rather than hardcoding secrets.
+.sp
+The JWT payload is only base64url\-encoded, not encrypted. Anyone can decode
+and read the payload without the signing key.
+.SH "SEE ALSO"
+.sp
+\fBopenssl\fP(1)
+.sp
+.URL "https://tools.ietf.org/html/rfc7519" "RFC 7519 \- JSON Web Token (JWT)" ""
+.sp
+.URL "https://tools.ietf.org/html/rfc7515" "RFC 7515 \- JSON Web Signature (JWS)" ""
+.SH "AUTHOR"
+.sp
+ProventusLabs
