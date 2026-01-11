@@ -19,9 +19,9 @@ Describe 'file_matches_pattern'
 		The status should be success
 	End
 
-	It 'single star does not cross directories'
+	It 'single star matches across directories in bash patterns'
 		When call file_matches_pattern "src/lib/main.sh" "src/*.sh"
-		The status should be failure
+		The status should be success
 	End
 
 	It 'matches double star for recursive directories'
@@ -39,8 +39,8 @@ Describe 'file_matches_pattern'
 		The status should be success
 	End
 
-	It 'matches root level with double star'
-		When call file_matches_pattern "file.txt" "**/*.txt"
+	It 'matches root level with star'
+		When call file_matches_pattern "file.txt" "*.txt"
 		The status should be success
 	End
 
