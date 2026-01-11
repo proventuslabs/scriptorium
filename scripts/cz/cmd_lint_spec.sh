@@ -357,6 +357,23 @@ src/ui/button.tsx"
 				The status should be failure
 				The stderr should include "strict mode requires scope"
 			End
+
+			It 'rejects unknown scope in strict mode (no files)'
+				BeforeCall setup_ini_strict
+				STRICT=1
+				Data "feat(unknown): add feature"
+				When call cmd_lint
+				The status should be failure
+				The stderr should include "unknown scope"
+			End
+
+			It 'accepts defined scope in strict mode (no files)'
+				BeforeCall setup_ini_strict
+				STRICT=1
+				Data "feat(api): add feature"
+				When call cmd_lint
+				The status should be success
+			End
 		End
 
 		Describe 'wildcard scope'

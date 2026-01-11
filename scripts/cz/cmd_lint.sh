@@ -128,6 +128,38 @@ validate_paths_if_needed() {
 	# Only validate if scopes are defined
 	[[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]] && return 0
 
+	# Check strict mode (--no-strict overrides --strict overrides config)
+	if [[ -n "${NO_STRICT:-}" ]]; then
+		strict_mode="false"
+	elif [[ -n "${STRICT:-}" ]]; then
+		strict_mode="true"
+	else
+		strict_mode="$(get_setting strict "false")"
+	fi
+
+	# In strict mode, validate scope exists (even without files)
+	if [[ "$strict_mode" == "true" && -n "$scope" ]]; then
+		if is_multi_scope "$scope"; then
+			local separator
+			separator="$(get_setting multi-scope-separator ",")"
+			local IFS="$separator"
+			read -ra scope_arr <<<"$scope"
+			for s in "${scope_arr[@]}"; do
+				s="${s#"${s%%[![:space:]]*}"}"
+				s="${s%"${s##*[![:space:]]}"}"
+				if ! scope_exists "$s" && [[ "$s" != "*" ]]; then
+					[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown scope '$s'" >&2
+					[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${CFG_SCOPE_NAMES[*]}" >&2
+					return 1
+				fi
+			done
+		elif [[ "$scope" != "*" ]] && ! scope_exists "$scope"; then
+			[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown scope '$scope'" >&2
+			[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${CFG_SCOPE_NAMES[*]}" >&2
+			return 1
+		fi
+	fi
+
 	# Get files to validate
 	files_str="$(get_files_to_validate)"
 	[[ -z "$files_str" ]] && return 0
@@ -142,15 +174,6 @@ validate_paths_if_needed() {
 
 	# Check multi-scope setting
 	multi_scope_enabled="$(get_setting multi-scope "false")"
-
-	# Check strict mode (--no-strict overrides --strict overrides config)
-	if [[ -n "${NO_STRICT:-}" ]]; then
-		strict_mode="false"
-	elif [[ -n "${STRICT:-}" ]]; then
-		strict_mode="true"
-	else
-		strict_mode="$(get_setting strict "false")"
-	fi
 
 	# If scope provided, validate files against scope(s)
 	if [[ -n "$scope" ]]; then
