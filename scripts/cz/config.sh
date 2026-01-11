@@ -38,7 +38,15 @@ load_config() {
 		fi
 
 		parse_config <"$CONFIG_FILE"
-		# Build TYPES/DESCRIPTIONS arrays from INI for compatibility
+
+		# If no types defined, fall back to defaults
+		if [[ ${#CFG_TYPE_NAMES[@]} -eq 0 ]]; then
+			[[ -z "${QUIET:-}" ]] && echo "cz: warning: no [types] in $CONFIG_FILE, using defaults" >&2
+			default_config
+			return
+		fi
+
+		# Build TYPES/DESCRIPTIONS arrays from parsed config
 		TYPES=()
 		DESCRIPTIONS=()
 		SCOPES=()
