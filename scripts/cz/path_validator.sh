@@ -5,12 +5,50 @@
 # @bundle source
 . ./config_parser.sh
 
-# Check if file matches a glob pattern using bash pattern matching
+# Check if file matches a glob pattern
 # Usage: file_matches_pattern <file> <pattern>
+# Handles: * (single segment), ** (recursive), exact match
 file_matches_pattern() {
 	local file="$1" pattern="$2"
-	# shellcheck disable=SC2053 # pattern should not be quoted
-	[[ "$file" == $pattern ]]
+
+	# Handle special wildcard-only patterns
+	[[ "$pattern" == "*" || "$pattern" == "**" ]] && return 0
+
+	# Convert glob pattern to extended regex
+	local regex="^"
+	local i=0 len=${#pattern}
+
+	while ((i < len)); do
+		local char="${pattern:i:1}"
+		local next="${pattern:i+1:1}"
+
+		if [[ "$char" == "*" && "$next" == "*" ]]; then
+			# ** matches zero or more path segments (including /)
+			# Check if followed by /
+			if [[ "${pattern:i+2:1}" == "/" ]]; then
+				regex+="(.*/)?"
+				((i += 3))
+			else
+				regex+=".*"
+				((i += 2))
+			fi
+		elif [[ "$char" == "*" ]]; then
+			# * matches anything except /
+			regex+="[^/]*"
+			((i++))
+		elif [[ "$char" =~ [].[^$+?{}\\|[()] ]]; then
+			# Escape regex special chars (] must be first in bracket expr)
+			regex+="\\$char"
+			((i++))
+		else
+			regex+="$char"
+			((i++))
+		fi
+	done
+
+	regex+="$"
+
+	[[ "$file" =~ $regex ]]
 }
 
 # Check if file matches any of a scope's patterns
