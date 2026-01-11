@@ -42,4 +42,28 @@ Describe 'load_config'
 		The status should be failure
 		The stderr should include "not found"
 	End
+
+	It 'falls back to defaults when config has no types'
+		cat > "$TEST_DIR/config" <<-'EOF'
+		[scopes]
+		api = src/api/**
+		EOF
+		CONFIG_FILE="$TEST_DIR/config"
+		When run load_config
+		The status should be success
+		The stderr should include "no [types]"
+		The stderr should include "using defaults"
+	End
+
+	It 'suppresses warning in quiet mode'
+		cat > "$TEST_DIR/config" <<-'EOF'
+		[scopes]
+		api = src/api/**
+		EOF
+		CONFIG_FILE="$TEST_DIR/config"
+		QUIET=1
+		When run load_config
+		The status should be success
+		The stderr should equal ""
+	End
 End
