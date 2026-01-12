@@ -22,7 +22,7 @@ format_config() {
 }
 
 # Load default Conventional Commits (Angular) configuration
-# Sets arrays: TYPES, DESCRIPTIONS, GLOBAL_SCOPES, SCOPES
+# Sets arrays: TYPES, DESCRIPTIONS, GLOBAL_SCOPES, SCOPES, CFG_TYPE_NAMES, CFG_SCOPE_NAMES
 default_config() {
 	# Initialize arrays with Angular/Conventional Commits standard types
 	export TYPES=(
@@ -61,6 +61,10 @@ default_config() {
 	for _ in "${!TYPES[@]}"; do
 		SCOPES+=("")
 	done
+
+	# Set CFG_ arrays for compatibility with parse_config consumers
+	CFG_TYPE_NAMES=("${TYPES[@]}")
+	CFG_SCOPE_NAMES=()
 
 	return 0
 }
