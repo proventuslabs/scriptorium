@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    kcov-src = {
+      url = "github:SimonKagstrom/kcov";
+      flake = false;
+    };
   };
 
   outputs =
@@ -11,6 +15,7 @@
       self,
       nixpkgs,
       flake-utils,
+      kcov-src,
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
@@ -70,10 +75,51 @@
           jwt = import ./scripts/jwt { inherit mkScript; };
           theme = import ./scripts/theme { inherit mkScript; };
         };
+
+        # kcov built from source for macOS (nixpkgs kcov doesn't support Darwin)
+        kcov-darwin = pkgs.stdenv.mkDerivation {
+          pname = "kcov";
+          version = kcov-src.shortRev or "dev";
+          src = kcov-src;
+
+          nativeBuildInputs = with pkgs; [
+            cmake
+            ninja
+            pkg-config
+            darwin.bootstrap_cmds
+            darwin.sigtool
+          ];
+
+          buildInputs = with pkgs; [
+            zlib
+            openssl
+            python3
+            curl
+            libdwarf
+          ];
+
+          cmakeFlags = [
+            "-G"
+            "Ninja"
+            "-DCMAKE_BUILD_TYPE=Release"
+            "-DDWARFUTILS_INCLUDE_DIR=${pkgs.libdwarf.dev}/include/libdwarf-2"
+            "-DDWARFUTILS_LIBRARY=${pkgs.libdwarf.lib}/lib/libdwarf.2.dylib"
+          ];
+
+          meta = with pkgs.lib; {
+            description = "Code coverage tool for compiled programs";
+            homepage = "https://github.com/SimonKagstrom/kcov";
+            license = licenses.gpl2Only;
+            platforms = platforms.darwin;
+          };
+        };
       in
       {
         packages = scripts // {
           # Individual scripts exposed via: nix build .#<name>
+
+          # kcov for macOS (nixpkgs doesn't support Darwin)
+          kcov = if pkgs.stdenv.isDarwin then kcov-darwin else pkgs.kcov;
 
           # Meta-package with all scripts and plugins
           default = pkgs.stdenv.mkDerivation {
@@ -103,6 +149,9 @@
         devShells.default = pkgs.mkShell {
           buildInputs =
             buildTools
+            ++ [
+              (if pkgs.stdenv.isDarwin then kcov-darwin else pkgs.kcov)
+            ]
             ++ (with pkgs; [
               zsh
               shellspec

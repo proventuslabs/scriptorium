@@ -24,7 +24,7 @@ help:
 	@echo "  build [NAME=x]         - Build all scripts or a specific one to dist/"
 	@echo "  install DESTDIR=x [NAME=y] - Install scripts to DESTDIR"
 	@echo "  clean                  - Remove generated files in dist/"
-	@echo "  test [NAME=x]          - Run tests (all, or specific script)"
+	@echo "  test [NAME=x]          - Run tests with coverage (all, or specific script)"
 	@echo "  lint [NAME=x]          - Run shellcheck and shfmt check"
 	@echo "  fmt [NAME=x]           - Format shell scripts with shfmt"
 	@echo "  new-script NAME=x      - Create a new script from templates"
@@ -132,24 +132,28 @@ clean:
 	@rm -rf $(DIST_DIR)/*
 	@echo "Done."
 
-# Test: all, specific script, or utils
+# Test: all, specific script, or utils (with coverage)
 test:
 ifdef NAME
 	@if [ "$(NAME)" = "utils" ]; then \
 		echo "Running tests for utils..."; \
-		shellspec --shell bash utils; \
+		shellspec utils; \
 	else \
 		if [ ! -d "$(SCRIPTS_DIR)/$(NAME)" ]; then \
 			echo "Error: script '$(NAME)' not found in $(SCRIPTS_DIR)/"; \
 			exit 1; \
 		fi; \
+		$(MAKE) --no-print-directory build NAME=$(NAME); \
 		echo "Running tests for $(NAME)..."; \
-		shellspec --shell bash --helperdir scripts --require spec_helper $(SCRIPTS_DIR)/$(NAME); \
+		shellspec --kcov --kcov-options="--include-pattern=$(DIST_DIR)/$(NAME)/bin" \
+			--helperdir scripts --require spec_helper $(SCRIPTS_DIR)/$(NAME); \
 	fi
 else
 	@echo "Running all tests..."
-	@shellspec --shell bash --helperdir scripts --require spec_helper scripts
-	@shellspec --shell bash utils
+	@$(MAKE) --no-print-directory build
+	@shellspec --kcov --kcov-options="--include-pattern=$(DIST_DIR)/" \
+		--helperdir scripts --require spec_helper scripts
+	@shellspec utils
 endif
 
 # Lint: all, specific script, or utils
