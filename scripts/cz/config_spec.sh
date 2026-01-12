@@ -24,16 +24,15 @@ Describe 'load_config'
 		CONFIG_FILE="$TEST_DIR/config"
 		When call load_config
 		The status should be success
-		The variable TYPES[0] should equal "feat"
-		The variable TYPES[1] should equal "fix"
-		The variable DESCRIPTIONS[0] should equal "A new feature"
+		The variable 'CFG_TYPES[feat]' should equal "A new feature"
+		The variable 'CFG_TYPES[fix]' should equal "A bug fix"
 	End
 
 	It 'loads defaults when no config file'
 		CONFIG_FILE=""
 		When call load_config
 		The status should be success
-		The variable TYPES[0] should equal "feat"
+		The variable 'CFG_TYPES[feat]' should be present
 	End
 
 	It 'errors when config file not found'

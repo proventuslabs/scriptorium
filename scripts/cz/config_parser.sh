@@ -1,16 +1,11 @@
 # shellcheck shell=bash
 
-# Get scope variable name (handles wildcard -> __wildcard__)
-_scope_var() { [[ "$1" == "*" ]] && echo "CFG_SCOPES___wildcard__" || echo "CFG_SCOPES_$1"; }
-
 # Parse .gitcommitizen configuration from stdin
-# Sets variables: CFG_SETTINGS_*, CFG_SCOPES_*, CFG_TYPES_*
-# Also sets arrays: CFG_SCOPE_NAMES, CFG_TYPE_NAMES
+# Sets associative arrays: CFG_TYPES, CFG_SCOPES, CFG_SETTINGS
 parse_config() {
-	# Clear previous state
-	unset "${!CFG_SETTINGS_@}" "${!CFG_SCOPES_@}" "${!CFG_TYPES_@}"
-	CFG_SCOPE_NAMES=()
-	CFG_TYPE_NAMES=()
+	CFG_TYPES=()
+	CFG_SCOPES=()
+	CFG_SETTINGS=()
 
 	[[ -t 0 ]] && return 0
 
@@ -38,57 +33,18 @@ parse_config() {
 			value="${value#"${value%%[![:space:]]*}"}"
 			value="${value%"${value##*[![:space:]]}"}"
 
-			# Normalize key (replace - with _)
-			local norm_key="${key//-/_}"
-
 			case "$section" in
 				settings)
-					declare -g "CFG_SETTINGS_$norm_key=$value"
+					# Normalize key (replace - with _)
+					CFG_SETTINGS["${key//-/_}"]="$value"
 					;;
 				scopes)
-					# Handle wildcard scope specially (bash can't have * in var names)
-					if [[ "$key" == "*" ]]; then
-						declare -g "CFG_SCOPES___wildcard__=$value"
-					else
-						declare -g "CFG_SCOPES_$key=$value"
-					fi
-					CFG_SCOPE_NAMES+=("$key")
+					CFG_SCOPES["$key"]="$value"
 					;;
 				types)
-					declare -g "CFG_TYPES_$key=$value"
-					CFG_TYPE_NAMES+=("$key")
+					CFG_TYPES["$key"]="$value"
 					;;
 			esac
 		fi
 	done
-}
-
-# Get setting value with default
-# Usage: get_setting <key> [default]
-get_setting() {
-	local key="${1//-/_}"
-	local default="${2:-}"
-	local var="CFG_SETTINGS_$key"
-	echo "${!var:-$default}"
-}
-
-# Check if scope exists
-scope_exists() {
-	local var
-	var="$(_scope_var "$1")"
-	[[ -n "${!var+x}" ]]
-}
-
-# Get scope patterns
-get_scope_patterns() {
-	local var
-	var="$(_scope_var "$1")"
-	echo "${!var:-}"
-}
-
-# Check if type exists
-# Usage: type_exists <name>
-type_exists() {
-	local var="CFG_TYPES_$1"
-	[[ -n "${!var+x}" ]]
 }

@@ -24,8 +24,8 @@ cmd_create() {
 
 	# Build type choices: "type - description"
 	local type_choices=()
-	for i in "${!TYPES[@]}"; do
-		type_choices+=("${TYPES[$i]} - ${DESCRIPTIONS[$i]}")
+	for type in "${!CFG_TYPES[@]}"; do
+		type_choices+=("$type - ${CFG_TYPES[$type]}")
 	done
 
 	# Select type
@@ -35,10 +35,10 @@ cmd_create() {
 
 	# Select or input scope
 	local scope=""
-	if [[ ${#CFG_SCOPE_NAMES[@]} -gt 0 ]]; then
+	if [[ ${#CFG_SCOPES[@]} -gt 0 ]]; then
 		# Build scope choices from configured scopes (skip wildcard)
 		local scope_choices=()
-		for s in "${CFG_SCOPE_NAMES[@]}"; do
+		for s in "${!CFG_SCOPES[@]}"; do
 			[[ "$s" == "*" ]] && continue
 			scope_choices+=("$s")
 		done

@@ -5,6 +5,8 @@
 # @bundle source
 . ./helpers.sh
 # @bundle source
+. ./config_defaults.sh
+# @bundle source
 . ./config_parser.sh
 
 # Check if file matches a glob pattern
@@ -54,10 +56,9 @@ file_matches_pattern() {
 }
 
 # Check if file matches any of a scope's patterns
-# Usage: file_matches_scope <file> <scope>
 file_matches_scope() {
 	local file="$1" scope="$2" patterns pattern
-	patterns="$(get_scope_patterns "$scope")"
+	patterns="${CFG_SCOPES[$scope]:-}"
 	[[ -z "$patterns" ]] && return 1
 
 	IFS=',' read -ra pattern_arr <<<"$patterns"
@@ -71,7 +72,7 @@ file_matches_scope() {
 # Find which scope a file matches (skips wildcard)
 find_matching_scope() {
 	local file="$1" scope
-	for scope in "${CFG_SCOPE_NAMES[@]}"; do
+	for scope in "${!CFG_SCOPES[@]}"; do
 		[[ "$scope" == "*" ]] && continue
 		file_matches_scope "$file" "$scope" && {
 			echo "$scope"
@@ -95,14 +96,12 @@ validate_files_against_scope() {
 
 # Validate files match any of multiple scopes
 # Usage: validate_files_against_scopes <scope,scope,...> <file>...
-# Uses separator from settings (default: ,)
 # Sets VALIDATION_ERRORS array on failures
 validate_files_against_scopes() {
 	local scopes_str="$1"
 	shift
 	local file scope matched
-	local IFS
-	IFS="$(get_setting multi-scope-separator ",")"
+	local IFS="${CFG_SETTINGS[multi_scope_separator]:-,}"
 	VALIDATION_ERRORS=()
 
 	read -ra scopes_arr <<<"$scopes_str"

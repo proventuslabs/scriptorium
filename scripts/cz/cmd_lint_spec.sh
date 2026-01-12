@@ -2,6 +2,7 @@
 # shellcheck disable=SC2329 # Functions invoked indirectly via ShellSpec BeforeCall
 
 Describe 'cmd_lint'
+	Include ./config_defaults.sh
 	Include ./config_parser.sh
 	Include ./path_validator.sh
 	Include ./cmd_lint.sh
@@ -106,43 +107,8 @@ Describe 'cmd_lint'
 		End
 	End
 
-	Describe 'scope validation'
-		It 'accepts valid scope for type'
-			TYPES=("feat" "fix")
-			DESCRIPTIONS=("Feature" "Fix")
-			GLOBAL_SCOPES=()
-			SCOPES=("api ui" "core")
-			Data "feat(api): add endpoint"
-			When call cmd_lint
-			The status should be success
-		End
-
-		It 'rejects invalid scope for type'
-			TYPES=("feat" "fix")
-			DESCRIPTIONS=("Feature" "Fix")
-			GLOBAL_SCOPES=()
-			SCOPES=("api ui" "core")
-			Data "feat(core): wrong scope"
-			When call cmd_lint
-			The status should be failure
-			The stderr should include "invalid scope"
-		End
-
-		It 'accepts scope for different type'
-			TYPES=("feat" "fix")
-			DESCRIPTIONS=("Feature" "Fix")
-			GLOBAL_SCOPES=()
-			SCOPES=("api ui" "core")
-			Data "fix(core): fix bug"
-			When call cmd_lint
-			The status should be success
-		End
-
-		It 'allows any scope when no scopes defined'
-			TYPES=("feat")
-			DESCRIPTIONS=("Feature")
-			GLOBAL_SCOPES=()
-			SCOPES=("")
+	Describe 'scope in message'
+		It 'accepts any scope when no scopes defined'
 			Data "feat(anything): works"
 			When call cmd_lint
 			The status should be success
@@ -162,7 +128,6 @@ Describe 'cmd_lint'
 	Describe 'path validation'
 		# Helper to set up INI config with scopes
 		setup_ini_config() {
-			CONFIG_FORMAT="ini"
 			parse_config <<-'EOF'
 			[types]
 			feat = New feature
@@ -171,31 +136,19 @@ Describe 'cmd_lint'
 			api = src/api/**
 			ui = src/ui/**
 			EOF
-			# Set TYPES array for message validation
-			TYPES=("feat" "fix")
-			DESCRIPTIONS=("New feature" "Bug fix")
-			SCOPES=("" "")
-			GLOBAL_SCOPES=()
 		}
 
 		setup_ini_with_wildcard() {
-			CONFIG_FORMAT="ini"
 			parse_config <<-'EOF'
 			[types]
 			feat = New feature
 			[scopes]
 			api = src/api/**
+			* = **
 			EOF
-			# Manually add wildcard scope since bash can't store CFG_SCOPES_*
-			CFG_SCOPE_NAMES+=("*")
-			TYPES=("feat")
-			DESCRIPTIONS=("New feature")
-			SCOPES=("")
-			GLOBAL_SCOPES=()
 		}
 
 		setup_ini_multi_scope() {
-			CONFIG_FORMAT="ini"
 			parse_config <<-'EOF'
 			[settings]
 			multi-scope = true
@@ -205,14 +158,9 @@ Describe 'cmd_lint'
 			api = src/api/**
 			ui = src/ui/**
 			EOF
-			TYPES=("feat")
-			DESCRIPTIONS=("New feature")
-			SCOPES=("")
-			GLOBAL_SCOPES=()
 		}
 
 		setup_ini_multi_scope_disabled() {
-			CONFIG_FORMAT="ini"
 			parse_config <<-'EOF'
 			[settings]
 			multi-scope = false
@@ -222,14 +170,9 @@ Describe 'cmd_lint'
 			api = src/api/**
 			ui = src/ui/**
 			EOF
-			TYPES=("feat")
-			DESCRIPTIONS=("New feature")
-			SCOPES=("")
-			GLOBAL_SCOPES=()
 		}
 
 		setup_ini_strict() {
-			CONFIG_FORMAT="ini"
 			parse_config <<-'EOF'
 			[settings]
 			strict = true
@@ -239,14 +182,9 @@ Describe 'cmd_lint'
 			api = src/api/**
 			ui = src/ui/**
 			EOF
-			TYPES=("feat")
-			DESCRIPTIONS=("New feature")
-			SCOPES=("")
-			GLOBAL_SCOPES=()
 		}
 
 		setup_ini_strict_false() {
-			CONFIG_FORMAT="ini"
 			parse_config <<-'EOF'
 			[settings]
 			strict = false
@@ -255,10 +193,6 @@ Describe 'cmd_lint'
 			[scopes]
 			api = src/api/**
 			EOF
-			TYPES=("feat")
-			DESCRIPTIONS=("New feature")
-			SCOPES=("")
-			GLOBAL_SCOPES=()
 		}
 
 		Describe 'files match scope'
@@ -359,8 +293,7 @@ src/ui/button.tsx"
 			End
 
 			It 'rejects any scope in strict mode when no scopes defined'
-				# No scopes defined, just types
-				CFG_SCOPE_NAMES=()
+				CFG_SCOPES=()
 				STRICT=1
 				Data "feat(anything): add feature"
 				When call cmd_lint
@@ -407,11 +340,7 @@ src/ui/button.tsx"
 
 		Describe 'no scopes defined skips path validation'
 			It 'does not validate paths when no scopes configured'
-				CFG_SCOPE_NAMES=()
-				TYPES=("feat")
-				DESCRIPTIONS=("Feature")
-				SCOPES=("")
-				GLOBAL_SCOPES=()
+				CFG_SCOPES=()
 				FILES="any/file.txt"
 				Data "feat(anything): works"
 				When call cmd_lint

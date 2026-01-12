@@ -22,19 +22,19 @@ cmd_parse() {
 	echo
 
 	# Show settings
-	if [[ -n "${CFG_SETTINGS_strict:-}" || -n "${CFG_SETTINGS_multi_scope:-}" ]]; then
+	if [[ ${#CFG_SETTINGS[@]} -gt 0 ]]; then
 		echo "Settings:"
-		[[ -n "${CFG_SETTINGS_strict:-}" ]] && echo "  strict = ${CFG_SETTINGS_strict}"
-		[[ -n "${CFG_SETTINGS_multi_scope:-}" ]] && echo "  multi-scope = ${CFG_SETTINGS_multi_scope}"
-		[[ -n "${CFG_SETTINGS_multi_scope_separator:-}" ]] && echo "  multi-scope-separator = ${CFG_SETTINGS_multi_scope_separator}"
+		for key in "${!CFG_SETTINGS[@]}"; do
+			echo "  ${key//_/-} = ${CFG_SETTINGS[$key]}"
+		done
 		echo
 	fi
 
 	# Show scopes with patterns
-	if [[ ${#CFG_SCOPE_NAMES[@]} -gt 0 ]]; then
+	if [[ ${#CFG_SCOPES[@]} -gt 0 ]]; then
 		echo "Scopes:"
-		for scope in "${CFG_SCOPE_NAMES[@]}"; do
-			echo "  $scope = $(get_scope_patterns "$scope")"
+		for scope in "${!CFG_SCOPES[@]}"; do
+			echo "  $scope = ${CFG_SCOPES[$scope]}"
 		done
 		echo
 	fi
@@ -42,13 +42,11 @@ cmd_parse() {
 	# Show types with descriptions
 	echo "Types:"
 	local max_type_len=0
-	for type in "${TYPES[@]}"; do
+	for type in "${!CFG_TYPES[@]}"; do
 		((${#type} > max_type_len)) && max_type_len=${#type}
 	done
 
-	for i in "${!TYPES[@]}"; do
-		local type="${TYPES[$i]}"
-		local desc="${DESCRIPTIONS[$i]}"
-		printf "  %-${max_type_len}s  %s\n" "$type" "$desc"
+	for type in "${!CFG_TYPES[@]}"; do
+		printf "  %-${max_type_len}s  %s\n" "$type" "${CFG_TYPES[$type]}"
 	done
 }
