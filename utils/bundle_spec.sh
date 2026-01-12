@@ -12,6 +12,34 @@ Describe 'bundle.sh'
 	BeforeEach 'setup'
 	AfterEach 'cleanup'
 
+	Describe 'CLI options'
+		It 'shows help with -h'
+			When run script ./bundle.sh -h
+			The status should be success
+			The output should include 'Usage:'
+			The output should include '--strip-comments'
+			The output should include '--hide-markers'
+		End
+
+		It 'shows help with --help'
+			When run script ./bundle.sh --help
+			The status should be success
+			The output should include 'Usage:'
+		End
+
+		It 'shows version with -V'
+			When run script ./bundle.sh -V
+			The status should be success
+			The output should match pattern '*.*.*'
+		End
+
+		It 'shows version with --version'
+			When run script ./bundle.sh --version
+			The status should be success
+			The output should match pattern '*.*.*'
+		End
+	End
+
 	Describe 'basic functionality'
 		It 'preserves shebang from entry file'
 			echo '#!/usr/bin/env bash' > "$TEST_DIR/entry.sh"
@@ -602,6 +630,199 @@ EOF
 			# Begin marker should start at column 0 (no leading whitespace)
 			The line 2 of output should start with '# --- begin:'
 			The line 3 of output should equal 'TOP_VAR=yes'
+		End
+	End
+
+	Describe '--strip-comments option'
+		It 'strips full-line comments from source files'
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# This is a comment
+echo hello
+# Another comment
+echo world
+EOF
+
+			When run script ./bundle.sh --strip-comments "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include 'echo hello'
+			The output should include 'echo world'
+			The output should not include 'This is a comment'
+			The output should not include 'Another comment'
+		End
+
+		It 'preserves shebang'
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# comment
+echo hello
+EOF
+
+			When run script ./bundle.sh --strip-comments "$TEST_DIR/entry.sh"
+			The status should be success
+			The line 1 of output should equal '#!/bin/bash'
+		End
+
+		It 'preserves inline comments on code lines'
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+echo hello # inline comment
+EOF
+
+			When run script ./bundle.sh --strip-comments "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include 'echo hello # inline comment'
+		End
+
+		It 'strips comments from inlined source files'
+			cat > "$TEST_DIR/lib.sh" << 'EOF'
+# lib comment
+LIB_VAR=yes
+EOF
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# @bundle source
+. ./lib.sh
+EOF
+
+			When run script ./bundle.sh --strip-comments "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include 'LIB_VAR=yes'
+			The output should not include 'lib comment'
+		End
+
+		It 'works with short option -s'
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# comment
+echo hello
+EOF
+
+			When run script ./bundle.sh -s "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should not include '# comment'
+		End
+
+		It 'preserves bundle marker comments by default'
+			cat > "$TEST_DIR/lib.sh" << 'EOF'
+LIB_VAR=yes
+EOF
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# @bundle source
+. ./lib.sh
+EOF
+
+			When run script ./bundle.sh --strip-comments "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include '# --- begin:'
+			The output should include '# --- end:'
+		End
+	End
+
+	Describe '--hide-markers option'
+		It 'suppresses begin/end markers for inlined sources'
+			cat > "$TEST_DIR/lib.sh" << 'EOF'
+LIB_VAR=yes
+EOF
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# @bundle source
+. ./lib.sh
+EOF
+
+			When run script ./bundle.sh --hide-markers "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include 'LIB_VAR=yes'
+			The output should not include '# --- begin:'
+			The output should not include '# --- end:'
+		End
+
+		It 'suppresses skipped markers for duplicates'
+			echo 'ONCE=yes' > "$TEST_DIR/lib.sh"
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# @bundle source
+. ./lib.sh
+# @bundle source
+. ./lib.sh
+EOF
+
+			When run script ./bundle.sh --hide-markers "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should not include '# --- skipped'
+		End
+
+		It 'suppresses markers for @bundle cmd output'
+			echo '#!/bin/bash' > "$TEST_DIR/entry.sh"
+			echo '# @bundle cmd echo "GENERATED"' >> "$TEST_DIR/entry.sh"
+			echo 'SKIPPED=yes' >> "$TEST_DIR/entry.sh"
+			echo '# @bundle end' >> "$TEST_DIR/entry.sh"
+
+			When run script ./bundle.sh --hide-markers "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include 'GENERATED'
+			The output should not include '# --- begin:'
+			The output should not include '# --- end:'
+		End
+
+		It 'suppresses keep markers'
+			cat > "$TEST_DIR/mockgen" << 'SCRIPT'
+#!/bin/bash
+echo "GENERATED"
+SCRIPT
+			chmod +x "$TEST_DIR/mockgen"
+			cat > "$TEST_DIR/opts.sh" << 'EOF'
+# @bundle keep
+VERSION=1.0
+# @bundle end
+EOF
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# @bundle cmd ./mockgen -f ./opts.sh
+skipped
+# @bundle end
+EOF
+
+			When run script ./bundle.sh --hide-markers "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include 'VERSION=1.0'
+			The output should not include '# --- keep from:'
+		End
+
+		It 'works with short option -n'
+			cat > "$TEST_DIR/lib.sh" << 'EOF'
+LIB_VAR=yes
+EOF
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# @bundle source
+. ./lib.sh
+EOF
+
+			When run script ./bundle.sh -n "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should not include '# ---'
+		End
+
+		It 'combines with --strip-comments'
+			cat > "$TEST_DIR/lib.sh" << 'EOF'
+# lib comment
+LIB_VAR=yes
+EOF
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# entry comment
+# @bundle source
+. ./lib.sh
+EOF
+
+			When run script ./bundle.sh --strip-comments --hide-markers "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include 'LIB_VAR=yes'
+			The output should not include '# lib comment'
+			The output should not include '# entry comment'
+			The output should not include '# ---'
 		End
 	End
 End
