@@ -24,7 +24,7 @@ help:
 	@echo "  build [NAME=x]         - Build all scripts or a specific one to dist/"
 	@echo "  install DESTDIR=x [NAME=y] - Install scripts to DESTDIR"
 	@echo "  clean                  - Remove generated files in dist/"
-	@echo "  test [NAME=x]          - Run tests with coverage (all, or specific script)"
+	@echo "  test [NAME=x] [KCOV=0] - Run tests with coverage (all, or specific script)"
 	@echo "  lint [NAME=x]          - Run shellcheck and shfmt check"
 	@echo "  fmt [NAME=x]           - Format shell scripts with shfmt"
 	@echo "  new-script NAME=x      - Create a new script from templates"
@@ -132,7 +132,10 @@ clean:
 	@rm -rf $(DIST_DIR)/*
 	@echo "Done."
 
-# Test: all, specific script, or utils (with coverage)
+# Test: all, specific script, or utils (with coverage by default, KCOV=0 to disable)
+KCOV ?= 1
+KCOV_OPTS = $(if $(filter 1,$(KCOV)),--kcov --kcov-options="--include-pattern=$(DIST_DIR)/$(1)",)
+
 test:
 ifdef NAME
 	@if [ "$(NAME)" = "utils" ]; then \
@@ -145,13 +148,13 @@ ifdef NAME
 		fi; \
 		$(MAKE) --no-print-directory build NAME=$(NAME); \
 		echo "Running tests for $(NAME)..."; \
-		shellspec --kcov --kcov-options="--include-pattern=$(DIST_DIR)/$(NAME)/bin" \
+		shellspec $(call KCOV_OPTS,$(NAME)/bin) \
 			--helperdir scripts --require spec_helper $(SCRIPTS_DIR)/$(NAME); \
 	fi
 else
 	@echo "Running all tests..."
 	@$(MAKE) --no-print-directory build
-	@shellspec --kcov --kcov-options="--include-pattern=$(DIST_DIR)/" \
+	@shellspec $(call KCOV_OPTS,) \
 		--helperdir scripts --require spec_helper scripts
 	@shellspec utils
 endif
