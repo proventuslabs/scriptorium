@@ -9,7 +9,7 @@ parser_definition() {
 		"Usage: cz [options...] [command] [arguments...]"
 	msg -- '' 'Conventional commit message builder' ''
 	msg -- 'Options:'
-	param   CONFIG_FILE  -c --config-file -- "Config file path"
+	param   CONFIG_FILE  -c --config-file var:FILE -- "Config file path"
 	flag    QUIET        -q --quiet       -- "Suppress warnings and non-essential output"
 	disp    :usage       -h --help
 	disp    VERSION      -V --version

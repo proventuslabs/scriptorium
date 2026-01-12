@@ -116,8 +116,7 @@ Usage: cz [options...] [command] [arguments...]
 Conventional commit message builder
 
 Options:
-  -c, --config-file CONFIG_FILE 
-                              Config file path
+  -c, --config-file FILE      Config file path
   -q, --quiet                 Suppress warnings and non-essential output
   -h, --help                  
   -V, --version               
