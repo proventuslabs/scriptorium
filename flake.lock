@@ -18,6 +18,22 @@
         "type": "github"
       }
     },
+    "kcov-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1767509369,
+        "narHash": "sha256-13V6vnPXECccqwQ2sR0WUEuOSAQ4ieSng/vYDJ5hVJc=",
+        "owner": "SimonKagstrom",
+        "repo": "kcov",
+        "rev": "46094099f61bb7b53c94af73a1154f26da23bad3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "SimonKagstrom",
+        "repo": "kcov",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1767995494,
@@ -37,6 +53,7 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "kcov-src": "kcov-src",
         "nixpkgs": "nixpkgs"
       }
     },
