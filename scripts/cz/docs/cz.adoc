@@ -101,7 +101,7 @@ in a terminal, or *lint* mode if receiving input on standard input.
 *-h*, *--help*::
   Display usage information and exit.
 
-*--version*::
+*-V*, *--version*::
   Display version information and exit.
 
 == FILES

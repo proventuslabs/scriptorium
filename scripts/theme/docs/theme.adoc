@@ -35,11 +35,11 @@ from configuration files.
 
 == OPTIONS
 
-*--detect*::
+*-d*, *--detect*::
   Only detect and print the system appearance (dark or light). Does not run
   the provider or handlers.
 
-*--list*::
+*-l*, *--list*::
   List the discovered provider and all registered handlers.
 
 *-q*, *--quiet*::
@@ -48,7 +48,7 @@ from configuration files.
 *-h*, *--help*::
   Show help message and exit.
 
-*--version*::
+*-V*, *--version*::
   Show version information and exit.
 
 == ARGUMENTS
