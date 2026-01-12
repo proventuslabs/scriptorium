@@ -63,6 +63,9 @@ These options are mutually exclusive. Specifying more than one is an error.
 *-h*, *--help*::
   Show help message and exit.
 
+*-V*, *--version*::
+  Show version information and exit.
+
 == ARGUMENTS
 
 _TOKEN_::

@@ -31,7 +31,7 @@ information, see *env*(5).
 
 == OPTIONS
 
-*-e* _FILE_::
+*-e*, *--env-file* _FILE_::
   Specify .env file to load. Can be specified multiple times to load multiple
   files. If not specified, defaults to *.env*. Files are processed in order,
   with later files overriding variables from earlier files.
@@ -49,6 +49,9 @@ information, see *env*(5).
 
 *-h*, *--help*::
   Show help message and exit.
+
+*-V*, *--version*::
+  Show version information and exit.
 
 == ARGUMENTS
 
