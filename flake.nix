@@ -41,7 +41,7 @@
             inherit version;
             src = self;
 
-            nativeBuildInputs = buildTools;
+            nativeBuildInputs = buildTools ++ [ pkgs.installShellFiles ];
             propagatedBuildInputs = [ bash4 ];
 
             buildPhase = ''
@@ -50,6 +50,11 @@
 
             installPhase = ''
               make install NAME=${name} DESTDIR=$out
+            '';
+
+            postInstall = ''
+              installShellCompletion --bash --name ${name} dist/${name}/completions/bash/${name}.bash
+              installShellCompletion --zsh --name _${name} dist/${name}/completions/zsh/_${name}
             '';
 
             meta = with pkgs.lib; {
@@ -81,7 +86,7 @@
             version = self.shortRev or self.dirtyShortRev or "dev";
             src = self;
 
-            nativeBuildInputs = buildTools;
+            nativeBuildInputs = buildTools ++ [ pkgs.installShellFiles ];
             propagatedBuildInputs = [ bash4 ];
 
             buildPhase = ''
@@ -90,6 +95,13 @@
 
             installPhase = ''
               make install DESTDIR=$out
+            '';
+
+            postInstall = ''
+              for name in cz dotenv jwt theme; do
+                installShellCompletion --bash --name $name dist/$name/completions/bash/$name.bash
+                installShellCompletion --zsh --name _$name dist/$name/completions/zsh/_$name
+              done
             '';
 
             meta = with pkgs.lib; {
