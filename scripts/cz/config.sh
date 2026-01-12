@@ -8,6 +8,13 @@
 . ./config_parser.sh
 # Sets: TYPES, DESCRIPTIONS, SCOPES, GLOBAL_SCOPES, CONFIG_FILE
 
+# Ensure config is loaded (idempotent)
+ensure_config() {
+	[[ -n "${TYPES+x}" && ${#TYPES[@]} -gt 0 ]] && return
+	[[ -z "${CONFIG_FILE:-}" ]] && { find_config || true; }
+	load_config
+}
+
 # Find config file by walking up directory tree
 # Usage: find_config [start_dir]
 # Returns: 0 if found (path in CONFIG_FILE), 1 if not found

@@ -1,5 +1,8 @@
 # shellcheck shell=bash
 
+# Get scope variable name (handles wildcard -> __wildcard__)
+_scope_var() { [[ "$1" == "*" ]] && echo "CFG_SCOPES___wildcard__" || echo "CFG_SCOPES_$1"; }
+
 # Parse .gitcommitizen configuration from stdin
 # Sets variables: CFG_SETTINGS_*, CFG_SCOPES_*, CFG_TYPES_*
 # Also sets arrays: CFG_SCOPE_NAMES, CFG_TYPE_NAMES
@@ -70,28 +73,16 @@ get_setting() {
 }
 
 # Check if scope exists
-# Usage: scope_exists <name>
 scope_exists() {
-	local name="$1"
 	local var
-	if [[ "$name" == "*" ]]; then
-		var="CFG_SCOPES___wildcard__"
-	else
-		var="CFG_SCOPES_$name"
-	fi
+	var="$(_scope_var "$1")"
 	[[ -n "${!var+x}" ]]
 }
 
 # Get scope patterns
-# Usage: get_scope_patterns <name>
 get_scope_patterns() {
-	local name="$1"
 	local var
-	if [[ "$name" == "*" ]]; then
-		var="CFG_SCOPES___wildcard__"
-	else
-		var="CFG_SCOPES_$name"
-	fi
+	var="$(_scope_var "$1")"
 	echo "${!var:-}"
 }
 
