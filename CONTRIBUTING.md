@@ -36,7 +36,7 @@ scriptorium/
 │       ├── completions/        # Shell completions
 │       │   ├── <name>.bash     # Bash completions
 │       │   └── _<name>         # Zsh completions
-│       └── *_spec.sh           # ShellSpec tests
+│       └── main_spec.sh        # BDD tests (test bundled script via CLI)
 ├── utils/                      # Build utilities
 │   ├── bundle.sh               # Script bundler
 │   └── bundle_spec.sh          # Bundler tests
@@ -105,7 +105,7 @@ Then:
    ```
 5. Import script in root `flake.nix` (add to `let` block and `packages`)
 6. Add `docs/<name>.adoc` for manpage
-7. Add `<name>_spec.sh` for tests
+7. Add `main_spec.sh` for BDD tests
 8. Build: `make build NAME=<name>`
 9. Test: `make test NAME=<name>`
 

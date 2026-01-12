@@ -9,7 +9,7 @@ Templates for `make new-script NAME=<name>`. Placeholders like `<name>` are repl
 | `main.sh` | Script entry point with argument parsing; flat, never sourced but called; import all scripts |
 | `options.sh` | CLI options using getoptions DSL |
 | `default.nix` | Nix package definition |
-| `*_spec.sh` | ShellSpec test template |
+| `main_spec.sh` | BDD test template (tests bundled script via CLI) |
 | `*.sh` | Additional scripts to split code; each source and bundle their dependencies |
 | `docs/command.adoc` | AsciiDoc manpage (section 1) |
 | `docs/*.adoc` | Additional manpages (e.g., section 5 for file formats) |

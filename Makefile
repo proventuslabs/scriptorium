@@ -216,7 +216,7 @@ endif
 		sed "s|<name>|$(NAME)|g; s|<NAME>|$$NAME_UPPER|g; s|<description>|TODO: Add description|g" $(TEMPLATES_DIR)/docs/command.adoc > $(SCRIPTS_DIR)/$(NAME)/docs/$(NAME).adoc
 	@sed 's|<name>|$(NAME)|g' $(TEMPLATES_DIR)/completions/command.bash > $(SCRIPTS_DIR)/$(NAME)/completions/$(NAME).bash
 	@sed 's|<name>|$(NAME)|g' $(TEMPLATES_DIR)/completions/_command > $(SCRIPTS_DIR)/$(NAME)/completions/_$(NAME)
-	@sed 's|<name>|$(NAME)|g' $(TEMPLATES_DIR)/command_spec.sh > $(SCRIPTS_DIR)/$(NAME)/$(NAME)_spec.sh
+	@sed 's|<name>|$(NAME)|g' $(TEMPLATES_DIR)/main_spec.sh > $(SCRIPTS_DIR)/$(NAME)/main_spec.sh
 	@echo "Created $(SCRIPTS_DIR)/$(NAME)/"
 	@echo ""
 	@echo "See CONTRIBUTING.md for next steps."
