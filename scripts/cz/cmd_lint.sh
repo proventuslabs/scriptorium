@@ -127,12 +127,14 @@ is_multi_scope() { [[ "$1" == *"$(_get_sep)"* ]]; }
 validate_paths_if_needed() {
 	local scope="$1" strict_mode
 
-	# Determine strict mode (--no-strict > --strict > config)
-	if [[ -n "${NO_STRICT:-}" ]]; then
-		strict_mode=false
-	elif [[ -n "${STRICT:-}" ]]; then
+	# Determine strict mode (--strict/--no-strict override config)
+	if [[ "${STRICT-unset}" == "1" ]]; then
 		strict_mode=true
-	else strict_mode="$(get_setting strict false)"; fi
+	elif [[ "${STRICT-unset}" == "" ]]; then
+		strict_mode=false
+	else
+		strict_mode="$(get_setting strict false)"
+	fi
 
 	# In strict mode with scope, validate scope exists
 	if [[ "$strict_mode" == "true" && -n "$scope" ]]; then

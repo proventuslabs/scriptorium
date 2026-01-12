@@ -1,4 +1,4 @@
-# shellcheck shell=sh disable=SC2034
+# shellcheck shell=sh disable=SC2034,SC1083
 
 # @bundle keep
 VERSION=0.1.0 # x-release-please-version
@@ -37,8 +37,7 @@ parser_definition_lint() {
 	msg -- '' 'Validate a commit message from stdin' ''
 	msg -- 'Options:'
 	param   FILES       -f --files      -- "Validate scope against file paths (space-separated)"
-	flag    STRICT      -s --strict     -- "Require scope for scoped files"
-	flag    NO_STRICT      --no-strict  -- "Allow missing scope (override config)"
+	flag    STRICT      -s --{no-}strict  init:@unset -- "Require scope for scoped files"
 	disp    :usage      -h --help
 }
 
