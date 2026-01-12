@@ -108,5 +108,3 @@ Then:
 7. Add `main_spec.sh` for BDD tests
 8. Build: `make build NAME=<name>`
 9. Test: `make test NAME=<name>`
-
-When creating the PR, use the [new-script template](?expand=1&template=new-script.md).
