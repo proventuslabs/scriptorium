@@ -9,31 +9,55 @@ on:
         description: The script name to run CI for
 
 jobs:
-  enforce-specs:
-    name: Enforce spec files
+  layout-check:
+    name: Layout check
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Check for missing spec files
+      - name: Verify script layout
         run: |
-          script_dir="scripts/${{ inputs.script }}"
+          script="${{ inputs.script }}"
+          script_dir="scripts/${script}"
+          errors=0
 
-          # Check if main.sh was added in this PR
-          added_files=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }}...HEAD)
-          if echo "$added_files" | grep -q "^${script_dir}/main\.sh$"; then
-            # New script - check for spec file
-            if ! find "$script_dir" -name '*_spec.sh' -type f | grep -q .; then
-              echo "::error file=${script_dir}/main.sh::New script missing spec file. Add ${script_dir}/${{ inputs.script }}_spec.sh"
-              echo ""
-              echo "New script is missing spec file."
-              exit 1
+          check_file() {
+            if [ ! -f "$1" ]; then
+              echo "::error file=$1::Missing required file: $1"
+              errors=$((errors + 1))
             fi
+          }
+
+          check_integration() {
+            local file="$1" pattern="$2" desc="$3"
+            if ! grep -q "$pattern" "$file"; then
+              echo "::error file=$file::Missing ${desc} in ${file}"
+              errors=$((errors + 1))
+            fi
+          }
+
+          # Required script files
+          check_file "${script_dir}/main.sh"
+          check_file "${script_dir}/options.sh"
+          check_file "${script_dir}/default.nix"
+          check_file "${script_dir}/main_spec.sh"
+          check_file "${script_dir}/docs/${script}.adoc"
+          check_file "${script_dir}/completions/${script}.bash"
+          check_file "${script_dir}/completions/_${script}"
+
+          # Required integration entries
+          check_integration "release-please-config.json" "\"scripts/${script}\"" "package entry"
+          check_integration "flake.nix" "${script}" "script import"
+          check_integration "README.md" "${script}" "script entry"
+
+          if [ "$errors" -gt 0 ]; then
+            echo ""
+            echo "Layout check failed with ${errors} error(s)."
+            echo "See CONTRIBUTING.md for required script structure."
+            exit 1
           fi
-          echo "Spec file check passed."
+          echo "Layout check passed."
         shell: bash
 
   lint:
