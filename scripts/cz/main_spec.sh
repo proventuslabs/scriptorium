@@ -343,6 +343,20 @@ EOF
 				The status should be success
 			End
 
+			It 'single * does not cross directories'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+scripts = scripts/*.sh
+EOF
+				Data "feat(scripts): update script"
+				When call cz lint --files "scripts/nested/main.sh"
+				The status should be failure
+				The stderr should include "does not match scope"
+			End
+
 			It 'matches multi-pattern scope (first pattern)'
 				Data "feat(nix): update flake"
 				When call cz lint --files "flake.nix"
@@ -1115,6 +1129,46 @@ MOCK
 					When call cz create
 					The status should be success
 					The output should equal "feat(custom-scope): add button"
+				End
+			End
+
+			Describe 'STRICT_SCOPES mode'
+				setup_strict_gum() {
+					mkdir -p "$TEST_DIR/bin"
+					cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+case "$1" in
+	choose)
+		if [[ "$*" == *"type"* ]]; then
+			echo "feat - A new feature"
+		elif [[ "$*" == *"scope"* ]]; then
+			echo "api"
+		fi
+		;;
+	input)
+		if [[ "$*" == *"Description"* ]]; then
+			echo "add endpoint"
+		fi
+		;;
+	confirm)
+		exit 1
+		;;
+	write)
+		echo ""
+		;;
+esac
+MOCK
+					chmod +x "$TEST_DIR/bin/gum"
+					PATH="$TEST_DIR/bin:$PATH"
+				}
+
+				BeforeEach 'setup_strict_gum'
+
+				It 'only allows configured scopes with STRICT_SCOPES'
+					export STRICT_SCOPES=1
+					When call cz create
+					The status should be success
+					The output should equal "feat(api): add endpoint"
 				End
 			End
 		End
