@@ -19,19 +19,18 @@ Describe '<name>'
 	BeforeEach 'setup'
 	AfterEach 'cleanup'
 
-	<name>() {
-		"${SHELLSPEC_PROJECT_ROOT}/dist/<name>/bin/<name>" "$@"
-	}
+	# Path to the built script
+	BIN="${SHELLSPEC_PROJECT_ROOT}/dist/<name>/bin/<name>"
 
 	Describe 'help and version'
 		It 'shows help with -h'
-			When call <name> -h
+			When run script "$BIN" -h
 			The status should be success
 			The output should include 'Usage:'
 		End
 
 		It 'shows version with --version'
-			When call <name> --version
+			When run script "$BIN" --version
 			The status should be success
 			The output should match pattern '*.*.*'
 		End
