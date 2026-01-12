@@ -7,97 +7,108 @@
 # @bundle source
 . ./path_validator.sh
 
+# Output helpers - respect QUIET flag
+_err() { [[ -n "${QUIET:-}" ]] || echo "cz: error: $1" >&2; }
+_hint() { [[ -n "${QUIET:-}" ]] || echo "$1" >&2; }
+_scope_err() {
+	_err "unknown scope '$1'"
+	_hint "Defined scopes: ${CFG_SCOPE_NAMES[*]}"
+}
+_show_errors() {
+	local e
+	for e in "$@"; do _hint "  $e"; done
+}
+
+# Get multi-scope separator
+_get_sep() { get_setting multi-scope-separator ","; }
+
+# Check all scopes in a multi-scope string exist
+# Usage: _check_scopes_exist <scope_str>
+# Sets: _scopes array (trimmed scope names)
+_check_scopes_exist() {
+	local IFS s
+	IFS="$(_get_sep)"
+	read -ra _scopes <<<"$1"
+	for s in "${_scopes[@]}"; do
+		_trim s
+		[[ "$s" == "*" ]] && continue
+		scope_exists "$s" || {
+			_scope_err "$s"
+			return 1
+		}
+	done
+}
+
 cmd_lint() {
 	local message
 	message="$(cat)"
 
-	if [[ -z "$message" ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: error: empty commit message" >&2
+	[[ -z "$message" ]] && {
+		_err "empty commit message"
 		return 1
-	fi
+	}
 
 	# Load config if not already loaded
-	if [[ -z "${TYPES+x}" || ${#TYPES[@]} -eq 0 ]]; then
-		if [[ -z "${CONFIG_FILE:-}" ]]; then
-			find_config || true
-		fi
-		load_config
-	fi
+	ensure_config
 
 	# Parse first line: type[(scope)][!]: description
 	local first_line="${message%%$'\n'*}"
 	local pattern='^([a-z]+)(\(([a-zA-Z0-9_@/,*-]+)\))?(!)?: (.+)$'
 
 	if [[ ! "$first_line" =~ $pattern ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: error: invalid commit format" >&2
-		[[ -z "${QUIET:-}" ]] && echo "Expected: <type>[(scope)]: <description>" >&2
+		_err "invalid commit format"
+		_hint "Expected: <type>[(scope)]: <description>"
 		return 1
 	fi
 
-	local type="${BASH_REMATCH[1]}"
-	local scope="${BASH_REMATCH[3]}"
-	local breaking="${BASH_REMATCH[4]}"
-	local description="${BASH_REMATCH[5]}"
+	local type="${BASH_REMATCH[1]}" scope="${BASH_REMATCH[3]}"
+	local breaking="${BASH_REMATCH[4]}" description="${BASH_REMATCH[5]}"
 
 	# Validate type
-	local type_valid=false
 	local type_index=-1
 	for i in "${!TYPES[@]}"; do
-		if [[ "${TYPES[$i]}" == "$type" ]]; then
-			type_valid=true
+		[[ "${TYPES[$i]}" == "$type" ]] && {
 			type_index=$i
 			break
-		fi
+		}
 	done
 
-	if [[ "$type_valid" != true ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown type '$type'" >&2
-		[[ -z "${QUIET:-}" ]] && echo "Allowed types: ${TYPES[*]}" >&2
+	if [[ $type_index -lt 0 ]]; then
+		_err "unknown type '$type'"
+		_hint "Allowed types: ${TYPES[*]}"
 		return 1
 	fi
 
-	# Validate scope if present
-	if [[ -n "$scope" ]]; then
-		local allowed_scopes="${SCOPES[$type_index]}"
-
-		# If scopes are defined for this type, validate against them
-		if [[ -n "$allowed_scopes" ]]; then
-			local scope_valid=false
-			for allowed in $allowed_scopes; do
-				if [[ "$allowed" == "$scope" ]]; then
-					scope_valid=true
-					break
-				fi
-			done
-
-			if [[ "$scope_valid" != true ]]; then
-				[[ -z "${QUIET:-}" ]] && echo "cz: error: invalid scope '$scope' for type '$type'" >&2
-				[[ -z "${QUIET:-}" ]] && echo "Allowed scopes: $allowed_scopes" >&2
-				return 1
-			fi
-		fi
-	fi
-
-	# Validate description is not empty
-	if [[ -z "$description" || "$description" =~ ^[[:space:]]*$ ]]; then
-		[[ -z "${QUIET:-}" ]] && echo "cz: error: description cannot be empty" >&2
-		return 1
-	fi
-
-	# Validate breaking change has BREAKING CHANGE footer
-	if [[ -n "$breaking" ]]; then
-		if [[ ! "$message" =~ BREAKING[[:space:]]CHANGE: ]]; then
-			[[ -z "${QUIET:-}" ]] && echo "cz: error: breaking change (!) requires 'BREAKING CHANGE:' footer" >&2
+	# Validate scope if present and scopes defined for this type
+	if [[ -n "$scope" && -n "${SCOPES[$type_index]}" ]]; then
+		local scope_valid=false allowed
+		for allowed in ${SCOPES[$type_index]}; do
+			[[ "$allowed" == "$scope" ]] && {
+				scope_valid=true
+				break
+			}
+		done
+		if [[ "$scope_valid" != true ]]; then
+			_err "invalid scope '$scope' for type '$type'"
+			_hint "Allowed scopes: ${SCOPES[$type_index]}"
 			return 1
 		fi
 	fi
 
-	# Path validation for INI format with files provided
-	if ! validate_paths_if_needed "$scope"; then
+	# Validate description is not empty
+	[[ -z "$description" || "$description" =~ ^[[:space:]]*$ ]] && {
+		_err "description cannot be empty"
 		return 1
-	fi
+	}
 
-	return 0
+	# Validate breaking change has BREAKING CHANGE footer
+	[[ -n "$breaking" && ! "$message" =~ BREAKING[[:space:]]CHANGE: ]] && {
+		_err "breaking change (!) requires 'BREAKING CHANGE:' footer"
+		return 1
+	}
+
+	# Path validation for INI format with files provided
+	validate_paths_if_needed "$scope"
 }
 
 # Get list of files to validate
@@ -105,152 +116,83 @@ cmd_lint() {
 # Returns file list (one per line) or empty string
 get_files_to_validate() {
 	[[ -z "${FILES:-}" ]] && return
-	# Handle space-separated or newline-separated input
 	echo "$FILES" | tr ' ' '\n' | grep -v '^$'
 }
 
 # Check if scope contains multi-scope separator
-# Usage: is_multi_scope <scope>
-is_multi_scope() {
-	local scope="$1"
-	local separator
-	separator="$(get_setting multi-scope-separator ",")"
-	[[ "$scope" == *"$separator"* ]]
-}
+is_multi_scope() { [[ "$1" == *"$(_get_sep)"* ]]; }
 
 # Validate paths against scope(s) if INI format and files provided
 # Usage: validate_paths_if_needed <scope>
 validate_paths_if_needed() {
-	local scope="$1"
-	local files_str
-	local multi_scope_enabled strict_mode
+	local scope="$1" strict_mode
 
-	# Check strict mode (--no-strict overrides --strict overrides config)
+	# Determine strict mode (--no-strict > --strict > config)
 	if [[ -n "${NO_STRICT:-}" ]]; then
-		strict_mode="false"
+		strict_mode=false
 	elif [[ -n "${STRICT:-}" ]]; then
-		strict_mode="true"
-	else
-		strict_mode="$(get_setting strict "false")"
-	fi
+		strict_mode=true
+	else strict_mode="$(get_setting strict false)"; fi
 
-	# In strict mode with a scope, validate it exists
+	# In strict mode with scope, validate scope exists
 	if [[ "$strict_mode" == "true" && -n "$scope" ]]; then
-		# No scopes defined but scope used - reject
-		if [[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]]; then
-			[[ -z "${QUIET:-}" ]] && echo "cz: error: scope '$scope' used but no scopes defined in config" >&2
+		[[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]] && {
+			_err "scope '$scope' used but no scopes defined in config"
 			return 1
-		fi
-
-		# Validate scope exists
+		}
 		if is_multi_scope "$scope"; then
-			local separator
-			separator="$(get_setting multi-scope-separator ",")"
-			local IFS="$separator"
-			read -ra scope_arr <<<"$scope"
-			for s in "${scope_arr[@]}"; do
-				s="${s#"${s%%[![:space:]]*}"}"
-				s="${s%"${s##*[![:space:]]}"}"
-				if ! scope_exists "$s" && [[ "$s" != "*" ]]; then
-					[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown scope '$s'" >&2
-					[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${CFG_SCOPE_NAMES[*]}" >&2
-					return 1
-				fi
-			done
+			_check_scopes_exist "$scope" || return 1
 		elif [[ "$scope" != "*" ]] && ! scope_exists "$scope"; then
-			[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown scope '$scope'" >&2
-			[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${CFG_SCOPE_NAMES[*]}" >&2
+			_scope_err "$scope"
 			return 1
 		fi
 	fi
 
-	# Skip file validation if no scopes defined
+	# Early exit if no scopes defined or no files to validate
 	[[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]] && return 0
-
-	# Get files to validate
-	files_str="$(get_files_to_validate)"
-	[[ -z "$files_str" ]] && return 0
-
-	# Convert to array
 	local -a files=()
-	while IFS= read -r file; do
-		[[ -n "$file" ]] && files+=("$file")
-	done <<<"$files_str"
-
+	mapfile -t files < <(get_files_to_validate)
 	[[ ${#files[@]} -eq 0 ]] && return 0
 
-	# Check multi-scope setting
-	multi_scope_enabled="$(get_setting multi-scope "false")"
-
-	# If scope provided, validate files against scope(s)
-	if [[ -n "$scope" ]]; then
-		# Check if multi-scope used
-		if is_multi_scope "$scope"; then
-			if [[ "$multi_scope_enabled" != "true" ]]; then
-				[[ -z "${QUIET:-}" ]] && echo "cz: error: multi-scope not enabled in config" >&2
-				[[ -z "${QUIET:-}" ]] && echo "Set multi-scope = true in [settings] to use multiple scopes" >&2
-				return 1
-			fi
-
-			# Validate each scope exists
-			local separator
-			separator="$(get_setting multi-scope-separator ",")"
-			local IFS="$separator"
-			read -ra scope_arr <<<"$scope"
-			for s in "${scope_arr[@]}"; do
-				s="${s#"${s%%[![:space:]]*}"}"
-				s="${s%"${s##*[![:space:]]}"}"
-				if ! scope_exists "$s" && [[ "$s" != "*" ]]; then
-					[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown scope '$s'" >&2
-					[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${CFG_SCOPE_NAMES[*]}" >&2
-					return 1
-				fi
-			done
-
-			# Validate files match any of the scopes
-			if ! validate_files_against_scopes "$scope" "${files[@]}"; then
-				[[ -z "${QUIET:-}" ]] && echo "cz: error: files do not match scopes '$scope'" >&2
-				for err in "${VALIDATION_ERRORS[@]}"; do
-					[[ -z "${QUIET:-}" ]] && echo "  $err" >&2
-				done
-				return 1
-			fi
-		else
-			# Single scope - validate it exists (unless wildcard)
-			if [[ "$scope" != "*" ]] && ! scope_exists "$scope"; then
-				[[ -z "${QUIET:-}" ]] && echo "cz: error: unknown scope '$scope'" >&2
-				[[ -z "${QUIET:-}" ]] && echo "Defined scopes: ${CFG_SCOPE_NAMES[*]}" >&2
-				return 1
-			fi
-
-			# Wildcard scope matches any files
-			if [[ "$scope" == "*" ]]; then
-				return 0
-			fi
-
-			# Validate files match the scope
-			if ! validate_files_against_scope "$scope" "${files[@]}"; then
-				[[ -z "${QUIET:-}" ]] && echo "cz: error: files do not match scope '$scope'" >&2
-				for err in "${VALIDATION_ERRORS[@]}"; do
-					[[ -z "${QUIET:-}" ]] && echo "  $err" >&2
-				done
-				return 1
-			fi
+	# No scope provided - strict mode check
+	if [[ -z "$scope" ]]; then
+		[[ "$strict_mode" != "true" ]] && return 0
+		if ! validate_strict_no_scope "${files[@]}"; then
+			_err "strict mode requires scope for scoped files"
+			_show_errors "${STRICT_MATCHES[@]}"
+			_hint "Hint: add a scope that matches these files"
+			return 1
 		fi
-	else
-		# No scope provided - check strict mode
-		if [[ "$strict_mode" == "true" ]]; then
-			# Files must NOT match any defined scope
-			if ! validate_strict_no_scope "${files[@]}"; then
-				[[ -z "${QUIET:-}" ]] && echo "cz: error: strict mode requires scope for scoped files" >&2
-				for match in "${STRICT_MATCHES[@]}"; do
-					[[ -z "${QUIET:-}" ]] && echo "  $match" >&2
-				done
-				[[ -z "${QUIET:-}" ]] && echo "Hint: add a scope that matches these files" >&2
-				return 1
-			fi
-		fi
+		return 0
 	fi
 
-	return 0
+	# Wildcard scope matches any files
+	[[ "$scope" == "*" ]] && return 0
+
+	# Multi-scope validation
+	if is_multi_scope "$scope"; then
+		[[ "$(get_setting multi-scope false)" != "true" ]] && {
+			_err "multi-scope not enabled in config"
+			_hint "Set multi-scope = true in [settings] to use multiple scopes"
+			return 1
+		}
+		_check_scopes_exist "$scope" || return 1
+		if ! validate_files_against_scopes "$scope" "${files[@]}"; then
+			_err "files do not match scopes '$scope'"
+			_show_errors "${VALIDATION_ERRORS[@]}"
+			return 1
+		fi
+		return 0
+	fi
+
+	# Single scope validation
+	scope_exists "$scope" || {
+		_scope_err "$scope"
+		return 1
+	}
+	if ! validate_files_against_scope "$scope" "${files[@]}"; then
+		_err "files do not match scope '$scope'"
+		_show_errors "${VALIDATION_ERRORS[@]}"
+		return 1
+	fi
 }
