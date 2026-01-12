@@ -1,17 +1,41 @@
 #!/usr/bin/env bash
 # bundle.sh — recursively inline sourced scripts into a single file
-# Usage: bundle.sh <entry-file>
-#
-# Features:
-#   - Use `# @bundle source` before a `source`/`.` to inline that file
-#   - Use `# @bundle cmd <command>` to inline command output
-#   - Use `# @bundle keep` to mark blocks to preserve when referenced by @bundle cmd -f
-#   - Use `# @bundle end` to mark end of block
-#   - Tracks included files to avoid duplicates
-#   - Preserves shebang from entry file, errors on mismatched shebangs
-#   - Source statements without `# @bundle source` are kept verbatim
 
 set -euo pipefail
+
+# shellcheck disable=SC2034 # VERSION used by getoptions disp
+VERSION=0.1.0
+
+parser_definition() {
+	# shellcheck disable=SC2016 # Single quotes intentional for literal backticks in help text
+	setup REST help:usage abbr:true -- \
+		"Usage: bundle.sh [options] <entry-file>" \
+		'' \
+		'Recursively inline sourced scripts into a single file.' \
+		'' \
+		'Features:' \
+		'  - Use `# @bundle source` before a `source`/`.` to inline that file' \
+		'  - Use `# @bundle cmd <command>` to inline command output' \
+		'  - Use `# @bundle keep` to mark blocks to preserve when referenced by @bundle cmd -f' \
+		'  - Use `# @bundle end` to mark end of block' \
+		'  - Tracks included files to avoid duplicates' \
+		'  - Preserves shebang from entry file, errors on mismatched shebangs' \
+		'  - Source statements without `# @bundle source` are kept verbatim' \
+		''
+	msg -- 'Options:'
+	flag STRIP_COMMENTS -s --strip-comments -- "Strip comments from source files"
+	flag HIDE_MARKERS -n --hide-markers -- "Suppress bundle marker comments"
+	disp :usage -h --help
+	disp VERSION -V --version
+}
+
+eval "$(getoptions parser_definition parse)"
+parse "$@"
+eval "set -- $REST"
+
+STRIP_COMMENTS="${STRIP_COMMENTS:-0}"
+HIDE_MARKERS="${HIDE_MARKERS:-0}"
+
 declare -A seen
 is_entry=1
 entry_shebang=""
@@ -98,6 +122,11 @@ bundle_file() {
 			continue
 		fi
 
+		# Strip full-line comments if requested (but not @bundle directives)
+		if [[ "$STRIP_COMMENTS" -eq 1 && "$stripped" == '#'* && "$stripped" != '# @bundle'* ]]; then
+			continue
+		fi
+
 		case "$stripped" in
 			'# @bundle source')
 				bundle_next=1
@@ -123,7 +152,7 @@ bundle_file() {
 						local keep_content
 						keep_content="$(extract_keep_blocks "$ref_path")"
 						if [[ -n "$keep_content" ]]; then
-							emit "$cmd_indent" "# --- keep from: ${ref_path#"$PWD/"} ---"
+							[[ "$HIDE_MARKERS" -eq 0 ]] && emit "$cmd_indent" "# --- keep from: ${ref_path#"$PWD/"} ---" || true
 							while IFS= read -r keep_line; do
 								emit "$cmd_indent" "$keep_line"
 							done <<<"$keep_content"
@@ -133,11 +162,11 @@ bundle_file() {
 
 				# Run the command and indent each line of output
 				# Convert << to <<- so heredocs work when indented (<<- strips leading tabs)
-				emit "$cmd_indent" "# --- begin: $cmd ---"
+				[[ "$HIDE_MARKERS" -eq 0 ]] && emit "$cmd_indent" "# --- begin: $cmd ---" || true
 				while IFS= read -r cmd_line; do
 					emit "$cmd_indent" "$cmd_line"
 				done < <(cd "$dir" && eval "$cmd" | sed 's/<<\([^-]\)/<<-\1/g')
-				emit "$cmd_indent" "# --- end: $cmd ---"
+				[[ "$HIDE_MARKERS" -eq 0 ]] && emit "$cmd_indent" "# --- end: $cmd ---" || true
 				skip_until_end=1
 				;;
 			*)
@@ -172,11 +201,11 @@ bundle_file() {
 					if [[ -f "$dep_path" ]]; then
 						if [[ -z "${seen[$dep_path]:-}" ]]; then
 							seen["$dep_path"]=1
-							emit "$src_indent" "# --- begin: ${dep_path#"$PWD/"} ---"
+							[[ "$HIDE_MARKERS" -eq 0 ]] && emit "$src_indent" "# --- begin: ${dep_path#"$PWD/"} ---" || true
 							bundle_file "$dep_path" "$src_indent"
-							emit "$src_indent" "# --- end: ${dep_path#"$PWD/"} ---"
+							[[ "$HIDE_MARKERS" -eq 0 ]] && emit "$src_indent" "# --- end: ${dep_path#"$PWD/"} ---" || true
 						else
-							emit "$src_indent" "# --- skipped (already included): ${dep_path#"$PWD/"} ---"
+							[[ "$HIDE_MARKERS" -eq 0 ]] && emit "$src_indent" "# --- skipped (already included): ${dep_path#"$PWD/"} ---" || true
 						fi
 					else
 						echo "Error: file not found: $dep_path" >&2
