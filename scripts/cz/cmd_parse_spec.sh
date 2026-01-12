@@ -81,20 +81,20 @@ EOF
 	End
 
 	Describe 'with explicit config file'
-		It 'uses CONFIG_FILE if set'
+		It 'uses FILE if set'
 			cat > custom.conf << 'EOF'
 [types]
 custom = Custom type
 EOF
-			CONFIG_FILE="custom.conf"
+			FILE="custom.conf"
 			When call cmd_parse
 			The output should include "Config: custom.conf"
 			The output should include "custom"
 			The output should include "Custom type"
 		End
 
-		It 'fails if CONFIG_FILE does not exist'
-			CONFIG_FILE="/nonexistent/config"
+		It 'fails if FILE does not exist'
+			FILE="/nonexistent/config"
 			When run cmd_parse
 			The status should equal 1
 			The stderr should include "config file not found"

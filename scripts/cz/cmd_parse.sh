@@ -7,15 +7,15 @@
 
 cmd_parse() {
 	# Find config if not specified via -c
-	if [[ -z "$CONFIG_FILE" ]]; then
+	if [[ -z "$FILE" ]]; then
 		find_config || true
 	fi
 
 	load_config
 
 	# Show config source
-	if [[ -n "$CONFIG_FILE" ]]; then
-		echo "Config: $CONFIG_FILE"
+	if [[ -n "$FILE" ]]; then
+		echo "Config: $FILE"
 	else
 		echo "Config: (defaults)"
 	fi

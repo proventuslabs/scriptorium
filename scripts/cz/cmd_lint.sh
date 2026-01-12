@@ -18,7 +18,7 @@ cmd_lint() {
 
 	# Load config if not already loaded
 	if [[ -z "${TYPES+x}" || ${#TYPES[@]} -eq 0 ]]; then
-		if [[ -z "${CONFIG_FILE:-}" ]]; then
+		if [[ -z "${FILE:-}" ]]; then
 			find_config || true
 		fi
 		load_config

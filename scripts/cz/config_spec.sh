@@ -21,7 +21,7 @@ Describe 'load_config'
 		feat = A new feature
 		fix = A bug fix
 		EOF
-		CONFIG_FILE="$TEST_DIR/config"
+		FILE="$TEST_DIR/config"
 		When call load_config
 		The status should be success
 		The variable TYPES[0] should equal "feat"
@@ -30,14 +30,14 @@ Describe 'load_config'
 	End
 
 	It 'loads defaults when no config file'
-		CONFIG_FILE=""
+		FILE=""
 		When call load_config
 		The status should be success
 		The variable TYPES[0] should equal "feat"
 	End
 
 	It 'errors when config file not found'
-		CONFIG_FILE="$TEST_DIR/nonexistent"
+		FILE="$TEST_DIR/nonexistent"
 		When run load_config
 		The status should be failure
 		The stderr should include "not found"
@@ -48,7 +48,7 @@ Describe 'load_config'
 		[scopes]
 		api = src/api/**
 		EOF
-		CONFIG_FILE="$TEST_DIR/config"
+		FILE="$TEST_DIR/config"
 		When run load_config
 		The status should be success
 		The stderr should include "no [types]"
@@ -60,7 +60,7 @@ Describe 'load_config'
 		[scopes]
 		api = src/api/**
 		EOF
-		CONFIG_FILE="$TEST_DIR/config"
+		FILE="$TEST_DIR/config"
 		QUIET=1
 		When run load_config
 		The status should be success
