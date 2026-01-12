@@ -1,10 +1,11 @@
 = JWT(1)
 ProventusLabs
+v0.1.0 // x-release-please-version
 :docdate: 2025
 :doctype: manpage
 :manmanual: User Commands
 :mansource: Scriptorium
-:revnumber: 0.1.0 // x-release-please-version
+:manversion: v0.1.0 // x-release-please-version
 :man-linkstyle: pass:[blue R < >]
 
 == NAME
