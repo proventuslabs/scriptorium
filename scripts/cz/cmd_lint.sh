@@ -12,7 +12,7 @@ _err() { [[ -n "${QUIET:-}" ]] || echo "cz: error: $1" >&2; }
 _hint() { [[ -n "${QUIET:-}" ]] || echo "$1" >&2; }
 _scope_err() {
 	_err "unknown scope '$1'"
-	_hint "Defined scopes: ${CFG_SCOPE_NAMES[*]}"
+	_hint "Defined scopes: ${!CFG_SCOPES[*]}"
 }
 _show_errors() {
 	local e
@@ -20,7 +20,7 @@ _show_errors() {
 }
 
 # Get multi-scope separator
-_get_sep() { get_setting multi-scope-separator ","; }
+_get_sep() { echo "${CFG_SETTINGS[multi_scope_separator]:-,}"; }
 
 # Check all scopes in a multi-scope string exist
 # Usage: _check_scopes_exist <scope_str>
@@ -32,7 +32,7 @@ _check_scopes_exist() {
 	for s in "${_scopes[@]}"; do
 		_trim s
 		[[ "$s" == "*" ]] && continue
-		scope_exists "$s" || {
+		[[ -v CFG_SCOPES["$s"] ]] || {
 			_scope_err "$s"
 			return 1
 		}
@@ -65,34 +65,10 @@ cmd_lint() {
 	local breaking="${BASH_REMATCH[4]}" description="${BASH_REMATCH[5]}"
 
 	# Validate type
-	local type_index=-1
-	for i in "${!TYPES[@]}"; do
-		[[ "${TYPES[$i]}" == "$type" ]] && {
-			type_index=$i
-			break
-		}
-	done
-
-	if [[ $type_index -lt 0 ]]; then
+	if [[ ! -v CFG_TYPES["$type"] ]]; then
 		_err "unknown type '$type'"
-		_hint "Allowed types: ${TYPES[*]}"
+		_hint "Allowed types: ${!CFG_TYPES[*]}"
 		return 1
-	fi
-
-	# Validate scope if present and scopes defined for this type
-	if [[ -n "$scope" && -n "${SCOPES[$type_index]}" ]]; then
-		local scope_valid=false allowed
-		for allowed in ${SCOPES[$type_index]}; do
-			[[ "$allowed" == "$scope" ]] && {
-				scope_valid=true
-				break
-			}
-		done
-		if [[ "$scope_valid" != true ]]; then
-			_err "invalid scope '$scope' for type '$type'"
-			_hint "Allowed scopes: ${SCOPES[$type_index]}"
-			return 1
-		fi
 	fi
 
 	# Validate description is not empty
@@ -133,25 +109,25 @@ validate_paths_if_needed() {
 	elif [[ "${STRICT-unset}" == "" ]]; then
 		strict_mode=false
 	else
-		strict_mode="$(get_setting strict false)"
+		strict_mode="${CFG_SETTINGS[strict]:-false}"
 	fi
 
 	# In strict mode with scope, validate scope exists
 	if [[ "$strict_mode" == "true" && -n "$scope" ]]; then
-		[[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]] && {
+		[[ ${#CFG_SCOPES[@]} -eq 0 ]] && {
 			_err "scope '$scope' used but no scopes defined in config"
 			return 1
 		}
 		if is_multi_scope "$scope"; then
 			_check_scopes_exist "$scope" || return 1
-		elif [[ "$scope" != "*" ]] && ! scope_exists "$scope"; then
+		elif [[ "$scope" != "*" && ! -v CFG_SCOPES["$scope"] ]]; then
 			_scope_err "$scope"
 			return 1
 		fi
 	fi
 
 	# Early exit if no scopes defined or no files to validate
-	[[ ${#CFG_SCOPE_NAMES[@]} -eq 0 ]] && return 0
+	[[ ${#CFG_SCOPES[@]} -eq 0 ]] && return 0
 	local -a files=()
 	mapfile -t files < <(get_files_to_validate)
 	[[ ${#files[@]} -eq 0 ]] && return 0
@@ -173,7 +149,7 @@ validate_paths_if_needed() {
 
 	# Multi-scope validation
 	if is_multi_scope "$scope"; then
-		[[ "$(get_setting multi-scope false)" != "true" ]] && {
+		[[ "${CFG_SETTINGS[multi_scope]:-false}" != "true" ]] && {
 			_err "multi-scope not enabled in config"
 			_hint "Set multi-scope = true in [settings] to use multiple scopes"
 			return 1
@@ -188,7 +164,7 @@ validate_paths_if_needed() {
 	fi
 
 	# Single scope validation
-	scope_exists "$scope" || {
+	[[ -v CFG_SCOPES["$scope"] ]] || {
 		_scope_err "$scope"
 		return 1
 	}

@@ -6,11 +6,11 @@
 . ./config_defaults.sh
 # @bundle source
 . ./config_parser.sh
-# Sets: TYPES, DESCRIPTIONS, SCOPES, GLOBAL_SCOPES, CONFIG_FILE
+# Sets associative arrays: CFG_TYPES, CFG_SCOPES, CFG_SETTINGS
 
 # Ensure config is loaded (idempotent)
 ensure_config() {
-	[[ -n "${TYPES+x}" && ${#TYPES[@]} -gt 0 ]] && return
+	[[ -n "${CFG_TYPES+x}" && ${#CFG_TYPES[@]} -gt 0 ]] && return
 	[[ -z "${CONFIG_FILE:-}" ]] && { find_config || true; }
 	load_config
 }
@@ -46,24 +46,24 @@ load_config() {
 
 		parse_config <"$CONFIG_FILE"
 
-		# If no types defined, fall back to defaults
-		if [[ ${#CFG_TYPE_NAMES[@]} -eq 0 ]]; then
+		# If no types defined, use default types but preserve settings/scopes
+		if [[ ${#CFG_TYPES[@]} -eq 0 ]]; then
 			[[ -z "${QUIET:-}" ]] && echo "cz: warning: no [types] in $CONFIG_FILE, using defaults" >&2
-			default_config
-			return
+			# Only set default types, preserve parsed settings and scopes
+			declare -gA CFG_TYPES=(
+				[feat]="A new feature"
+				[fix]="A bug fix"
+				[docs]="Documentation only changes"
+				[style]="Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)"
+				[refactor]="A code change that neither fixes a bug nor adds a feature"
+				[perf]="A code change that improves performance"
+				[test]="Adding missing tests or correcting existing tests"
+				[build]="Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)"
+				[ci]="Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)"
+				[chore]="Other changes that don't modify src or test files"
+				[revert]="Reverts a previous commit"
+			)
 		fi
-
-		# Build TYPES/DESCRIPTIONS arrays from parsed config
-		TYPES=()
-		DESCRIPTIONS=()
-		SCOPES=()
-		GLOBAL_SCOPES=()
-		for type in "${CFG_TYPE_NAMES[@]}"; do
-			TYPES+=("$type")
-			local desc_var="CFG_TYPES_$type"
-			DESCRIPTIONS+=("${!desc_var:-}")
-			SCOPES+=("")
-		done
 	else
 		default_config
 	fi
