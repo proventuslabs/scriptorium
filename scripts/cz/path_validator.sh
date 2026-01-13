@@ -57,7 +57,7 @@ file_matches_pattern() {
 # Usage: file_matches_scope <file> <scope>
 file_matches_scope() {
 	local file="$1" scope="$2" patterns pattern
-	patterns="$(get_scope_patterns "$scope")"
+	patterns="${CFG_SCOPES[$scope]:-}"
 	[[ -z "$patterns" ]] && return 1
 
 	IFS=',' read -ra pattern_arr <<<"$patterns"
@@ -71,7 +71,7 @@ file_matches_scope() {
 # Find which scope a file matches (skips wildcard)
 find_matching_scope() {
 	local file="$1" scope
-	for scope in "${CFG_SCOPE_NAMES[@]}"; do
+	for scope in "${!CFG_SCOPES[@]}"; do
 		[[ "$scope" == "*" ]] && continue
 		file_matches_scope "$file" "$scope" && {
 			echo "$scope"
@@ -102,7 +102,7 @@ validate_files_against_scopes() {
 	shift
 	local file scope matched
 	local IFS
-	IFS="$(get_setting multi-scope-separator ",")"
+	IFS="${CFG_SETTINGS[multi_scope_separator]:-,}"
 	VALIDATION_ERRORS=()
 
 	read -ra scopes_arr <<<"$scopes_str"
