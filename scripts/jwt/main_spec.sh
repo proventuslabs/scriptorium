@@ -224,21 +224,13 @@ Describe 'jwt'
 	# RSA-PSS VERIFICATION (OpenSSL 3.x)
 	#═══════════════════════════════════════════════════════════════
 	Describe 'RSA-PSS verification'
-		skip_if_old_openssl() {
-			local version
-			version=$(openssl version 2>/dev/null | grep -oE '[0-9]+' | head -1)
-			[[ "${version:-0}" -lt 3 ]]
-		}
-
 		It 'verifies PS256 with correct public key'
-			Skip if "OpenSSL < 3.x" skip_if_old_openssl
 			When run script "$BIN" -v "@$FIXTURES/ps256_public.pem" "$ps256_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'rejects PS256 with wrong key'
-			Skip if "OpenSSL < 3.x" skip_if_old_openssl
 			When run script "$BIN" -v "@$FIXTURES/ed25519_public.pem" "$ps256_token"
 			The status should be failure
 			The stderr should include "verification failed"
@@ -249,21 +241,13 @@ Describe 'jwt'
 	# EdDSA VERIFICATION (OpenSSL 3.x)
 	#═══════════════════════════════════════════════════════════════
 	Describe 'EdDSA verification'
-		skip_if_old_openssl() {
-			local version
-			version=$(openssl version 2>/dev/null | grep -oE '[0-9]+' | head -1)
-			[[ "${version:-0}" -lt 3 ]]
-		}
-
 		It 'verifies EdDSA with correct public key'
-			Skip if "OpenSSL < 3.x" skip_if_old_openssl
 			When run script "$BIN" -v "@$FIXTURES/ed25519_public.pem" "$eddsa_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'rejects EdDSA with wrong key'
-			Skip if "OpenSSL < 3.x" skip_if_old_openssl
 			When run script "$BIN" -v "@$FIXTURES/ps256_public.pem" "$eddsa_token"
 			The status should be failure
 			The stderr should include "verification failed"
