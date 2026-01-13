@@ -209,25 +209,29 @@ verify_ecdsa() {
 # $1: PEM public key content
 verify_pss() {
 	local key=$1
-	local digest sig_file
+	local digest sig_file key_file result=0
 
 	check_algorithm_support "$JWT_ALG" || return $?
 	digest=$(get_openssl_digest) || return $?
 
-	# Create temp file for signature
+	# Create temp files for signature and key
+	# Note: manual cleanup instead of trap - kcov triggers RETURN trap prematurely
 	sig_file=$(mktemp)
-	# shellcheck disable=SC2064 # intentional: expand now for correct file
-	trap "rm -f '$sig_file'" RETURN
+	key_file=$(mktemp)
 
 	# Decode signature and write to temp file
 	base64url_decode "$JWT_SIG_B64" >"$sig_file"
+	printf '%s\n' "$key" >"$key_file"
 
-	# Verify with RSA-PSS padding using process substitution for key
+	# Verify with RSA-PSS padding
 	local signing_input="${JWT_HEADER_B64}.${JWT_PAYLOAD_B64}"
-	if ! printf '%s' "$signing_input" | openssl dgst -"$digest" -verify <(printf '%s\n' "$key") -signature "$sig_file" -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-1 &>/dev/null; then
+	if ! printf '%s' "$signing_input" | openssl dgst -"$digest" -verify "$key_file" -signature "$sig_file" -sigopt rsa_padding_mode:pss -sigopt rsa_pss_saltlen:-1 &>/dev/null; then
 		echo "jwt: error: signature verification failed" >&2
-		return 1
+		result=1
 	fi
+
+	rm -f "$sig_file" "$key_file"
+	return $result
 }
 
 # Verify EdDSA signature (Ed25519)
@@ -236,15 +240,15 @@ verify_pss() {
 # $1: PEM public key content
 verify_eddsa() {
 	local key=$1
-	local sig_file input_file
+	local sig_file input_file key_file result=0
 
 	check_algorithm_support "EdDSA" || return $?
 
-	# Create temp files for signature and input (pkeyutl needs files for -in and -sigfile)
+	# Create temp files for signature, input, and key
+	# Note: manual cleanup instead of trap - kcov triggers RETURN trap prematurely
 	sig_file=$(mktemp)
 	input_file=$(mktemp)
-	# shellcheck disable=SC2064 # intentional: expand now for correct files
-	trap "rm -f '$sig_file' '$input_file'" RETURN
+	key_file=$(mktemp)
 
 	# Decode signature and write to temp file
 	base64url_decode "$JWT_SIG_B64" >"$sig_file"
@@ -252,12 +256,16 @@ verify_eddsa() {
 	# Write signing input to temp file (Ed25519 needs -rawin with file input)
 	local signing_input="${JWT_HEADER_B64}.${JWT_PAYLOAD_B64}"
 	printf '%s' "$signing_input" >"$input_file"
+	printf '%s\n' "$key" >"$key_file"
 
-	# Verify with pkeyutl using process substitution for key
-	if ! openssl pkeyutl -verify -pubin -inkey <(printf '%s\n' "$key") -rawin -in "$input_file" -sigfile "$sig_file" &>/dev/null; then
+	# Verify with pkeyutl
+	if ! openssl pkeyutl -verify -pubin -inkey "$key_file" -rawin -in "$input_file" -sigfile "$sig_file" &>/dev/null; then
 		echo "jwt: error: signature verification failed" >&2
-		return 1
+		result=1
 	fi
+
+	rm -f "$sig_file" "$input_file" "$key_file"
+	return $result
 }
 
 # Main verification dispatcher
