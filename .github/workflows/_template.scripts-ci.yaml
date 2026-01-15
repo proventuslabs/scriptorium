@@ -1,4 +1,4 @@
-name: Script CI
+name: "[TEMPLATE] Script CI"
 
 on:
   workflow_call:
