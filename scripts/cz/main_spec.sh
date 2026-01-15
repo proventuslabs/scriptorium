@@ -1207,10 +1207,105 @@ MOCK
 			The output should include "Usage:"
 		End
 
+		It '--version shows version'
+			When run script "$BIN" --version
+			The status should be success
+			The output should match pattern '*.*.*'
+		End
+
+		It '-V shows version'
+			When run script "$BIN" -V
+			The status should be success
+			The output should match pattern '*.*.*'
+		End
+
 		It 'unknown command fails with error'
 			When run script "$BIN" unknown
 			The status should be failure
 			The stderr should include "Not a command"
+		End
+	End
+
+	#═══════════════════════════════════════════════════════════════
+	# EDGE CASES
+	#═══════════════════════════════════════════════════════════════
+	Describe 'edge cases'
+		It 'shows defined scopes hint when scope unknown'
+			cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+ui = src/ui/**
+EOF
+			Data "feat(unknown): add feature"
+			When run script "$BIN" lint --strict
+			The status should be failure
+			The stderr should include "unknown scope"
+			The stderr should include "api"
+			The stderr should include "ui"
+		End
+
+		It 'handles files with special regex characters'
+			cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+special = src/[test]/**
+EOF
+			Data "feat(special): add feature"
+			When run script "$BIN" lint --files "src/[test]/file.ts"
+			The status should be success
+		End
+
+		It 'accepts description with leading space preserved'
+			Data "feat:   description with spaces"
+			When run script "$BIN" lint
+			The status should be success
+		End
+
+		It 'rejects whitespace-only description'
+			Data "feat:    "
+			When run script "$BIN" lint
+			The status should be failure
+			The stderr should include "empty"
+		End
+
+		It 'handles config keys with hyphens correctly'
+			cat > .gitcommitizen << 'EOF'
+[settings]
+multi-scope = true
+multi-scope-separator = /
+
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+ui = src/ui/**
+EOF
+			Data "feat(api/ui): cross-cutting"
+			When run script "$BIN" lint --files "src/api/x.go src/ui/y.tsx"
+			The status should be success
+		End
+
+		It 'skips wildcard scope in strict scope checking'
+			cat > .gitcommitizen << 'EOF'
+[settings]
+strict = true
+
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+* = **
+EOF
+			Data "feat(*): wildcard change"
+			When run script "$BIN" lint
+			The status should be success
 		End
 	End
 End
