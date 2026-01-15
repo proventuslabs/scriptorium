@@ -1177,6 +1177,65 @@ MOCK
 					The output should equal "feat(api): add endpoint"
 				End
 			End
+
+			Describe 'no scope selected'
+				setup_none_gum() {
+					mkdir -p "$TEST_DIR/bin"
+					cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+case "$1" in
+	choose)
+		if [[ "$*" == *"type"* ]]; then
+			echo "feat - A new feature"
+		elif [[ "$*" == *"scope"* ]]; then
+			echo "(none)"
+		fi
+		;;
+	input)
+		if [[ "$*" == *"Description"* ]]; then
+			echo "general change"
+		fi
+		;;
+	confirm)
+		exit 1
+		;;
+	write)
+		echo ""
+		;;
+esac
+MOCK
+					chmod +x "$TEST_DIR/bin/gum"
+					PATH="$TEST_DIR/bin:$PATH"
+				}
+
+				BeforeEach 'setup_none_gum'
+
+				It 'allows no scope when (none) selected'
+					When run script "$BIN" create
+					The status should be success
+					The output should equal "feat: general change"
+				End
+			End
+		End
+
+		Describe 'gum cancel'
+			setup_cancel_gum() {
+				mkdir -p "$TEST_DIR/bin"
+				cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+# Simulate user pressing Ctrl+C or Escape
+exit 1
+MOCK
+				chmod +x "$TEST_DIR/bin/gum"
+				PATH="$TEST_DIR/bin:$PATH"
+			}
+
+			BeforeEach 'setup_cancel_gum'
+
+			It 'exits with code 130 when gum is cancelled'
+				When run script "$BIN" create
+				The status should equal 130
+			End
 		End
 	End
 
@@ -1230,6 +1289,18 @@ MOCK
 			When run script "$BIN" unknown
 			The status should be failure
 			The stderr should include "Not a command"
+		End
+
+		It '-c requires argument'
+			When run script "$BIN" -c
+			The status should be failure
+			The stderr should include "Requires an argument"
+		End
+
+		It '--config-file requires argument'
+			When run script "$BIN" --config-file
+			The status should be failure
+			The stderr should include "Requires an argument"
 		End
 	End
 
@@ -1312,6 +1383,97 @@ api = src/api/**
 EOF
 			Data "feat(*): wildcard change"
 			When run script "$BIN" lint
+			The status should be success
+		End
+
+		It 'handles pattern with dots'
+			cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+config = *.config.js
+EOF
+			Data "feat(config): update config"
+			When run script "$BIN" lint --files "webpack.config.js"
+			The status should be success
+		End
+
+		It 'handles pattern with plus sign'
+			cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+cpp = src/c++/**
+EOF
+			Data "feat(cpp): add c++ code"
+			When run script "$BIN" lint --files "src/c++/main.cpp"
+			The status should be success
+		End
+
+		It 'handles pattern with caret'
+			cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+special = src/^test/**
+EOF
+			Data "feat(special): add test"
+			When run script "$BIN" lint --files "src/^test/file.ts"
+			The status should be success
+		End
+
+		It 'handles pattern with dollar sign'
+			cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+money = src/$utils/**
+EOF
+			Data "feat(money): add utils"
+			When run script "$BIN" lint --files "src/\$utils/format.ts"
+			The status should be success
+		End
+
+		It 'handles pattern with pipe'
+			cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+pipe = src/a|b/**
+EOF
+			Data "feat(pipe): add feature"
+			When run script "$BIN" lint --files "src/a|b/file.ts"
+			The status should be success
+		End
+
+		It 'handles pattern with parentheses'
+			cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+group = src/(test)/**
+EOF
+			Data "feat(group): add feature"
+			When run script "$BIN" lint --files "src/(test)/file.ts"
+			The status should be success
+		End
+
+		It 'handles pattern with curly braces'
+			cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+tmpl = src/{templates}/**
+EOF
+			Data "feat(tmpl): add template"
+			When run script "$BIN" lint --files "src/{templates}/base.html"
 			The status should be success
 		End
 	End
