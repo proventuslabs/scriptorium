@@ -448,6 +448,34 @@ line2"
 			The status should be success
 			The output should equal '$TEST_VAR world'
 		End
+
+		It 'handles $ at end of string'
+			echo 'MSG="price is $"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal 'price is $'
+		End
+
+		It 'handles ${} malformed syntax (empty braces)'
+			echo 'MSG="test ${} value"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal 'test ${} value'
+		End
+
+		It 'handles ${ without closing brace'
+			echo 'MSG="test ${ value"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal 'test ${ value'
+		End
+
+		It 'handles $ followed by non-identifier char'
+			echo 'MSG="cost: $100"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal 'cost: $100'
+		End
 	End
 
 	#═══════════════════════════════════════════════════════════════
