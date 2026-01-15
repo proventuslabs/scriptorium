@@ -104,24 +104,28 @@ verify_hmac() {
 # $1: PEM public key content
 verify_rsa() {
 	local key=$1
-	local digest sig_file
+	local digest sig_file key_file result=0
 
 	digest=$(get_openssl_digest) || return $?
 
-	# Create temp file for signature (openssl needs file for -signature)
+	# Create temp files for signature and key
+	# Note: manual cleanup instead of trap - kcov triggers RETURN trap prematurely
 	sig_file=$(mktemp)
-	# shellcheck disable=SC2064 # intentional: expand now for correct file
-	trap "rm -f '$sig_file'" RETURN
+	key_file=$(mktemp)
 
 	# Decode signature and write to temp file
 	base64url_decode "$JWT_SIG_B64" >"$sig_file"
+	printf '%s\n' "$key" >"$key_file"
 
-	# Verify using process substitution for key
+	# Verify signature
 	local signing_input="${JWT_HEADER_B64}.${JWT_PAYLOAD_B64}"
-	if ! printf '%s' "$signing_input" | openssl dgst -"$digest" -verify <(printf '%s\n' "$key") -signature "$sig_file" &>/dev/null; then
+	if ! printf '%s' "$signing_input" | openssl dgst -"$digest" -verify "$key_file" -signature "$sig_file" &>/dev/null; then
 		echo "jwt: error: signature verification failed" >&2
-		return 1
+		result=1
 	fi
+
+	rm -f "$sig_file" "$key_file"
+	return $result
 }
 
 # Convert JWT ECDSA signature (R||S) to DER format for OpenSSL
@@ -168,7 +172,7 @@ jwt_sig_to_der() {
 # $1: PEM public key content
 verify_ecdsa() {
 	local key=$1
-	local digest sig_file key_bits
+	local digest sig_file key_file key_bits result=0
 
 	digest=$(get_openssl_digest) || return $?
 
@@ -179,28 +183,33 @@ verify_ecdsa() {
 		ES512) key_bits=512 ;;
 	esac
 
-	# Create temp file for DER signature
+	# Create temp files for DER signature and key
+	# Note: manual cleanup instead of trap - kcov triggers RETURN trap prematurely
 	sig_file=$(mktemp)
-	# shellcheck disable=SC2064
-	trap "rm -f '$sig_file'" RETURN
+	key_file=$(mktemp)
 
 	# Decode signature to hex, convert to DER
 	local sig_hex der_hex
 	sig_hex=$(base64url_decode "$JWT_SIG_B64" | xxd -p | tr -d '\n')
 	der_hex=$(jwt_sig_to_der "$sig_hex" "$key_bits") || {
 		echo "jwt: error: failed to convert ECDSA signature" >&2
+		rm -f "$sig_file" "$key_file"
 		return 1
 	}
 
-	# Write DER signature as binary
+	# Write DER signature as binary and key to temp files
 	echo "$der_hex" | xxd -r -p >"$sig_file"
+	printf '%s\n' "$key" >"$key_file"
 
-	# Verify using process substitution for key
+	# Verify signature
 	local signing_input="${JWT_HEADER_B64}.${JWT_PAYLOAD_B64}"
-	if ! printf '%s' "$signing_input" | openssl dgst -"$digest" -verify <(printf '%s\n' "$key") -signature "$sig_file" &>/dev/null; then
+	if ! printf '%s' "$signing_input" | openssl dgst -"$digest" -verify "$key_file" -signature "$sig_file" &>/dev/null; then
 		echo "jwt: error: signature verification failed" >&2
-		return 1
+		result=1
 	fi
+
+	rm -f "$sig_file" "$key_file"
+	return $result
 }
 
 # Verify RSA-PSS signature (PS256, PS384, PS512)
