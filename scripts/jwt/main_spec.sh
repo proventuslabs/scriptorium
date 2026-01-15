@@ -54,6 +54,21 @@ Describe 'jwt'
 	# EdDSA token (Ed25519)
 	eddsa_token="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.AtVLeiP1LS1KMQU8uJxObxoU1GVKzJV4JxeUfGa5WAopAYb31nKCx1uvckXYyk4fBq3iTwQ7z6QHa05eL6x9Dw"
 
+	# RS384 token (RSA with SHA-384)
+	rs384_token="eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ucophBF7QxkreLzVjuQxBHO7LUVwo18eahqInpNHr5WKEDanbKGsn-5hercDEEaGr5O_eXzTZuz9keWa6D_lQSY3VvlxiVGUAFhy3q_JJOgcfevsVTfPfeNAYUFMvbNSgMVgMvbbIyYU1L-I0su3CJL5HKCfbNPyTXKY_nRtgDd4VDtn1v5wuOxeU9woLg4390BbAkDbUVJHxFEya4B2OnUExocxuSraVYdszqUAMW2zxPgbc8YH3ZWIenrvXcF4Is8P7Ms7WWAuDxXOhJ4nlMILE9LxzBX8V-dtkqVt5ll4hNFr8T3YTXsQXsvF45rvXpA2K5WM9-WSqJHsCwEczw"
+
+	# RS512 token (RSA with SHA-512)
+	rs512_token="eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.IcCyBNr5SJAstzFzyWvyIuMcxFVYcaCe9E-g5bFZ1CSjZyT1HuD2DQ30mHwLOc3rboa95r67QAkV1j9f067AGzpJ9lfpKEigOfOAJth5TnVOZUthu0M-olfIhjH1qO3xi2b2XnXRZuSNCxVLOC_8ZkcYof4trv332dftRfBg-hJ90qOpQv7LtfWRMnramuEtVqFP-6YbWTfYkde6nuvgy2EPAiM5By3JPEPVgAlIJAjxgJ3Mnu79cJ_15qipQ1XUaHzJswetFReHYHFieq2t-UCARFA6J8u6vxFG7mP8GsbK3FsH_aTyfezQQoWdB0ALoC-ylO8wo5EQBnvMTMF8-g"
+
+	# ES512 token (ECDSA P-521)
+	es512_token="eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.AeZ1HujBSv_Unr3KAHaVPVEWuWB1stMdvVEuTeLPNzOBm5TTYaqhKCSEY2R0ED8P882TPfS1v1a0NA7IWVNKsc70ADa0wcLpNkoW1dPkhhvawlO9IPCZv9uAnACArV5d9nubdNhkPtORPC_AdTpo4S-Icoy-2h4LZWn3xd0QeMX8-_xv"
+
+	# PS384 token (RSA-PSS with SHA-384)
+	ps384_token="eyJhbGciOiJQUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.NmsbDDr2WYMZLOd_x85EWObeVPA-6fR1xFiQSQC02uaP6IR5csV7JpvaE5WNK-8ZGlHce8DLbidVeGxCEOmmWxkKLFB5E1tkK-6hh_VL7VaHg87xKBRQYYes9zDPEg9mGUzSuljmRS1_hPFnAgJlA96m5yH4-iGOszySr5pp4ljHWr8hx0vFonnwx-R2c_pZBDL_FLSDW6wTUczdrSUAwt9cxphAsDzY3CqFHHnW5zt0GaA698fdY7OMOxBCeGjSm34epl02aVTfxEvEzP8m5hVCSwG1og12ylLVsdq3dwt4snKuWGiYS1-Fy6JkF9V4kns1ZWUJ_IlCb43rQS-4Vg"
+
+	# PS512 token (RSA-PSS with SHA-512)
+	ps512_token="eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.Bti8GqLbmgjPedcU5U51jiwNHnZD7Lrx65WAomZKAPnjTos8ZEorFm-osaxuGuMU9UL5lwQqbsl17VQfgPyQXpHJhP0DIMWc65mYDRY_KPZGH7hRtX88a3r0bN18UwII5hoyMiuqfO7xeFz7vzXDtiTUyVa7gXl6GdlKofKDPWMEWj-2ZQqLfmUY6kOc-j_EHOYnZscbB8HGG3m5g9j6plbF_FYRQTR1uJ9TNwQAIyKeOXaLPorTXAJI-SvMA3pqH19fUeGXeHxgfocLi2OLKHQatVYUm5UUIJaCpuiQF4tKe4MDRbgb3C5yA1j2jvLccMhOHgfFtt26TohPrZiTvA"
+
 	#═══════════════════════════════════════════════════════════════
 	# HELP AND VERSION
 	#═══════════════════════════════════════════════════════════════
@@ -244,6 +259,18 @@ Describe 'jwt'
 			The status should be failure
 			The stderr should include "verification failed"
 		End
+
+		It 'verifies RS384 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/rs384_public.pem" "$rs384_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+
+		It 'verifies RS512 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/rs512_public.pem" "$rs512_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
 	End
 
 	#═══════════════════════════════════════════════════════════════
@@ -260,6 +287,18 @@ Describe 'jwt'
 			When run script "$BIN" -v "@$FIXTURES/ed25519_public.pem" "$ps256_token"
 			The status should be failure
 			The stderr should include "verification failed"
+		End
+
+		It 'verifies PS384 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/ps384_public.pem" "$ps384_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+
+		It 'verifies PS512 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/ps512_public.pem" "$ps512_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
 		End
 	End
 
@@ -287,6 +326,18 @@ Describe 'jwt'
 
 		It 'rejects ES384 with wrong key'
 			When run script "$BIN" -v "@$FIXTURES/es256_public.pem" "$es384_token"
+			The status should be failure
+			The stderr should include "verification failed"
+		End
+
+		It 'verifies ES512 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/es512_public.pem" "$es512_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+
+		It 'rejects ES512 with wrong key'
+			When run script "$BIN" -v "@$FIXTURES/es256_public.pem" "$es512_token"
 			The status should be failure
 			The stderr should include "verification failed"
 		End

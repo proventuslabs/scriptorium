@@ -442,8 +442,14 @@ jwt_sig_to_der() {
 	local s_bytes=$((${#s_hex} / 2))
 
 	# Build DER: 30 <total_len> 02 <r_len> <r> 02 <s_len> <s>
+	# Note: For ES512 (P-521), total_len may exceed 127, requiring long-form length
 	local total_len=$((2 + r_bytes + 2 + s_bytes))
-	printf '30%02x02%02x%s02%02x%s' "$total_len" "$r_bytes" "$r_hex" "$s_bytes" "$s_hex"
+	if [[ $total_len -gt 127 ]]; then
+		# Long form: 0x81 <len> for lengths 128-255
+		printf '3081%02x02%02x%s02%02x%s' "$total_len" "$r_bytes" "$r_hex" "$s_bytes" "$s_hex"
+	else
+		printf '30%02x02%02x%s02%02x%s' "$total_len" "$r_bytes" "$r_hex" "$s_bytes" "$s_hex"
+	fi
 }
 
 # Verify ECDSA signature (ES256, ES384, ES512)
