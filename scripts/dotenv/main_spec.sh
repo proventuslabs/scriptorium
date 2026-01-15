@@ -482,4 +482,141 @@ line2"
 			The stderr should include "unrecognized"
 		End
 	End
+
+	#═══════════════════════════════════════════════════════════════
+	# ADDITIONAL ESCAPE SEQUENCES
+	#═══════════════════════════════════════════════════════════════
+	Describe 'additional escape sequences'
+		It 'processes carriage return escape'
+			echo 'MSG="line1\rline2"' > .env
+			# Check that \r is converted to actual carriage return (13 decimal)
+			When run script "$BIN" sh -c 'printf "%s" "$MSG" | od -c | head -1'
+			The status should be success
+			The output should include '\r'
+		End
+
+		It 'processes form feed escape'
+			echo 'MSG="before\fafter"' > .env
+			When run script "$BIN" sh -c 'printf "%s" "$MSG" | od -c | head -1'
+			The status should be success
+			The output should include '\f'
+		End
+
+		It 'processes backspace escape'
+			echo 'MSG="back\bspace"' > .env
+			When run script "$BIN" sh -c 'printf "%s" "$MSG" | od -c | head -1'
+			The status should be success
+			The output should include '\b'
+		End
+
+		It 'processes vertical tab escape'
+			echo 'MSG="vert\vtab"' > .env
+			When run script "$BIN" sh -c 'printf "%s" "$MSG" | od -c | head -1'
+			The status should be success
+			The output should include '\v'
+		End
+
+		It 'preserves unknown escapes literally'
+			echo 'MSG="foo\xbar"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal 'foo\xbar'
+		End
+	End
+
+	#═══════════════════════════════════════════════════════════════
+	# VARIABLE SUBSTITUTION EDGE CASES
+	#═══════════════════════════════════════════════════════════════
+	Describe 'variable substitution edge cases'
+		It 'handles ${VAR} without default'
+			export TEST_VAR=hello
+			echo 'MSG="${TEST_VAR}"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal "hello"
+		End
+
+		It 'handles ${VAR} unset without default'
+			unset UNSET_VAR
+			echo 'MSG="${UNSET_VAR}"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal ""
+		End
+
+		It 'handles $VAR at end of string'
+			export TEST_VAR=world
+			echo 'MSG="hello $TEST_VAR"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal "hello world"
+		End
+
+		It 'handles $ followed by number'
+			echo 'MSG="price is $100"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal 'price is $100'
+		End
+
+		It 'handles $ at end of string'
+			echo 'MSG="cost$"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal 'cost$'
+		End
+
+		It 'handles ${invalid syntax'
+			echo 'MSG="${foo"' > .env
+			When run script "$BIN" printenv MSG
+			The status should be success
+			The output should equal '${foo'
+		End
+	End
+
+	#═══════════════════════════════════════════════════════════════
+	# EXEC MODE
+	#═══════════════════════════════════════════════════════════════
+	Describe 'exec mode'
+		It 'replaces process with -x flag'
+			echo 'FOO=bar' > .env
+			When run script "$BIN" -x printenv FOO
+			The status should be success
+			The output should equal "bar"
+		End
+
+		It 'replaces process with --exec flag'
+			echo 'FOO=bar' > .env
+			When run script "$BIN" --exec printenv FOO
+			The status should be success
+			The output should equal "bar"
+		End
+	End
+
+	#═══════════════════════════════════════════════════════════════
+	# MULTILINE EDGE CASES
+	#═══════════════════════════════════════════════════════════════
+	Describe 'multiline edge cases'
+		It 'handles multiline with single quote escape continuation'
+			cat > .env << 'EOF'
+KEY='line1'\''
+line2'
+EOF
+			When run script "$BIN" printenv KEY
+			The status should be success
+			The output should equal "line1'
+line2"
+		End
+
+		It 'handles multiple vars with multiline'
+			cat > .env << 'EOF'
+FIRST='multi
+line'
+SECOND=normal
+EOF
+			When run script "$BIN" sh -c 'echo "$SECOND"'
+			The status should be success
+			The output should equal "normal"
+		End
+	End
 End
