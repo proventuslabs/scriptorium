@@ -96,6 +96,28 @@ jobs:
       - name: Run tests
         run: nix develop --command make test NAME=${{ inputs.script }}
 
+      - name: Extract coverage
+        id: coverage
+        run: |
+          coverage_file=$(find coverage -name 'coverage.json' -path '*/scriptorium*' 2>/dev/null | head -1)
+          if [ -n "$coverage_file" ]; then
+            percent=$(jq -r '.percent_covered' "$coverage_file")
+            echo "percent=$percent" >> "$GITHUB_OUTPUT"
+            echo "Coverage for ${{ inputs.script }}: ${percent}%"
+          else
+            echo "percent=" >> "$GITHUB_OUTPUT"
+            echo "No coverage data found"
+          fi
+
+      - name: Upload coverage data
+        if: steps.coverage.outputs.percent != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ inputs.script }}
+          path: |
+            coverage/*/coverage.json
+          retention-days: 1
+
   build:
     name: Build
     runs-on: ubuntu-latest

@@ -4,12 +4,12 @@ A collection of useful shell scripts and utilities targeting Bash 4+.
 
 ## Scripts
 
-| Script | Description | Dependencies |
-|--------|-------------|--------------|
-| [cz](scripts/cz/docs/cz.adoc) | Conventional commit message builder | [`gum`](https://github.com/charmbracelet/gum) (interactive mode) |
-| [dotenv](scripts/dotenv/docs/dotenv.adoc) | Load environment variables from .env files | None |
-| [jwt](scripts/jwt/docs/jwt.adoc) | Decode and verify JSON Web Tokens | `openssl`, `xxd` (ECDSA only) |
-| [theme](scripts/theme/docs/theme.adoc) | Extensible theme orchestrator for shell environments | None |
+| Script | Description | Dependencies | Coverage |
+|--------|-------------|--------------|----------|
+| [cz](scripts/cz/docs/cz.adoc) | Conventional commit message builder | [`gum`](https://github.com/charmbracelet/gum) (interactive mode) | ![coverage](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/vabatta/d172222e308e253e2cb3e02f103d5c8c/raw/coverage.json&query=$.cz.coverage&suffix=%25&label=) |
+| [dotenv](scripts/dotenv/docs/dotenv.adoc) | Load environment variables from .env files | None | ![coverage](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/vabatta/d172222e308e253e2cb3e02f103d5c8c/raw/coverage.json&query=$.dotenv.coverage&suffix=%25&label=) |
+| [jwt](scripts/jwt/docs/jwt.adoc) | Decode and verify JSON Web Tokens | `openssl`, `xxd` (ECDSA only) | ![coverage](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/vabatta/d172222e308e253e2cb3e02f103d5c8c/raw/coverage.json&query=$.jwt.coverage&suffix=%25&label=) |
+| [theme](scripts/theme/docs/theme.adoc) | Extensible theme orchestrator for shell environments | None | ![coverage](https://img.shields.io/badge/dynamic/json?url=https://gist.githubusercontent.com/vabatta/d172222e308e253e2cb3e02f103d5c8c/raw/coverage.json&query=$.theme.coverage&suffix=%25&label=) |
 
 ## Installation
 

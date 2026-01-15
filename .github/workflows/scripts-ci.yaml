@@ -53,3 +53,119 @@ jobs:
     uses: ./.github/workflows/_template.scripts-ci.yaml
     with:
       script: ${{ matrix.script }}
+
+  coverage-report:
+    name: Coverage report
+    needs: [detect-changes, ci]
+    if: always() && needs.detect-changes.outputs.scripts != '[]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-*
+          path: coverage-artifacts
+          merge-multiple: false
+
+      - name: Fetch baseline coverage from gist
+        id: baseline
+        env:
+          GIST_ID: ${{ vars.COVERAGE_GIST_ID }}
+        run: |
+          if [ -n "$GIST_ID" ]; then
+            curl -sf "https://gist.githubusercontent.com/raw/${GIST_ID}/coverage.json" -o baseline.json || echo '{}' > baseline.json
+          else
+            echo '{}' > baseline.json
+          fi
+          cat baseline.json
+
+      - name: Generate coverage report
+        id: report
+        run: |
+          scripts='${{ needs.detect-changes.outputs.scripts }}'
+
+          # Build coverage table
+          table="| Script | Coverage | Change |"
+          table+="\n|--------|----------|--------|"
+
+          new_coverage="{}"
+
+          for script in $(echo "$scripts" | jq -r '.[]'); do
+            coverage_file="coverage-artifacts/coverage-${script}/scriptorium [specfiles]/coverage.json"
+            if [ -f "$coverage_file" ]; then
+              new_pct=$(jq -r '.percent_covered' "$coverage_file")
+            else
+              # Try alternate path
+              coverage_file=$(find "coverage-artifacts/coverage-${script}" -name 'coverage.json' 2>/dev/null | head -1)
+              if [ -n "$coverage_file" ]; then
+                new_pct=$(jq -r '.percent_covered' "$coverage_file")
+              else
+                new_pct=""
+              fi
+            fi
+
+            old_pct=$(jq -r --arg s "$script" '.[$s].coverage // empty' baseline.json)
+
+            if [ -n "$new_pct" ]; then
+              new_coverage=$(echo "$new_coverage" | jq --arg s "$script" --argjson c "$new_pct" '.[$s] = {coverage: $c}')
+
+              if [ -n "$old_pct" ]; then
+                delta=$(echo "$new_pct - $old_pct" | bc)
+                if (( $(echo "$delta > 0" | bc -l) )); then
+                  change="+${delta}% ⬆️"
+                elif (( $(echo "$delta < 0" | bc -l) )); then
+                  change="${delta}% ⬇️"
+                else
+                  change="—"
+                fi
+                table+="\n| ${script} | ${old_pct}% → ${new_pct}% | ${change} |"
+              else
+                table+="\n| ${script} | — → ${new_pct}% | 🆕 |"
+              fi
+            else
+              table+="\n| ${script} | ⚠️ No coverage data | — |"
+            fi
+          done
+
+          echo "table<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$table" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+          echo "new_coverage<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$new_coverage" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Post PR comment
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: coverage-report
+          message: |
+            ## 📊 Coverage Report
+
+            ${{ steps.report.outputs.table }}
+
+      - name: Update coverage gist
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GIST_ID: ${{ vars.COVERAGE_GIST_ID }}
+          GIST_TOKEN: ${{ secrets.COVERAGE_GIST_TOKEN }}
+        run: |
+          if [ -z "$GIST_ID" ] || [ -z "$GIST_TOKEN" ]; then
+            echo "::warning::COVERAGE_GIST_ID or COVERAGE_GIST_TOKEN not configured, skipping gist update"
+            exit 0
+          fi
+
+          # Merge new coverage into baseline
+          new_coverage='${{ steps.report.outputs.new_coverage }}'
+          merged=$(jq -s '.[0] * .[1]' baseline.json <(echo "$new_coverage"))
+
+          # Update gist
+          payload=$(jq -n --arg content "$merged" '{"files": {"coverage.json": {"content": $content}}}')
+          curl -sf -X PATCH \
+            -H "Authorization: token ${GIST_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/gists/${GIST_ID}" \
+            -d "$payload"
+
+          echo "Updated gist with new coverage data"
