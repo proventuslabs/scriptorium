@@ -163,6 +163,13 @@ Describe 'cz'
 				The status should be failure
 				The stderr should include "invalid commit format"
 			End
+
+			It 'rejects whitespace-only description'
+				Data "feat:    "
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "description cannot be empty"
+			End
 		End
 
 		#───────────────────────────────────────────────────────────
