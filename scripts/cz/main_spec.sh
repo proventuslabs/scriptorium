@@ -1302,6 +1302,56 @@ MOCK
 			The status should be failure
 			The stderr should include "Requires an argument"
 		End
+
+		It '--config-file=value syntax works'
+			cat > custom.ini << 'EOF'
+[types]
+feat = Feature
+EOF
+			Data "feat: test"
+			When run script "$BIN" --config-file=custom.ini lint
+			The status should be success
+		End
+
+		It '-cvalue syntax works (short option with attached value)'
+			cat > custom.ini << 'EOF'
+[types]
+feat = Feature
+EOF
+			Data "feat: test"
+			When run script "$BIN" -ccustom.ini lint
+			The status should be success
+		End
+
+		It 'combined short options work (-qV)'
+			When run script "$BIN" -qV
+			The status should be success
+			The output should match pattern '*.*.*'
+		End
+
+		It '-- stops option parsing'
+			Data "feat: test"
+			When run script "$BIN" -- lint
+			The status should be success
+		End
+
+		It 'unknown short option fails'
+			When run script "$BIN" -x
+			The status should be failure
+			The stderr should include "Unrecognized option"
+		End
+
+		It 'unknown long option fails'
+			When run script "$BIN" --unknown-option
+			The status should be failure
+			The stderr should include "Unrecognized option"
+		End
+
+		It '--quiet=value fails (flag does not take argument)'
+			When run script "$BIN" --quiet=yes lint
+			The status should be failure
+			The stderr should include "Does not allow an argument"
+		End
 	End
 
 	#═══════════════════════════════════════════════════════════════
