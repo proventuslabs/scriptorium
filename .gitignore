@@ -16,6 +16,7 @@
 !scriptorium.plugin.zsh
 !release-please-config.json
 !.release-please-manifest.json
+!.gitcommitizen
 
 # Track subdirectories (each has its own .gitignore)
 !*/
