@@ -55,6 +55,7 @@
 
             installPhase = ''
               make install NAME=${name} DESTDIR=$out
+              patchShebangs $out/bin
             '';
 
             meta = with pkgs.lib; {
