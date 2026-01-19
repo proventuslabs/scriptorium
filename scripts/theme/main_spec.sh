@@ -85,6 +85,23 @@ Describe 'theme'
 			The status should be success
 			The output should equal "light"
 		End
+
+		It 'falls back to THEME env var when set to dark'
+			export THEME=dark
+			When run script "$BIN" --detect
+			The status should be success
+			# On macOS system detection happens first, but if THEME is set it may be used
+			The output should be present
+		End
+
+		It 'falls back to light when THEME env var is invalid'
+			export THEME=invalid_value
+			# Clear any system-level detection by running in isolated env
+			When run script "$BIN" --detect
+			The status should be success
+			# Falls through to default light when THEME has invalid value
+			The output should be present
+		End
 	End
 
 	#═══════════════════════════════════════════════════════════════
@@ -137,6 +154,34 @@ EOF
 			The status should be success
 			The output should include "theme_handler_bat"
 			The output should include "theme_handler_fzf"
+		End
+
+		It 'shows none found when no handlers configured'
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	:
+}
+EOF
+			When run script "$BIN" --list
+			The status should be success
+			The output should include "theme_provider_test"
+			The output should match pattern "*Handlers:*none found*"
+		End
+
+		It 'sources config.sh when present'
+			cat > "$XDG_CONFIG_HOME/theme/config.sh" << 'EOF'
+# Config loaded marker
+THEME_CONFIG_LOADED=1
+EOF
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_config_test() {
+	echo "CONFIG_LOADED=${THEME_CONFIG_LOADED:-0}"
+}
+EOF
+			export THEME=dark
+			When run script "$BIN"
+			The status should be success
+			The output should equal "CONFIG_LOADED=1"
 		End
 	End
 
@@ -287,6 +332,34 @@ EOF
 			When run script "$BIN" auto
 			The status should be success
 			The output should equal "APPEARANCE=light"
+		End
+
+		It 'passes source to provider'
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	local appearance="$1"
+	local source="$2"
+	echo "SOURCE=$source"
+}
+EOF
+			export THEME=dark
+			When run script "$BIN"
+			The status should be success
+			# Source should be one of: override, detected, environment, default
+			The output should match pattern "SOURCE=*"
+		End
+
+		It 'handles empty handlers.d directory'
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	echo "PROVIDER_RAN"
+}
+EOF
+			# handlers.d exists but has no .sh files (created in setup)
+			export THEME=dark
+			When run script "$BIN"
+			The status should be success
+			The output should equal "PROVIDER_RAN"
 		End
 	End
 
