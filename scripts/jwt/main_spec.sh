@@ -39,11 +39,35 @@ Describe 'jwt'
 	hs512_token="eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.9TXC-_IVI8qpJDUutgTn0Tbxctsoty8BI7lXVaaL3QIPMAbj6mwWZ7LuFFYqx3kbxo9ytdH3y3p8D_80koVA5w"
 	hs512_secret="your-512-bit-secret-your-512-bit-secret-your-512-bit-secret-your"
 
+	# RS256 token (RSA with SHA-256)
+	rs256_token="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.Nz1lEkPD4m15aqE12GhhVvtEX6BwikXVieg9771SZ4GRQNyAt2gKe_4knWpSakVWuWjtSvlNUqOTCIWFXzkhTUPikjYlyH1ljP5HRggm0I4upKcO0-UnVsmirMQr8DoI1zYXOnS-C7xnLD4xhBQNQTNIOE0ITljrg-mKuesRoOVJkWoIus-tyu76U4r2fkgNkzCV0GBcczNVRT-uz1bpDNgJYbhgQMO5QcLKIjGKcWV9xI-Zm7XCInT-I6i2QF3eC-5gcIm3xJuRPHUzA_x7UiMvW1FgfIusF8W_rYR5n2bpON_1HmX0DaN-sXNN8GfPaCsEY7zaqe3Q0RRV9hCNig"
+
 	# PS256 token (RSA-PSS with SHA-256)
 	ps256_token="eyJhbGciOiJQUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.m6Le-4Dvr5cvoTG0V0weW4_1st46wgrBJfOsDyvo8YMnkhM_BtIyFC6R8nM7yR07JY575h_YAs3mhyIcWOaH7XSN8RzeSdOsyF4JCdSRb8T_J9Bc79b-s8GzDpLPzK0JEUhRZ8nuwQdlC1bYjpg3j24qVObYrbIGxbyBBw2gZwHlodEiT91dINcwlkCmb9OKY637-Av2opIx2jVAtbEcuoYzPJZZJt3wIVKrPLouHb56WqlnEZq1vQW4_NaYXQWG4N0IhFqNFBWbQozAkGtTtUKnrGYkoHss7xXLIEvgwHCATb129i2t5pOZwUtYXEL-du_zGb_w5szfMmQz36D9UA"
 
+	# ES256 token (ECDSA P-256)
+	es256_token="eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.K7EFRvY4VrY8fWQqujS0i74b4LAUKnKjrOyp3RIGT6bhqBcCwB-Bb4IsN7LHuBYKX4oKsvQhjEonglFOtOE0cQ"
+
+	# ES384 token (ECDSA P-384)
+	es384_token="eyJhbGciOiJFUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.p2LTBea-meWo3Ha_ZcXplHZH8PGS_Bd3cpDl1XAYgimBRUDKe7nqNYKFP-g1_3J2gLNMj9Q6ScHHIDRVLWiOwexdaekt9-O7MF9mwCKQFbDxDihBP-RmOv6Q4IqG6ksG"
+
 	# EdDSA token (Ed25519)
 	eddsa_token="eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.AtVLeiP1LS1KMQU8uJxObxoU1GVKzJV4JxeUfGa5WAopAYb31nKCx1uvckXYyk4fBq3iTwQ7z6QHa05eL6x9Dw"
+
+	# RS384 token (RSA with SHA-384)
+	rs384_token="eyJhbGciOiJSUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ucophBF7QxkreLzVjuQxBHO7LUVwo18eahqInpNHr5WKEDanbKGsn-5hercDEEaGr5O_eXzTZuz9keWa6D_lQSY3VvlxiVGUAFhy3q_JJOgcfevsVTfPfeNAYUFMvbNSgMVgMvbbIyYU1L-I0su3CJL5HKCfbNPyTXKY_nRtgDd4VDtn1v5wuOxeU9woLg4390BbAkDbUVJHxFEya4B2OnUExocxuSraVYdszqUAMW2zxPgbc8YH3ZWIenrvXcF4Is8P7Ms7WWAuDxXOhJ4nlMILE9LxzBX8V-dtkqVt5ll4hNFr8T3YTXsQXsvF45rvXpA2K5WM9-WSqJHsCwEczw"
+
+	# RS512 token (RSA with SHA-512)
+	rs512_token="eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.IcCyBNr5SJAstzFzyWvyIuMcxFVYcaCe9E-g5bFZ1CSjZyT1HuD2DQ30mHwLOc3rboa95r67QAkV1j9f067AGzpJ9lfpKEigOfOAJth5TnVOZUthu0M-olfIhjH1qO3xi2b2XnXRZuSNCxVLOC_8ZkcYof4trv332dftRfBg-hJ90qOpQv7LtfWRMnramuEtVqFP-6YbWTfYkde6nuvgy2EPAiM5By3JPEPVgAlIJAjxgJ3Mnu79cJ_15qipQ1XUaHzJswetFReHYHFieq2t-UCARFA6J8u6vxFG7mP8GsbK3FsH_aTyfezQQoWdB0ALoC-ylO8wo5EQBnvMTMF8-g"
+
+	# ES512 token (ECDSA P-521)
+	es512_token="eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.AeZ1HujBSv_Unr3KAHaVPVEWuWB1stMdvVEuTeLPNzOBm5TTYaqhKCSEY2R0ED8P882TPfS1v1a0NA7IWVNKsc70ADa0wcLpNkoW1dPkhhvawlO9IPCZv9uAnACArV5d9nubdNhkPtORPC_AdTpo4S-Icoy-2h4LZWn3xd0QeMX8-_xv"
+
+	# PS384 token (RSA-PSS with SHA-384)
+	ps384_token="eyJhbGciOiJQUzM4NCIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.NmsbDDr2WYMZLOd_x85EWObeVPA-6fR1xFiQSQC02uaP6IR5csV7JpvaE5WNK-8ZGlHce8DLbidVeGxCEOmmWxkKLFB5E1tkK-6hh_VL7VaHg87xKBRQYYes9zDPEg9mGUzSuljmRS1_hPFnAgJlA96m5yH4-iGOszySr5pp4ljHWr8hx0vFonnwx-R2c_pZBDL_FLSDW6wTUczdrSUAwt9cxphAsDzY3CqFHHnW5zt0GaA698fdY7OMOxBCeGjSm34epl02aVTfxEvEzP8m5hVCSwG1og12ylLVsdq3dwt4snKuWGiYS1-Fy6JkF9V4kns1ZWUJ_IlCb43rQS-4Vg"
+
+	# PS512 token (RSA-PSS with SHA-512)
+	ps512_token="eyJhbGciOiJQUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.Bti8GqLbmgjPedcU5U51jiwNHnZD7Lrx65WAomZKAPnjTos8ZEorFm-osaxuGuMU9UL5lwQqbsl17VQfgPyQXpHJhP0DIMWc65mYDRY_KPZGH7hRtX88a3r0bN18UwII5hoyMiuqfO7xeFz7vzXDtiTUyVa7gXl6GdlKofKDPWMEWj-2ZQqLfmUY6kOc-j_EHOYnZscbB8HGG3m5g9j6plbF_FYRQTR1uJ9TNwQAIyKeOXaLPorTXAJI-SvMA3pqH19fUeGXeHxgfocLi2OLKHQatVYUm5UUIJaCpuiQF4tKe4MDRbgb3C5yA1j2jvLccMhOHgfFtt26TohPrZiTvA"
 
 	#═══════════════════════════════════════════════════════════════
 	# HELP AND VERSION
@@ -221,6 +245,35 @@ Describe 'jwt'
 	End
 
 	#═══════════════════════════════════════════════════════════════
+	# RSA VERIFICATION
+	#═══════════════════════════════════════════════════════════════
+	Describe 'RSA verification'
+		It 'verifies RS256 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/rs256_public.pem" "$rs256_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+
+		It 'rejects RS256 with wrong key'
+			When run script "$BIN" -v "@$FIXTURES/ed25519_public.pem" "$rs256_token"
+			The status should be failure
+			The stderr should include "verification failed"
+		End
+
+		It 'verifies RS384 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/rs384_public.pem" "$rs384_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+
+		It 'verifies RS512 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/rs512_public.pem" "$rs512_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+	End
+
+	#═══════════════════════════════════════════════════════════════
 	# RSA-PSS VERIFICATION (OpenSSL 3.x)
 	#═══════════════════════════════════════════════════════════════
 	Describe 'RSA-PSS verification'
@@ -232,6 +285,59 @@ Describe 'jwt'
 
 		It 'rejects PS256 with wrong key'
 			When run script "$BIN" -v "@$FIXTURES/ed25519_public.pem" "$ps256_token"
+			The status should be failure
+			The stderr should include "verification failed"
+		End
+
+		It 'verifies PS384 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/ps384_public.pem" "$ps384_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+
+		It 'verifies PS512 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/ps512_public.pem" "$ps512_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+	End
+
+	#═══════════════════════════════════════════════════════════════
+	# ECDSA VERIFICATION
+	#═══════════════════════════════════════════════════════════════
+	Describe 'ECDSA verification'
+		It 'verifies ES256 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/es256_public.pem" "$es256_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+
+		It 'rejects ES256 with wrong key'
+			When run script "$BIN" -v "@$FIXTURES/es384_public.pem" "$es256_token"
+			The status should be failure
+			The stderr should include "verification failed"
+		End
+
+		It 'verifies ES384 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/es384_public.pem" "$es384_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+
+		It 'rejects ES384 with wrong key'
+			When run script "$BIN" -v "@$FIXTURES/es256_public.pem" "$es384_token"
+			The status should be failure
+			The stderr should include "verification failed"
+		End
+
+		It 'verifies ES512 with correct public key'
+			When run script "$BIN" -v "@$FIXTURES/es512_public.pem" "$es512_token"
+			The status should be success
+			The output should include '"sub":"1234567890"'
+		End
+
+		It 'rejects ES512 with wrong key'
+			When run script "$BIN" -v "@$FIXTURES/es256_public.pem" "$es512_token"
 			The status should be failure
 			The stderr should include "verification failed"
 		End
@@ -294,6 +400,31 @@ Describe 'jwt'
 			When run script "$BIN" "eyJ0eXAiOiJKV1QifQ.eyJ0ZXN0IjoxfQ.sig"
 			The status should be failure
 			The stderr should include "missing 'alg'"
+		End
+
+		It 'rejects invalid payload JSON'
+			# Valid header: {"alg":"HS256","typ":"JWT"} = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+			# Invalid payload: "not json" = bm90IGpzb24
+			When run script "$BIN" "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.bm90IGpzb24.sig"
+			The status should be failure
+			The stderr should include "invalid"
+		End
+
+		It 'rejects unsupported algorithm during verification'
+			# {"alg":"XX99","typ":"JWT"} = eyJhbGciOiJYWDk5IiwidHlwIjoiSldUIn0
+			# {"sub":"test"} = eyJzdWIiOiJ0ZXN0In0
+			When run script "$BIN" -v "secret" "eyJhbGciOiJYWDk5IiwidHlwIjoiSldUIn0.eyJzdWIiOiJ0ZXN0In0.sig"
+			The status should be failure
+			The stderr should include "unsupported algorithm"
+		End
+
+		It 'fails when no token provided and stdin is empty tty'
+			# This tests the "no token provided" error path
+			# We can't truly test tty detection, but we test empty stdin
+			Data ""
+			When run script "$BIN"
+			The status should be failure
+			The stderr should include "empty token"
 		End
 	End
 
