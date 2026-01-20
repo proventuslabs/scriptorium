@@ -33,7 +33,7 @@ cz \- conventional commit message builder
 .sp
 \fBcz\fP [\fB\-q\fP] [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
 .sp
-\fBcz\fP \fBcreate\fP [\fB\-s\fP]
+\fBcz\fP \fBcreate\fP [\fB\-\-no\-custom\-scope\fP]
 .br
 \fBcz\fP \fBlint\fP [\fB\-f\fP \fIFILES\fP] [\fB\-s\fP | \fB\-\-no\-strict\fP]
 .br
@@ -52,14 +52,14 @@ When invoked without a subcommand, \fBcz\fP defaults to \fBcreate\fP mode if run
 in a terminal, or \fBlint\fP mode if receiving input on standard input.
 .SH "SUBCOMMANDS"
 .sp
-\fBcreate\fP [\fB\-s\fP]
+\fBcreate\fP [\fB\-\-no\-custom\-scope\fP]
 .RS 4
 Compose a commit message interactively using \fBgum\fP(1). Prompts for type,
 scope, breaking change indicator, description, body, and footer. Output
 is written to standard output. Default when run interactively.
 Requires \fBgum\fP to be installed.
 .sp
-\fB\-s\fP, \fB\-\-strict\-scopes\fP
+\fB\-\-no\-custom\-scope\fP
 .RS 4
 Only allow scopes defined in configuration, disabling custom input.
 By default, configured scopes are shown as suggestions with an option

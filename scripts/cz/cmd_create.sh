@@ -45,11 +45,7 @@ cmd_create() {
 
 		if [[ ${#scope_choices[@]} -gt 0 ]]; then
 			local scope_selection
-			if [[ -n "${STRICT_SCOPES:-}" ]]; then
-				scope_choices+=("(none)")
-				scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
-				[[ "$scope_selection" != "(none)" ]] && scope="$scope_selection"
-			else
+			if [[ -n "${CUSTOM_SCOPE:-}" ]]; then
 				scope_choices+=("(custom)" "(none)")
 				scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
 				case "$scope_selection" in
@@ -57,6 +53,10 @@ cmd_create() {
 					"(none)") ;;
 					*) scope="$scope_selection" ;;
 				esac
+			else
+				scope_choices+=("(none)")
+				scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
+				[[ "$scope_selection" != "(none)" ]] && scope="$scope_selection"
 			fi
 		else
 			scope=$(_scope_input_optional)

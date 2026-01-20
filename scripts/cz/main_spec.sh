@@ -1138,8 +1138,8 @@ MOCK
 				End
 			End
 
-			Describe 'STRICT_SCOPES mode'
-				setup_strict_gum() {
+			Describe '--no-custom-scope mode'
+				setup_no_custom_scope_gum() {
 					mkdir -p "$TEST_DIR/bin"
 					cat > "$TEST_DIR/bin/gum" << 'MOCK'
 #!/bin/bash
@@ -1168,10 +1168,16 @@ MOCK
 					PATH="$TEST_DIR/bin:$PATH"
 				}
 
-				BeforeEach 'setup_strict_gum'
+				BeforeEach 'setup_no_custom_scope_gum'
 
-				It 'only allows configured scopes with STRICT_SCOPES'
-					export STRICT_SCOPES=1
+				It 'only allows configured scopes with --no-custom-scope'
+					When run script "$BIN" create --no-custom-scope
+					The status should be success
+					The output should equal "feat(api): add endpoint"
+				End
+
+				It 'allows custom scope by default (--custom-scope implicit)'
+					# Default behavior includes (custom) option - mock selects "api" from configured scopes
 					When run script "$BIN" create
 					The status should be success
 					The output should equal "feat(api): add endpoint"

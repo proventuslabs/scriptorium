@@ -15,7 +15,7 @@ cz - conventional commit message builder
 
 *cz* [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
 
-*cz* *create* [*-s*] +
+*cz* *create* [*--no-custom-scope*] +
 *cz* *lint* [*-f* _FILES_] [*-s* | *--no-strict*] +
 *cz* *parse* +
 *cz* *init* [*-f*] +
@@ -32,14 +32,14 @@ in a terminal, or *lint* mode if receiving input on standard input.
 
 == SUBCOMMANDS
 
-*create* [*-s*]::
+*create* [*--no-custom-scope*]::
   Compose a commit message interactively using *gum*(1). Prompts for type,
   scope, breaking change indicator, description, body, and footer. Output
   is written to standard output. Default when run interactively.
   Requires *gum* to be installed.
 +
 --
-*-s*, *--strict-scopes*:::
+*--no-custom-scope*:::
   Only allow scopes defined in configuration, disabling custom input.
   By default, configured scopes are shown as suggestions with an option
   to enter a custom scope.

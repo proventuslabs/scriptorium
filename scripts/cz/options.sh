@@ -27,7 +27,7 @@ parser_definition_create() {
 		"Usage: cz create [options...]"
 	msg -- '' 'Compose a commit message interactively' ''
 	msg -- 'Options:'
-	flag    STRICT_SCOPES  -s --strict-scopes -- "Only allow configured scopes"
+	flag    CUSTOM_SCOPE   --{no-}custom-scope init:=1 -- "Allow custom scope input"
 	disp    :usage         -h --help
 }
 
