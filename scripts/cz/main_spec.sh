@@ -493,13 +493,13 @@ EOF
 		End
 
 		#───────────────────────────────────────────────────────────
-		# Strict mode
+		# Global --require-scope option
 		#───────────────────────────────────────────────────────────
-		Describe 'strict mode'
-			setup_strict_config() {
+		Describe 'require-scope (global option)'
+			setup_require_scope_config() {
 				cat > .gitcommitizen << 'EOF'
 [settings]
-strict = true
+require-scope = true
 
 [types]
 feat = Feature
@@ -510,45 +510,45 @@ ui = src/ui/**
 EOF
 			}
 
-			BeforeEach 'setup_strict_config'
+			BeforeEach 'setup_require_scope_config'
 
-			It 'requires scope when files match scoped paths'
+			It 'lint: requires scope when files match scoped paths'
 				Data "feat: add feature"
 				When run script "$BIN" lint --files "src/api/handler.go"
 				The status should be failure
-				The stderr should include "strict mode requires scope"
+				The stderr should include "scope required"
 				The stderr should include "Hint"
 			End
 
-			It 'allows no scope when files match no scoped paths'
+			It 'lint: allows no scope when files match no scoped paths'
 				Data "feat: add feature"
 				When run script "$BIN" lint --files "other/file.txt"
 				The status should be success
 			End
 
-			It 'allows no scope when no files provided'
+			It 'lint: allows no scope when no files provided'
 				Data "feat: add feature"
 				When run script "$BIN" lint
 				The status should be success
 			End
 
-			It 'rejects unknown scope'
+			It 'lint: rejects unknown scope'
 				Data "feat(unknown): add feature"
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "unknown scope"
 			End
 
-			It 'accepts defined scope'
+			It 'lint: accepts defined scope'
 				Data "feat(api): add feature"
 				When run script "$BIN" lint
 				The status should be success
 			End
 
-			It 'rejects any scope when no scopes defined'
+			It 'lint: rejects any scope when no scopes defined'
 				cat > .gitcommitizen << 'EOF'
 [settings]
-strict = true
+require-scope = true
 
 [types]
 feat = Feature
@@ -559,16 +559,16 @@ EOF
 				The stderr should include "no scopes defined"
 			End
 
-			It '--no-strict overrides config strict=true'
+			It 'global --no-require-scope overrides config'
 				Data "feat: add feature"
-				When run script "$BIN" lint --no-strict -f "src/api/handler.go"
+				When run script "$BIN" --no-require-scope lint -f "src/api/handler.go"
 				The status should be success
 			End
 
-			It '--strict overrides config strict=false'
+			It 'global --require-scope overrides config'
 				cat > .gitcommitizen << 'EOF'
 [settings]
-strict = false
+require-scope = false
 
 [types]
 feat = Feature
@@ -577,9 +577,9 @@ feat = Feature
 api = src/api/**
 EOF
 				Data "feat: add feature"
-				When run script "$BIN" lint --strict --files "src/api/handler.go"
+				When run script "$BIN" --require-scope lint --files "src/api/handler.go"
 				The status should be failure
-				The stderr should include "strict mode requires scope"
+				The stderr should include "scope required"
 			End
 		End
 
@@ -853,12 +853,12 @@ EOF
 		It 'shows settings'
 			cat > .gitcommitizen << 'EOF'
 [settings]
-strict = true
+require-scope = true
 multi-scope = true
 EOF
 			When run script "$BIN" parse
 			The output should include "Settings:"
-			The output should include "strict = true"
+			The output should include "require-scope = true"
 			The stderr should include "using defaults"
 		End
 
@@ -1138,8 +1138,9 @@ MOCK
 				End
 			End
 
-			Describe 'STRICT_SCOPES mode'
-				setup_strict_gum() {
+			Describe 'scope flag combinations'
+				# Mock that selects "api" scope and returns "add endpoint" description
+				setup_scope_select_gum() {
 					mkdir -p "$TEST_DIR/bin"
 					cat > "$TEST_DIR/bin/gum" << 'MOCK'
 #!/bin/bash
@@ -1149,6 +1150,46 @@ case "$1" in
 			echo "feat - A new feature"
 		elif [[ "$*" == *"scope"* ]]; then
 			echo "api"
+		fi
+		;;
+	input)
+		if [[ "$*" == *"Description"* ]]; then
+			echo "add endpoint"
+		elif [[ "$*" == *"scope"* ]]; then
+			echo "custom-scope"
+		fi
+		;;
+	confirm)
+		exit 1
+		;;
+	write)
+		echo ""
+		;;
+esac
+MOCK
+					chmod +x "$TEST_DIR/bin/gum"
+					PATH="$TEST_DIR/bin:$PATH"
+				}
+
+				BeforeEach 'setup_scope_select_gum'
+
+				It '--require-scope removes (none) option but keeps (custom)'
+					When run script "$BIN" --require-scope create
+					The status should be success
+					The output should equal "feat(api): add endpoint"
+				End
+
+				It '--no-custom-scope removes (custom) option but keeps (none)'
+					# Mock that selects "(none)" when it's available
+					mkdir -p "$TEST_DIR/bin"
+					cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+case "$1" in
+	choose)
+		if [[ "$*" == *"type"* ]]; then
+			echo "feat - A new feature"
+		elif [[ "$*" == *"scope"* ]]; then
+			echo "(none)"
 		fi
 		;;
 	input)
@@ -1166,12 +1207,29 @@ esac
 MOCK
 					chmod +x "$TEST_DIR/bin/gum"
 					PATH="$TEST_DIR/bin:$PATH"
-				}
 
-				BeforeEach 'setup_strict_gum'
+					When run script "$BIN" create --no-custom-scope
+					The status should be success
+					The output should equal "feat: add endpoint"
+				End
 
-				It 'only allows configured scopes with STRICT_SCOPES'
-					export STRICT_SCOPES=1
+				It 'both flags together only allows configured scopes'
+					When run script "$BIN" --require-scope create --no-custom-scope
+					The status should be success
+					The output should equal "feat(api): add endpoint"
+				End
+
+				It 'config require-scope=true removes (none) option'
+					cat > .gitcommitizen << 'EOF'
+[settings]
+require-scope = true
+
+[types]
+feat = A new feature
+
+[scopes]
+api = src/api/**
+EOF
 					When run script "$BIN" create
 					The status should be success
 					The output should equal "feat(api): add endpoint"
@@ -1318,7 +1376,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 			Data "feat(unknown): add feature"
-			When run script "$BIN" lint --strict
+			When run script "$BIN" --require-scope lint
 			The status should be failure
 			The stderr should include "unknown scope"
 			The stderr should include "api"

@@ -9,10 +9,11 @@ parser_definition() {
 		"Usage: cz [options...] [command] [arguments...]"
 	msg -- '' 'Conventional commit message builder' ''
 	msg -- 'Options:'
-	param   CONFIG_FILE  -c --config-file var:FILE -- "Config file path"
-	flag    QUIET        -q --quiet       -- "Suppress warnings and non-essential output"
-	disp    :usage       -h --help
-	disp    VERSION      -V --version
+	param   CONFIG_FILE   -c --config-file var:FILE -- "Config file path"
+	flag    REQUIRE_SCOPE -r --{no-}require-scope init:@unset -- "Require scope (create: mandatory, lint: enforce for scoped files)"
+	flag    QUIET         -q --quiet       -- "Suppress warnings and non-essential output"
+	disp    :usage        -h --help
+	disp    VERSION       -V --version
 
 	msg -- '' 'Commands:'
 	cmd create -- "Compose a commit message interactively"
@@ -27,8 +28,8 @@ parser_definition_create() {
 		"Usage: cz create [options...]"
 	msg -- '' 'Compose a commit message interactively' ''
 	msg -- 'Options:'
-	flag    STRICT_SCOPES  -s --strict-scopes -- "Only allow configured scopes"
-	disp    :usage         -h --help
+	flag    CUSTOM_SCOPE  --{no-}custom-scope init:@unset -- "Allow custom scope input (default: allowed)"
+	disp    :usage           -h --help
 }
 
 parser_definition_lint() {
@@ -36,9 +37,8 @@ parser_definition_lint() {
 		"Usage: cz lint [options...]"
 	msg -- '' 'Validate a commit message from stdin' ''
 	msg -- 'Options:'
-	param   FILES       -f --files      -- "Validate scope against file paths (space-separated)"
-	flag    STRICT      -s --{no-}strict  init:@unset -- "Require scope for scoped files"
-	disp    :usage      -h --help
+	param   FILES   -f --files  -- "Validate scope against file paths (space-separated)"
+	disp    :usage  -h --help
 }
 
 parser_definition_init() {

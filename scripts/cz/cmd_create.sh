@@ -33,6 +33,21 @@ cmd_create() {
 	type_selection=$(_gum choose --header "Select commit type:" "${type_choices[@]}")
 	local type="${type_selection%% - *}"
 
+	# Determine require-scope mode (--require-scope/--no-require-scope override config)
+	local require_scope
+	if [[ "${REQUIRE_SCOPE-unset}" == "1" ]]; then
+		require_scope=true
+	elif [[ "${REQUIRE_SCOPE-unset}" == "" ]]; then
+		require_scope=false
+	else
+		require_scope="${CFG_SETTINGS[require_scope]:-false}"
+	fi
+
+	# Determine custom-scope mode (--custom-scope/--no-custom-scope)
+	# Default (unset) allows custom scope; --no-custom-scope disables it
+	local allow_custom_scope=true
+	[[ "${CUSTOM_SCOPE-unset}" == "" ]] && allow_custom_scope=false
+
 	# Select or input scope
 	local scope=""
 	if [[ ${#CFG_SCOPES[@]} -gt 0 ]]; then
@@ -45,24 +60,33 @@ cmd_create() {
 
 		if [[ ${#scope_choices[@]} -gt 0 ]]; then
 			local scope_selection
-			if [[ -n "${STRICT_SCOPES:-}" ]]; then
-				scope_choices+=("(none)")
-				scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
-				[[ "$scope_selection" != "(none)" ]] && scope="$scope_selection"
+			# Add options based on flags:
+			# - (custom): only if allow_custom_scope is true
+			# - (none): only if require_scope is not set
+			[[ "$allow_custom_scope" == "true" ]] && scope_choices+=("(custom)")
+			[[ "$require_scope" != "true" ]] && scope_choices+=("(none)")
+
+			scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
+			case "$scope_selection" in
+				"(custom)") scope=$(_scope_input_custom) ;;
+				"(none)") ;;
+				*) scope="$scope_selection" ;;
+			esac
+		else
+			# No configured scopes - fall back to free input
+			if [[ "$require_scope" == "true" ]]; then
+				scope=$(_scope_input_custom)
 			else
-				scope_choices+=("(custom)" "(none)")
-				scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
-				case "$scope_selection" in
-					"(custom)") scope=$(_scope_input_custom) ;;
-					"(none)") ;;
-					*) scope="$scope_selection" ;;
-				esac
+				scope=$(_scope_input_optional)
 			fi
+		fi
+	else
+		# No scopes section - fall back to free input
+		if [[ "$require_scope" == "true" ]]; then
+			scope=$(_scope_input_custom)
 		else
 			scope=$(_scope_input_optional)
 		fi
-	else
-		scope=$(_scope_input_optional)
 	fi
 
 	# Ask about breaking change

@@ -45,7 +45,7 @@ INI\-style configuration with three sections:
 .nf
 .fam C
 [settings]
-strict = false
+require\-scope = false
 multi\-scope = false
 multi\-scope\-separator = ,
 
@@ -59,11 +59,33 @@ name = description
 .if n .RE
 .SS "Settings"
 .sp
-\fBstrict\fP
+\fBrequire\-scope\fP
 .RS 4
-Enable strict scope validation (default: false). When enabled, any scope
-used must be defined in \f(CR[scopes]\fP. Also requires a scope when files match
-defined scope patterns.
+Enforce scope requirements (default: false). When enabled:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBcreate\fP: Only configured scopes are allowed (no custom input or "(none)").
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+\fBlint\fP: Any scope used must be defined in \f(CR[scopes]\fP, and a scope is
+required when files match defined scope patterns.
+Can be overridden by \f(CR\-\-require\-scope\fP or \f(CR\-\-no\-require\-scope\fP flags.
+.RE
 .RE
 .sp
 \fBmulti\-scope\fP
@@ -97,7 +119,7 @@ Whitespace around \f(CR=\fP is optional.
 .nf
 .fam C
 [settings]
-strict = true
+require\-scope = true
 multi\-scope = true
 multi\-scope\-separator = ,
 
@@ -135,7 +157,7 @@ This configuration:
 .  sp -1
 .  IP \(bu 2.3
 .\}
-Enables strict scope validation (\f(CRstrict = true\fP)
+Enforces scope requirements (\f(CRrequire\-scope = true\fP)
 .RE
 .sp
 .RS 4

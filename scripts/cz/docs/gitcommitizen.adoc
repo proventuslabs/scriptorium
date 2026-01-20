@@ -28,7 +28,7 @@ INI-style configuration with three sections:
 [.literal]
 ----
 [settings]
-strict = false
+require-scope = false
 multi-scope = false
 multi-scope-separator = ,
 
@@ -41,10 +41,12 @@ name = description
 
 === Settings
 
-*strict*::
-  Enable strict scope validation (default: false). When enabled, any scope
-  used must be defined in `[scopes]`. Also requires a scope when files match
-  defined scope patterns.
+*require-scope*::
+  Enforce scope requirements (default: false). When enabled:
+  - *create*: Only configured scopes are allowed (no custom input or "(none)").
+  - *lint*: Any scope used must be defined in `[scopes]`, and a scope is
+    required when files match defined scope patterns.
+  Can be overridden by `--require-scope` or `--no-require-scope` flags.
 
 *multi-scope*::
   Allow multiple scopes like `feat(api,db):` (default: false).
@@ -76,7 +78,7 @@ Whitespace around `=` is optional.
 [.literal]
 ----
 [settings]
-strict = true
+require-scope = true
 multi-scope = true
 multi-scope-separator = ,
 
@@ -104,7 +106,7 @@ revert = Revert a previous commit
 
 This configuration:
 
-* Enables strict scope validation (`strict = true`)
+* Enforces scope requirements (`require-scope = true`)
 * Allows multi-scopes like `feat(api,db):` for cross-cutting changes
 * Maps scopes to file patterns for path-based validation
 * Defines standard commit types with descriptions
