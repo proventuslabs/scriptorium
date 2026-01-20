@@ -25,7 +25,7 @@ JWT_QUIET="${QUIET:-}"
 
 # Handle -k value: secret string, @file, @-, or -
 # Always pass content to verify_signature (it handles temp files for asymmetric)
-verify_key=${VERIFY:-}
+verify_key=${KEY:-}
 if [[ -n $verify_key ]]; then
 	case $verify_key in
 		- | @-)

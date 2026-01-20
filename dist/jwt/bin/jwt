@@ -12,7 +12,7 @@ OUTPUT='payload'
 OUTPUT=''
 OUTPUT=''
 OUTPUT=''
-VERIFY=''
+KEY=''
 QUIET=''
 REST=''
 parse() {
@@ -104,7 +104,7 @@ parse() {
 			'-k'|'--key')
 				[ $# -le 1 ] && set "required" "$1" && break
 				OPTARG=$2
-				VERIFY="$OPTARG"
+				KEY="$OPTARG"
 				shift ;;
 			'-q'|'--quiet')
 				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
@@ -157,7 +157,7 @@ Options:
   -A, --all                   Display all parts as JSON
 
   Verification:
-  -k, --key VERIFY            Verify signature (secret, @file, or @-/- for stdin)
+  -k, --key KEY               Verify signature (secret, @file, or @-/- for stdin)
 
   General:
   -q, --quiet                 Suppress warnings
@@ -513,7 +513,7 @@ eval "set -- $REST"
 
 JWT_QUIET="${QUIET:-}"
 
-verify_key=${VERIFY:-}
+verify_key=${KEY:-}
 if [[ -n $verify_key ]]; then
 	case $verify_key in
 		- | @-)
