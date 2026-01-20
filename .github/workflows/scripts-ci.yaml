@@ -12,16 +12,16 @@ on:
     paths:
       - "scripts/**"
   workflow_dispatch:
-
-# Serialize gist updates to prevent race conditions when multiple PRs merge
-concurrency:
-  group: scripts-ci-coverage-${{ github.ref }}
-  cancel-in-progress: false
     inputs:
       scripts:
         description: 'Scripts to run CI for (comma-separated, e.g., "cz,jwt" or "all")'
         required: true
         default: "all"
+
+# Serialize gist updates to prevent race conditions when multiple PRs merge
+concurrency:
+  group: scripts-ci-coverage-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   detect-changes:
