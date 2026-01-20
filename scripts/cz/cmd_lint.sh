@@ -103,13 +103,13 @@ is_multi_scope() { [[ "$1" == *"$(_get_sep)"* ]]; }
 validate_paths_if_needed() {
 	local scope="$1" strict_mode
 
-	# Determine strict mode (--strict/--no-strict override config)
-	if [[ "${STRICT-unset}" == "1" ]]; then
+	# Determine require-scope mode (--require-scope/--no-require-scope override config)
+	if [[ "${REQUIRE_SCOPE-unset}" == "1" ]]; then
 		strict_mode=true
-	elif [[ "${STRICT-unset}" == "" ]]; then
+	elif [[ "${REQUIRE_SCOPE-unset}" == "" ]]; then
 		strict_mode=false
 	else
-		strict_mode="${CFG_SETTINGS[strict]:-false}"
+		strict_mode="${CFG_SETTINGS[require_scope]:-false}"
 	fi
 
 	# In strict mode with scope, validate scope exists
@@ -136,7 +136,7 @@ validate_paths_if_needed() {
 	if [[ -z "$scope" ]]; then
 		[[ "$strict_mode" != "true" ]] && return 0
 		if ! validate_strict_no_scope "${files[@]}"; then
-			_err "strict mode requires scope for scoped files"
+			_err "scope required for files matching defined scope patterns"
 			_show_errors "${STRICT_MATCHES[@]}"
 			_hint "Hint: add a scope that matches these files"
 			return 1

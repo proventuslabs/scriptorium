@@ -7,7 +7,7 @@ format_config() {
 	echo "# See: gitcommitizen(5)"
 	echo
 	echo "[settings]"
-	echo "# strict = false"
+	echo "# require-scope = false"
 	echo "# multi-scope = false"
 	echo "# multi-scope-separator = ,"
 	echo

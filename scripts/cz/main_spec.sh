@@ -283,7 +283,7 @@ EOF
 				The status should be success
 			End
 
-			It 'accepts scope not in config when not strict'
+			It 'accepts scope not in config when require-scope disabled'
 				cat > .gitcommitizen << 'EOF'
 [types]
 feat = Feature
@@ -493,13 +493,13 @@ EOF
 		End
 
 		#───────────────────────────────────────────────────────────
-		# Strict mode
+		# require-scope mode
 		#───────────────────────────────────────────────────────────
-		Describe 'strict mode'
-			setup_strict_config() {
+		Describe 'require-scope mode'
+			setup_require_scope_config() {
 				cat > .gitcommitizen << 'EOF'
 [settings]
-strict = true
+require-scope = true
 
 [types]
 feat = Feature
@@ -510,13 +510,13 @@ ui = src/ui/**
 EOF
 			}
 
-			BeforeEach 'setup_strict_config'
+			BeforeEach 'setup_require_scope_config'
 
 			It 'requires scope when files match scoped paths'
 				Data "feat: add feature"
 				When run script "$BIN" lint --files "src/api/handler.go"
 				The status should be failure
-				The stderr should include "strict mode requires scope"
+				The stderr should include "scope required for files matching"
 				The stderr should include "Hint"
 			End
 
@@ -548,7 +548,7 @@ EOF
 			It 'rejects any scope when no scopes defined'
 				cat > .gitcommitizen << 'EOF'
 [settings]
-strict = true
+require-scope = true
 
 [types]
 feat = Feature
@@ -559,16 +559,16 @@ EOF
 				The stderr should include "no scopes defined"
 			End
 
-			It '--no-strict overrides config strict=true'
+			It '--no-require-scope overrides config require-scope=true'
 				Data "feat: add feature"
-				When run script "$BIN" lint --no-strict -f "src/api/handler.go"
+				When run script "$BIN" lint --no-require-scope -f "src/api/handler.go"
 				The status should be success
 			End
 
-			It '--strict overrides config strict=false'
+			It '--require-scope overrides config require-scope=false'
 				cat > .gitcommitizen << 'EOF'
 [settings]
-strict = false
+require-scope = false
 
 [types]
 feat = Feature
@@ -577,9 +577,9 @@ feat = Feature
 api = src/api/**
 EOF
 				Data "feat: add feature"
-				When run script "$BIN" lint --strict --files "src/api/handler.go"
+				When run script "$BIN" lint --require-scope --files "src/api/handler.go"
 				The status should be failure
-				The stderr should include "strict mode requires scope"
+				The stderr should include "scope required for files matching"
 			End
 		End
 
@@ -853,12 +853,12 @@ EOF
 		It 'shows settings'
 			cat > .gitcommitizen << 'EOF'
 [settings]
-strict = true
+require-scope = true
 multi-scope = true
 EOF
 			When run script "$BIN" parse
 			The output should include "Settings:"
-			The output should include "strict = true"
+			The output should include "require-scope = true"
 			The stderr should include "using defaults"
 		End
 
@@ -1318,7 +1318,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 			Data "feat(unknown): add feature"
-			When run script "$BIN" lint --strict
+			When run script "$BIN" lint --require-scope
 			The status should be failure
 			The stderr should include "unknown scope"
 			The stderr should include "api"
@@ -1369,10 +1369,10 @@ EOF
 			The status should be success
 		End
 
-		It 'skips wildcard scope in strict scope checking'
+		It 'skips wildcard scope in require-scope checking'
 			cat > .gitcommitizen << 'EOF'
 [settings]
-strict = true
+require-scope = true
 
 [types]
 feat = Feature

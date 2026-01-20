@@ -16,7 +16,7 @@ cz - conventional commit message builder
 *cz* [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
 
 *cz* *create* [*-s*] +
-*cz* *lint* [*-f* _FILES_] [*-s* | *--no-strict*] +
+*cz* *lint* [*-f* _FILES_] [*-r* | *--no-require-scope*] +
 *cz* *parse* +
 *cz* *init* [*-f*] +
 *cz* *hook* [*install* | *uninstall* | *status*]
@@ -45,7 +45,7 @@ in a terminal, or *lint* mode if receiving input on standard input.
   to enter a custom scope.
 --
 
-*lint* [*-f* _FILES_] [*-s* | *--no-strict*]::
+*lint* [*-f* _FILES_] [*-r* | *--no-require-scope*]::
   Validate a commit message against the Conventional Commits rules and the
   *.gitcommitizen*(5) configuration. Reads from standard input. Prints
   diagnostic messages explaining any errors. Exits non-zero if validation
@@ -58,15 +58,14 @@ in a terminal, or *lint* mode if receiving input on standard input.
   section of the configuration to verify the scope is appropriate for the
   files being committed.
 
-*-s*, *--strict*:::
-  Enable strict scope validation. Requires that any scope used in the commit
-  message is defined in the `[scopes]` section of the configuration. Also
-  requires a scope when specified files match defined scope patterns.
-  Overrides the `strict` setting in the configuration file.
+*-r*, *--require-scope*:::
+  Require a scope when files match defined scope patterns. Also requires that
+  any scope used is defined in the `[scopes]` section of the configuration.
+  Overrides the `require-scope` setting in the configuration file.
 
-*--no-strict*:::
+*--no-require-scope*:::
   Allow commits without scope even when files match scope patterns.
-  Overrides the `strict` setting in the configuration file.
+  Overrides the `require-scope` setting in the configuration file.
 --
 
 *parse*::
@@ -133,9 +132,9 @@ Lint with scope validation against specific files::
 
   echo "feat(api): add endpoint" | cz lint --files "src/api/routes.ts"
 
-Lint with strict mode (require scope for scoped files)::
+Lint with require-scope (require scope for scoped files)::
 
-  cz lint --files "$(git diff --cached --name-only)" --strict < "$1"
+  cz lint --files "$(git diff --cached --name-only)" --require-scope < "$1"
 
 Show resolved configuration::
 

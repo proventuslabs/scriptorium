@@ -37,7 +37,7 @@ parser_definition_lint() {
 	msg -- '' 'Validate a commit message from stdin' ''
 	msg -- 'Options:'
 	param   FILES       -f --files      -- "Validate scope against file paths (space-separated)"
-	flag    STRICT      -s --{no-}strict  init:@unset -- "Require scope for scoped files"
+	flag    REQUIRE_SCOPE -r --{no-}require-scope init:@unset -- "Require scope for scoped files"
 	disp    :usage      -h --help
 }
 
