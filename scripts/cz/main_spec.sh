@@ -730,9 +730,9 @@ EOF
 				The output should include "Installed"
 			End
 
-			It 'hook contains cz lint command'
+			It 'hook contains cz lint command with paths flag'
 				When run script "$BIN" hook install
-				The contents of file ".git/hooks/commit-msg" should include "cz lint"
+				The contents of file ".git/hooks/commit-msg" should include 'cz lint --paths "$files"'
 				The output should include "Installed"
 			End
 
