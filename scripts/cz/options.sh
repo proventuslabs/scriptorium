@@ -10,7 +10,7 @@ parser_definition() {
 	msg -- '' 'Conventional commit message builder' ''
 	msg -- 'Options:'
 	param   CONFIG_FILE   -c --config-file var:FILE -- "Config file path"
-	flag    REQUIRE_SCOPE -r --{no-}require-scope init:@unset -- "Require scope (create: no custom, lint: enforce for scoped files)"
+	flag    REQUIRE_SCOPE -r --{no-}require-scope init:@unset -- "Require scope (create: mandatory, lint: enforce for scoped files)"
 	flag    QUIET         -q --quiet       -- "Suppress warnings and non-essential output"
 	disp    :usage        -h --help
 	disp    VERSION       -V --version
@@ -28,7 +28,8 @@ parser_definition_create() {
 		"Usage: cz create [options...]"
 	msg -- '' 'Compose a commit message interactively' ''
 	msg -- 'Options:'
-	disp    :usage  -h --help
+	flag    NO_CUSTOM_SCOPE  --no-custom-scope -- "Only allow configured scopes (no custom input)"
+	disp    :usage           -h --help
 }
 
 parser_definition_lint() {

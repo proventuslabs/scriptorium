@@ -43,6 +43,9 @@ cmd_create() {
 		require_scope="${CFG_SETTINGS[require_scope]:-false}"
 	fi
 
+	# Determine no-custom-scope mode (create-specific flag)
+	local no_custom_scope="${NO_CUSTOM_SCOPE:-}"
+
 	# Select or input scope
 	local scope=""
 	if [[ ${#CFG_SCOPES[@]} -gt 0 ]]; then
@@ -55,24 +58,33 @@ cmd_create() {
 
 		if [[ ${#scope_choices[@]} -gt 0 ]]; then
 			local scope_selection
+			# Add options based on flags:
+			# - (custom): only if no_custom_scope is not set
+			# - (none): only if require_scope is not set
+			[[ -z "$no_custom_scope" ]] && scope_choices+=("(custom)")
+			[[ "$require_scope" != "true" ]] && scope_choices+=("(none)")
+
+			scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
+			case "$scope_selection" in
+				"(custom)") scope=$(_scope_input_custom) ;;
+				"(none)") ;;
+				*) scope="$scope_selection" ;;
+			esac
+		else
+			# No configured scopes - fall back to free input
 			if [[ "$require_scope" == "true" ]]; then
-				# No (custom) or (none) options - must select configured scope
-				scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
-				scope="$scope_selection"
+				scope=$(_scope_input_custom)
 			else
-				scope_choices+=("(custom)" "(none)")
-				scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
-				case "$scope_selection" in
-					"(custom)") scope=$(_scope_input_custom) ;;
-					"(none)") ;;
-					*) scope="$scope_selection" ;;
-				esac
+				scope=$(_scope_input_optional)
 			fi
+		fi
+	else
+		# No scopes section - fall back to free input
+		if [[ "$require_scope" == "true" ]]; then
+			scope=$(_scope_input_custom)
 		else
 			scope=$(_scope_input_optional)
 		fi
-	else
-		scope=$(_scope_input_optional)
 	fi
 
 	# Ask about breaking change

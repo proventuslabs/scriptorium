@@ -33,7 +33,7 @@ cz \- conventional commit message builder
 .sp
 \fBcz\fP [\fB\-r\fP | \fB\-\-no\-require\-scope\fP] [\fB\-q\fP] [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
 .sp
-\fBcz\fP \fBcreate\fP
+\fBcz\fP \fBcreate\fP [\fB\-\-no\-custom\-scope\fP]
 .br
 \fBcz\fP \fBlint\fP [\fB\-f\fP \fIFILES\fP]
 .br
@@ -52,13 +52,18 @@ When invoked without a subcommand, \fBcz\fP defaults to \fBcreate\fP mode if run
 in a terminal, or \fBlint\fP mode if receiving input on standard input.
 .SH "SUBCOMMANDS"
 .sp
-\fBcreate\fP
+\fBcreate\fP [\fB\-\-no\-custom\-scope\fP]
 .RS 4
 Compose a commit message interactively using \fBgum\fP(1). Prompts for type,
 scope, breaking change indicator, description, body, and footer. Output
 is written to standard output. Default when run interactively.
-Requires \fBgum\fP to be installed. When \fB\-\-require\-scope\fP is enabled, only
-configured scopes are allowed (no custom input or "(none)" option).
+Requires \fBgum\fP to be installed.
+.sp
+\fB\-\-no\-custom\-scope\fP
+.RS 4
+Only allow scopes defined in configuration (no free\-form input).
+The "(none)" option is still available unless \fB\-\-require\-scope\fP is also set.
+.RE
 .RE
 .sp
 \fBlint\fP [\fB\-f\fP \fIFILES\fP]
@@ -116,7 +121,8 @@ not specified.
 \fB\-r\fP, \fB\-\-require\-scope\fP
 .RS 4
 Enforce scope requirements. Affects both \fBcreate\fP and \fBlint\fP commands.
-For \fBcreate\fP: only configured scopes are allowed (no custom input).
+For \fBcreate\fP: scope is mandatory (no "(none)" option). Custom input is still
+allowed unless \fB\-\-no\-custom\-scope\fP is also set.
 For \fBlint\fP: requires scope when files match scope patterns, and validates
 that any scope used is defined in configuration. Overrides the \f(CRrequire\-scope\fP
 setting in the configuration file. See BEHAVIOR TABLE below for details.
@@ -153,28 +159,66 @@ style, refactor, perf, test, build, ci, chore, revert).
 .RE
 .SH "BEHAVIOR TABLE"
 .sp
-The \fB\-\-require\-scope\fP option affects both \fBcreate\fP and \fBlint\fP commands:
+The \fB\-\-require\-scope\fP and \fB\-\-no\-custom\-scope\fP options affect the \fBcreate\fP command:
 .TS
 allbox tab(:);
-ltB ltB ltB.
+ltB ltB.
+T{
+.sp
+Flags
+T}:T{
+.sp
+create shows
+T}
+.T&
+lt lt.
+T{
+.sp
+default (no flags)
+T}:T{
+.sp
+scopes + "(custom)" + "(none)"
+T}
+T{
+.sp
+\fB\-\-require\-scope\fP
+T}:T{
+.sp
+scopes + "(custom)" (scope mandatory, custom allowed)
+T}
+T{
+.sp
+\fB\-\-no\-custom\-scope\fP
+T}:T{
+.sp
+scopes + "(none)" (can skip scope, no custom input)
+T}
+T{
+.sp
+\fB\-\-require\-scope \-\-no\-custom\-scope\fP
+T}:T{
+.sp
+scopes only (must pick configured scope)
+T}
+.TE
+.sp
+.sp
+The \fB\-\-require\-scope\fP option also affects the \fBlint\fP command:
+.TS
+allbox tab(:);
+ltB ltB.
 T{
 .sp
 Flag
 T}:T{
 .sp
-create
-T}:T{
-.sp
-lint
+lint behavior
 T}
 .T&
-lt lt lt.
+lt lt.
 T{
 .sp
-default (no flag)
-T}:T{
-.sp
-Shows configured scopes + "(custom)" + "(none)"
+default
 T}:T{
 .sp
 Validates format; scope is optional
@@ -184,17 +228,11 @@ T{
 \fB\-\-require\-scope\fP
 T}:T{
 .sp
-Shows only configured scopes (no custom, no none)
-T}:T{
-.sp
-Requires scope for scoped files; validates scope exists
+Requires scope for scoped files; validates scope exists in config
 T}
 T{
 .sp
 \fB\-\-no\-require\-scope\fP
-T}:T{
-.sp
-Same as default
 T}:T{
 .sp
 Allows no scope even for scoped files

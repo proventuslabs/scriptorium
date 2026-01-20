@@ -1138,8 +1138,9 @@ MOCK
 				End
 			End
 
-			Describe 'global --require-scope mode'
-				setup_require_scope_gum() {
+			Describe 'scope flag combinations'
+				# Mock that selects "api" scope and returns "add endpoint" description
+				setup_scope_select_gum() {
 					mkdir -p "$TEST_DIR/bin"
 					cat > "$TEST_DIR/bin/gum" << 'MOCK'
 #!/bin/bash
@@ -1148,9 +1149,47 @@ case "$1" in
 		if [[ "$*" == *"type"* ]]; then
 			echo "feat - A new feature"
 		elif [[ "$*" == *"scope"* ]]; then
-			# When require-scope is set, (none) should not be an option
-			# Mock selects "api" from configured scopes
 			echo "api"
+		fi
+		;;
+	input)
+		if [[ "$*" == *"Description"* ]]; then
+			echo "add endpoint"
+		elif [[ "$*" == *"scope"* ]]; then
+			echo "custom-scope"
+		fi
+		;;
+	confirm)
+		exit 1
+		;;
+	write)
+		echo ""
+		;;
+esac
+MOCK
+					chmod +x "$TEST_DIR/bin/gum"
+					PATH="$TEST_DIR/bin:$PATH"
+				}
+
+				BeforeEach 'setup_scope_select_gum'
+
+				It '--require-scope removes (none) option but keeps (custom)'
+					When run script "$BIN" --require-scope create
+					The status should be success
+					The output should equal "feat(api): add endpoint"
+				End
+
+				It '--no-custom-scope removes (custom) option but keeps (none)'
+					# Mock that selects "(none)" when it's available
+					mkdir -p "$TEST_DIR/bin"
+					cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+case "$1" in
+	choose)
+		if [[ "$*" == *"type"* ]]; then
+			echo "feat - A new feature"
+		elif [[ "$*" == *"scope"* ]]; then
+			echo "(none)"
 		fi
 		;;
 	input)
@@ -1168,17 +1207,19 @@ esac
 MOCK
 					chmod +x "$TEST_DIR/bin/gum"
 					PATH="$TEST_DIR/bin:$PATH"
-				}
 
-				BeforeEach 'setup_require_scope_gum'
+					When run script "$BIN" create --no-custom-scope
+					The status should be success
+					The output should equal "feat: add endpoint"
+				End
 
-				It 'forces scope selection with global --require-scope'
-					When run script "$BIN" --require-scope create
+				It 'both flags together only allows configured scopes'
+					When run script "$BIN" --require-scope create --no-custom-scope
 					The status should be success
 					The output should equal "feat(api): add endpoint"
 				End
 
-				It 'forces scope selection from config require-scope=true'
+				It 'config require-scope=true removes (none) option'
 					cat > .gitcommitizen << 'EOF'
 [settings]
 require-scope = true
