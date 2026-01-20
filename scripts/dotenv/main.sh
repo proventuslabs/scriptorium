@@ -4,10 +4,12 @@
 set -euo pipefail
 
 # Option parsing (runtime: uses getoptions, bundle: inlines generated parser)
+# @start-kcov-exclude
 # @bundle cmd gengetoptions parser -f ./options.sh parser_definition parse
 . ./options.sh
 eval "$(getoptions parser_definition parse)"
 # @bundle end
+# @end-kcov-exclude
 
 # @bundle source
 . ./dotenv.sh

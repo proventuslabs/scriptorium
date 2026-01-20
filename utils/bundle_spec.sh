@@ -720,6 +720,50 @@ EOF
 		End
 	End
 
+	Describe '--keep-comments option'
+		It 'keeps comments matching pattern when stripping'
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# @start-kcov-exclude
+# this comment should be stripped
+echo "code"
+# @end-kcov-exclude
+EOF
+
+			When run script ./bundle.sh --strip-comments --keep-comments '@.*-kcov-' "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include '# @start-kcov-exclude'
+			The output should include '# @end-kcov-exclude'
+			The output should not include 'this comment should be stripped'
+		End
+
+		It 'works with -k short option'
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# KEEP_ME
+# STRIP_ME
+echo "code"
+EOF
+
+			When run script ./bundle.sh -s -k 'KEEP_ME' "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include '# KEEP_ME'
+			The output should not include '# STRIP_ME'
+		End
+
+		It 'has no effect without --strip-comments'
+			cat > "$TEST_DIR/entry.sh" << 'EOF'
+#!/bin/bash
+# comment
+echo "code"
+EOF
+
+			When run script ./bundle.sh --keep-comments 'pattern' "$TEST_DIR/entry.sh"
+			The status should be success
+			The output should include '# comment'
+		End
+	End
+
 	Describe '--hide-markers option'
 		It 'suppresses begin/end markers for inlined sources'
 			cat > "$TEST_DIR/lib.sh" << 'EOF'

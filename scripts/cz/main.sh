@@ -4,10 +4,12 @@
 set -euo pipefail
 
 # Option parsing (runtime: uses getoptions, bundle: inlines generated parser)
+# @start-kcov-exclude
 # @bundle cmd gengetoptions parser -f ./options.sh parser_definition parse
 . ./options.sh
 eval "$(getoptions parser_definition parse)"
 # @bundle end
+# @end-kcov-exclude
 
 # @bundle source
 . ./cmd_parse.sh
@@ -43,33 +45,41 @@ case $cmd in
 		cmd_parse
 		;;
 	create)
+		# @start-kcov-exclude
 		# @bundle cmd gengetoptions parser -f ./options.sh parser_definition_create parse_create
 		eval "$(getoptions parser_definition_create parse_create)"
 		# @bundle end
+		# @end-kcov-exclude
 		parse_create "$@" || exit 2
 		eval "set -- $REST"
 		cmd_create
 		;;
 	lint)
+		# @start-kcov-exclude
 		# @bundle cmd gengetoptions parser -f ./options.sh parser_definition_lint parse_lint
 		eval "$(getoptions parser_definition_lint parse_lint)"
 		# @bundle end
+		# @end-kcov-exclude
 		parse_lint "$@" || exit 2
 		eval "set -- $REST"
 		cmd_lint
 		;;
 	init)
+		# @start-kcov-exclude
 		# @bundle cmd gengetoptions parser -f ./options.sh parser_definition_init parse_init
 		eval "$(getoptions parser_definition_init parse_init)"
 		# @bundle end
+		# @end-kcov-exclude
 		parse_init "$@" || exit 2
 		eval "set -- $REST"
 		cmd_init
 		;;
 	hook)
+		# @start-kcov-exclude
 		# @bundle cmd gengetoptions parser -f ./options.sh parser_definition_hook parse_hook
 		eval "$(getoptions parser_definition_hook parse_hook)"
 		# @bundle end
+		# @end-kcov-exclude
 		parse_hook "$@" || exit 2
 		eval "set -- $REST"
 		cmd_hook "$@"

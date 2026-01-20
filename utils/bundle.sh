@@ -24,6 +24,7 @@ parser_definition() {
 		''
 	msg -- 'Options:'
 	flag STRIP_COMMENTS -s --strip-comments -- "Strip comments from source files"
+	param KEEP_COMMENTS -k --keep-comments var:PATTERN -- "Regex pattern for comments to keep when stripping"
 	flag HIDE_MARKERS -n --hide-markers -- "Suppress bundle marker comments"
 	disp :usage -h --help
 	disp VERSION -V --version
@@ -34,6 +35,7 @@ parse "$@"
 eval "set -- $REST"
 
 STRIP_COMMENTS="${STRIP_COMMENTS:-0}"
+KEEP_COMMENTS="${KEEP_COMMENTS:-}"
 HIDE_MARKERS="${HIDE_MARKERS:-0}"
 
 declare -A seen
@@ -122,9 +124,11 @@ bundle_file() {
 			continue
 		fi
 
-		# Strip full-line comments if requested (but not @bundle directives)
+		# Strip full-line comments if requested (but not @bundle directives or --keep-comments pattern)
 		if [[ "$STRIP_COMMENTS" -eq 1 && "$stripped" == '#'* && "$stripped" != '# @bundle'* ]]; then
-			continue
+			if [[ -z "$KEEP_COMMENTS" ]] || ! [[ "$stripped" =~ $KEEP_COMMENTS ]]; then
+				continue
+			fi
 		fi
 
 		case "$stripped" in

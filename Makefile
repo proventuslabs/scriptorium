@@ -42,7 +42,7 @@ ifdef NAME
 	@mkdir -p $(DIST_DIR)/$(NAME)/completions/bash $(DIST_DIR)/$(NAME)/completions/zsh
 	@if [ -f "$(SCRIPTS_DIR)/$(NAME)/main.sh" ]; then \
 		echo "  Bundling -> $(DIST_DIR)/$(NAME)/bin/$(NAME)"; \
-		utils/bundle.sh "$(SCRIPTS_DIR)/$(NAME)/main.sh" > "$(DIST_DIR)/$(NAME)/bin/$(NAME)"; \
+		utils/bundle.sh --strip-comments --keep-comments '@.*-kcov-' "$(SCRIPTS_DIR)/$(NAME)/main.sh" > "$(DIST_DIR)/$(NAME)/bin/$(NAME)"; \
 		chmod +x "$(DIST_DIR)/$(NAME)/bin/$(NAME)"; \
 	fi
 	@for adoc in $(SCRIPTS_DIR)/$(NAME)/docs/*.adoc; do \
@@ -134,7 +134,7 @@ clean:
 
 # Test: all, specific script, or utils (with coverage by default, KCOV=0 to disable)
 KCOV ?= 1
-KCOV_OPTS = $(if $(filter 1,$(KCOV)),--kcov --kcov-options="--include-pattern=$(DIST_DIR)/$(1)",)
+KCOV_OPTS = $(if $(filter 1,$(KCOV)),--kcov --kcov-options="--include-pattern=$(DIST_DIR)/$(1) --exclude-region=@start-kcov-exclude:@end-kcov-exclude",)
 
 test:
 ifdef NAME
