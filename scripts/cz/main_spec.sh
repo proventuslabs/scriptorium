@@ -319,33 +319,33 @@ EOF
 
 			It 'passes when all files match scope pattern'
 				Data "feat(api): add endpoint"
-				When run script "$BIN" lint --files "src/api/handler.go"
+				When run script "$BIN" lint --paths "src/api/handler.go"
 				The status should be success
 			End
 
 			It 'passes with multiple files matching scope'
 				Data "feat(api): add endpoint"
-				When run script "$BIN" lint --files "src/api/handler.go src/api/routes.go"
+				When run script "$BIN" lint --paths "src/api/handler.go src/api/routes.go"
 				The status should be success
 			End
 
 			It 'fails when file does not match scope'
 				Data "feat(api): add endpoint"
-				When run script "$BIN" lint --files "src/ui/button.tsx"
+				When run script "$BIN" lint --paths "src/ui/button.tsx"
 				The status should be failure
 				The stderr should include "does not match scope"
 			End
 
 			It 'fails when some files do not match scope'
 				Data "feat(api): add endpoint"
-				When run script "$BIN" lint --files "src/api/handler.go src/ui/button.tsx"
+				When run script "$BIN" lint --paths "src/api/handler.go src/ui/button.tsx"
 				The status should be failure
 				The stderr should include "src/ui/button.tsx"
 			End
 
 			It 'matches ** for recursive directories'
 				Data "feat(api): add endpoint"
-				When run script "$BIN" lint --files "src/api/deep/nested/file.go"
+				When run script "$BIN" lint --paths "src/api/deep/nested/file.go"
 				The status should be success
 			End
 
@@ -358,26 +358,26 @@ feat = Feature
 scripts = scripts/*.sh
 EOF
 				Data "feat(scripts): update script"
-				When run script "$BIN" lint --files "scripts/nested/main.sh"
+				When run script "$BIN" lint --paths "scripts/nested/main.sh"
 				The status should be failure
 				The stderr should include "does not match scope"
 			End
 
 			It 'matches multi-pattern scope (first pattern)'
 				Data "feat(nix): update flake"
-				When run script "$BIN" lint --files "flake.nix"
+				When run script "$BIN" lint --paths "flake.nix"
 				The status should be success
 			End
 
 			It 'matches multi-pattern scope (second pattern)'
 				Data "feat(nix): update flake"
-				When run script "$BIN" lint --files "flake.lock"
+				When run script "$BIN" lint --paths "flake.lock"
 				The status should be success
 			End
 
 			It 'matches multi-pattern scope (glob pattern)'
 				Data "feat(nix): update package"
-				When run script "$BIN" lint --files "scripts/default.nix"
+				When run script "$BIN" lint --paths "scripts/default.nix"
 				The status should be success
 			End
 
@@ -397,7 +397,7 @@ EOF
 feat = Feature
 EOF
 				Data "feat(anything): add feature"
-				When run script "$BIN" lint --files "any/file.txt"
+				When run script "$BIN" lint --paths "any/file.txt"
 				The status should be success
 			End
 		End
@@ -419,7 +419,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" lint --files "src/api/handler.go src/ui/button.tsx"
+				When run script "$BIN" lint --paths "src/api/handler.go src/ui/button.tsx"
 				The status should be success
 			End
 
@@ -436,7 +436,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" lint --files "src/api/x.go"
+				When run script "$BIN" lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "multi-scope not enabled"
 			End
@@ -451,7 +451,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" lint --files "src/api/x.go"
+				When run script "$BIN" lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "multi-scope not enabled"
 			End
@@ -468,7 +468,7 @@ feat = Feature
 api = src/api/**
 EOF
 				Data "feat(api,unknown): change"
-				When run script "$BIN" lint --files "src/api/x.go"
+				When run script "$BIN" lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "unknown scope"
 			End
@@ -487,7 +487,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api/ui): cross-cutting change"
-				When run script "$BIN" lint --files "src/api/handler.go src/ui/button.tsx"
+				When run script "$BIN" lint --paths "src/api/handler.go src/ui/button.tsx"
 				The status should be success
 			End
 		End
@@ -514,7 +514,7 @@ EOF
 
 			It 'lint: requires scope when files match scoped paths'
 				Data "feat: add feature"
-				When run script "$BIN" lint --files "src/api/handler.go"
+				When run script "$BIN" lint --paths "src/api/handler.go"
 				The status should be failure
 				The stderr should include "scope required"
 				The stderr should include "Hint"
@@ -522,7 +522,7 @@ EOF
 
 			It 'lint: allows no scope when files match no scoped paths'
 				Data "feat: add feature"
-				When run script "$BIN" lint --files "other/file.txt"
+				When run script "$BIN" lint --paths "other/file.txt"
 				The status should be success
 			End
 
@@ -561,7 +561,7 @@ EOF
 
 			It 'global --no-require-scope overrides config'
 				Data "feat: add feature"
-				When run script "$BIN" --no-require-scope lint -f "src/api/handler.go"
+				When run script "$BIN" --no-require-scope lint -p "src/api/handler.go"
 				The status should be success
 			End
 
@@ -577,7 +577,7 @@ feat = Feature
 api = src/api/**
 EOF
 				Data "feat: add feature"
-				When run script "$BIN" --require-scope lint --files "src/api/handler.go"
+				When run script "$BIN" --require-scope lint --paths "src/api/handler.go"
 				The status should be failure
 				The stderr should include "scope required"
 			End
@@ -597,7 +597,7 @@ api = src/api/**
 * = **
 EOF
 				Data "feat(*): generic change"
-				When run script "$BIN" lint --files "any/random/file.txt"
+				When run script "$BIN" lint --paths "any/random/file.txt"
 				The status should be success
 			End
 		End
@@ -1392,7 +1392,7 @@ feat = Feature
 special = src/[test]/**
 EOF
 			Data "feat(special): add feature"
-			When run script "$BIN" lint --files "src/[test]/file.ts"
+			When run script "$BIN" lint --paths "src/[test]/file.ts"
 			The status should be success
 		End
 
@@ -1423,7 +1423,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 			Data "feat(api/ui): cross-cutting"
-			When run script "$BIN" lint --files "src/api/x.go src/ui/y.tsx"
+			When run script "$BIN" lint --paths "src/api/x.go src/ui/y.tsx"
 			The status should be success
 		End
 
@@ -1453,7 +1453,7 @@ feat = Feature
 config = *.config.js
 EOF
 			Data "feat(config): update config"
-			When run script "$BIN" lint --files "webpack.config.js"
+			When run script "$BIN" lint --paths "webpack.config.js"
 			The status should be success
 		End
 
@@ -1466,7 +1466,7 @@ feat = Feature
 cpp = src/c++/**
 EOF
 			Data "feat(cpp): add c++ code"
-			When run script "$BIN" lint --files "src/c++/main.cpp"
+			When run script "$BIN" lint --paths "src/c++/main.cpp"
 			The status should be success
 		End
 
@@ -1479,7 +1479,7 @@ feat = Feature
 special = src/^test/**
 EOF
 			Data "feat(special): add test"
-			When run script "$BIN" lint --files "src/^test/file.ts"
+			When run script "$BIN" lint --paths "src/^test/file.ts"
 			The status should be success
 		End
 
@@ -1492,7 +1492,7 @@ feat = Feature
 money = src/$utils/**
 EOF
 			Data "feat(money): add utils"
-			When run script "$BIN" lint --files "src/\$utils/format.ts"
+			When run script "$BIN" lint --paths "src/\$utils/format.ts"
 			The status should be success
 		End
 
@@ -1505,7 +1505,7 @@ feat = Feature
 pipe = src/a|b/**
 EOF
 			Data "feat(pipe): add feature"
-			When run script "$BIN" lint --files "src/a|b/file.ts"
+			When run script "$BIN" lint --paths "src/a|b/file.ts"
 			The status should be success
 		End
 
@@ -1518,7 +1518,7 @@ feat = Feature
 group = src/(test)/**
 EOF
 			Data "feat(group): add feature"
-			When run script "$BIN" lint --files "src/(test)/file.ts"
+			When run script "$BIN" lint --paths "src/(test)/file.ts"
 			The status should be success
 		End
 
@@ -1531,7 +1531,7 @@ feat = Feature
 tmpl = src/{templates}/**
 EOF
 			Data "feat(tmpl): add template"
-			When run script "$BIN" lint --files "src/{templates}/base.html"
+			When run script "$BIN" lint --paths "src/{templates}/base.html"
 			The status should be success
 		End
 	End

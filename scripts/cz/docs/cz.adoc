@@ -16,7 +16,7 @@ cz - conventional commit message builder
 *cz* [*-r* | *--no-require-scope*] [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
 
 *cz* *create* [*--custom-scope* | *--no-custom-scope*] +
-*cz* *lint* [*-f* _FILES_] +
+*cz* *lint* [*-p* _PATHS_] +
 *cz* *parse* +
 *cz* *init* [*-f*] +
 *cz* *hook* [*install* | *uninstall* | *status*]
@@ -47,7 +47,7 @@ in a terminal, or *lint* mode if receiving input on standard input.
   The "(none)" option is still available unless *--require-scope* is also set.
 --
 
-*lint* [*-f* _FILES_]::
+*lint* [*-p* _PATHS_]::
   Validate a commit message against the Conventional Commits rules and the
   *.gitcommitizen*(5) configuration. Reads from standard input. Prints
   diagnostic messages explaining any errors. Exits non-zero if validation
@@ -55,7 +55,7 @@ in a terminal, or *lint* mode if receiving input on standard input.
   in configuration and requires a scope when files match scope patterns.
 +
 --
-*-f*, *--files* _FILES_:::
+*-p*, *--paths* _PATHS_:::
   Validate that the commit scope matches the specified file paths. Accepts a
   space-separated list of paths. Uses glob patterns from the `[scopes]`
   section of the configuration to verify the scope is appropriate for the
@@ -181,11 +181,11 @@ Lint silently (exit status only)::
 
 Lint with scope validation against specific files::
 
-  echo "feat(api): add endpoint" | cz lint --files "src/api/routes.ts"
+  echo "feat(api): add endpoint" | cz lint --paths "src/api/routes.ts"
 
 Lint with required scope for scoped files::
 
-  cz --require-scope lint --files "$(git diff --cached --name-only)" < "$1"
+  cz --require-scope lint --paths "$(git diff --cached --name-only)" < "$1"
 
 Show resolved configuration::
 
