@@ -1,0 +1,27 @@
+name: PR Title
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR_NUMBER: ${{ github.event.number }}
+      PR_TITLE: ${{ github.event.pull_request.title }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v30
+
+      - name: Validate PR title
+        run: |
+          FILES=$(gh pr view "$PR_NUMBER" --json files -q '.files[].path' | tr '\n' ' ')
+
+          if ! OUTPUT=$(echo "$PR_TITLE" | nix shell .#cz --command cz lint --files "$FILES" 2>&1); then
+            echo "::error title=Invalid PR Title::$OUTPUT"
+            exit 1
+          fi
