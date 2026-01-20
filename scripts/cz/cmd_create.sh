@@ -33,6 +33,16 @@ cmd_create() {
 	type_selection=$(_gum choose --header "Select commit type:" "${type_choices[@]}")
 	local type="${type_selection%% - *}"
 
+	# Determine require-scope mode (--require-scope/--no-require-scope override config)
+	local require_scope
+	if [[ "${REQUIRE_SCOPE-unset}" == "1" ]]; then
+		require_scope=true
+	elif [[ "${REQUIRE_SCOPE-unset}" == "" ]]; then
+		require_scope=false
+	else
+		require_scope="${CFG_SETTINGS[require_scope]:-false}"
+	fi
+
 	# Select or input scope
 	local scope=""
 	if [[ ${#CFG_SCOPES[@]} -gt 0 ]]; then
@@ -45,10 +55,10 @@ cmd_create() {
 
 		if [[ ${#scope_choices[@]} -gt 0 ]]; then
 			local scope_selection
-			if [[ -n "${STRICT_SCOPES:-}" ]]; then
-				scope_choices+=("(none)")
+			if [[ "$require_scope" == "true" ]]; then
+				# No (custom) or (none) options - must select configured scope
 				scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
-				[[ "$scope_selection" != "(none)" ]] && scope="$scope_selection"
+				scope="$scope_selection"
 			else
 				scope_choices+=("(custom)" "(none)")
 				scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")

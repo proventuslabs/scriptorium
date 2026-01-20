@@ -13,10 +13,10 @@ cz - conventional commit message builder
 
 == SYNOPSIS
 
-*cz* [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
+*cz* [*-r* | *--no-require-scope*] [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
 
-*cz* *create* [*-s*] +
-*cz* *lint* [*-f* _FILES_] [*-s* | *--no-strict*] +
+*cz* *create* +
+*cz* *lint* [*-f* _FILES_] +
 *cz* *parse* +
 *cz* *init* [*-f*] +
 *cz* *hook* [*install* | *uninstall* | *status*]
@@ -32,24 +32,19 @@ in a terminal, or *lint* mode if receiving input on standard input.
 
 == SUBCOMMANDS
 
-*create* [*-s*]::
+*create*::
   Compose a commit message interactively using *gum*(1). Prompts for type,
   scope, breaking change indicator, description, body, and footer. Output
   is written to standard output. Default when run interactively.
-  Requires *gum* to be installed.
-+
---
-*-s*, *--strict-scopes*:::
-  Only allow scopes defined in configuration, disabling custom input.
-  By default, configured scopes are shown as suggestions with an option
-  to enter a custom scope.
---
+  Requires *gum* to be installed. When *--require-scope* is enabled, only
+  configured scopes are allowed (no custom input or "(none)" option).
 
-*lint* [*-f* _FILES_] [*-s* | *--no-strict*]::
+*lint* [*-f* _FILES_]::
   Validate a commit message against the Conventional Commits rules and the
   *.gitcommitizen*(5) configuration. Reads from standard input. Prints
   diagnostic messages explaining any errors. Exits non-zero if validation
-  fails.
+  fails. When *--require-scope* is enabled, validates that scopes are defined
+  in configuration and requires a scope when files match scope patterns.
 +
 --
 *-f*, *--files* _FILES_:::
@@ -57,16 +52,6 @@ in a terminal, or *lint* mode if receiving input on standard input.
   space-separated list of paths. Uses glob patterns from the `[scopes]`
   section of the configuration to verify the scope is appropriate for the
   files being committed.
-
-*-s*, *--strict*:::
-  Enable strict scope validation. Requires that any scope used in the commit
-  message is defined in the `[scopes]` section of the configuration. Also
-  requires a scope when specified files match defined scope patterns.
-  Overrides the `strict` setting in the configuration file.
-
-*--no-strict*:::
-  Allow commits without scope even when files match scope patterns.
-  Overrides the `strict` setting in the configuration file.
 --
 
 *parse*::
@@ -95,6 +80,18 @@ in a terminal, or *lint* mode if receiving input on standard input.
   Use _FILE_ instead of *.gitcommitizen*. Searches parent directories if
   not specified.
 
+*-r*, *--require-scope*::
+  Enforce scope requirements. Affects both *create* and *lint* commands.
+  For *create*: only configured scopes are allowed (no custom input).
+  For *lint*: requires scope when files match scope patterns, and validates
+  that any scope used is defined in configuration. Overrides the `require-scope`
+  setting in the configuration file. See BEHAVIOR TABLE below for details.
+
+*--no-require-scope*::
+  Disable scope requirements. Allows custom scopes in *create* and commits
+  without scope in *lint* even when files match scope patterns. Overrides
+  the `require-scope` setting in the configuration file.
+
 *-q*, *--quiet*::
   Suppress warnings and non-essential output.
 
@@ -111,11 +108,39 @@ in a terminal, or *lint* mode if receiving input on standard input.
   configuration is found, the Angular convention is used (feat, fix, docs,
   style, refactor, perf, test, build, ci, chore, revert).
 
+== BEHAVIOR TABLE
+
+The *--require-scope* option affects both *create* and *lint* commands:
+
+[cols="1,2,2", options="header"]
+|===
+|Flag |create |lint
+
+|default (no flag)
+|Shows configured scopes + "(custom)" + "(none)"
+|Validates format; scope is optional
+
+|*--require-scope*
+|Shows only configured scopes (no custom, no none)
+|Requires scope for scoped files; validates scope exists
+
+|*--no-require-scope*
+|Same as default
+|Allows no scope even for scoped files
+|===
+
+The config setting `require-scope = true` in `[settings]` has the same effect as
+*--require-scope*, but CLI flags override the config setting.
+
 == EXAMPLES
 
 Create and commit interactively::
 
   git commit -m "$(cz)"
+
+Create with required scopes (only configured scopes allowed)::
+
+  git commit -m "$(cz --require-scope)"
 
 Lint the last commit message::
 
@@ -133,9 +158,9 @@ Lint with scope validation against specific files::
 
   echo "feat(api): add endpoint" | cz lint --files "src/api/routes.ts"
 
-Lint with strict mode (require scope for scoped files)::
+Lint with required scope for scoped files::
 
-  cz lint --files "$(git diff --cached --name-only)" --strict < "$1"
+  cz --require-scope lint --files "$(git diff --cached --name-only)" < "$1"
 
 Show resolved configuration::
 

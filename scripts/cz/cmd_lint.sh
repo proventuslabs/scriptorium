@@ -101,19 +101,19 @@ is_multi_scope() { [[ "$1" == *"$(_get_sep)"* ]]; }
 # Validate paths against scope(s) if INI format and files provided
 # Usage: validate_paths_if_needed <scope>
 validate_paths_if_needed() {
-	local scope="$1" strict_mode
+	local scope="$1" require_scope
 
-	# Determine strict mode (--strict/--no-strict override config)
-	if [[ "${STRICT-unset}" == "1" ]]; then
-		strict_mode=true
-	elif [[ "${STRICT-unset}" == "" ]]; then
-		strict_mode=false
+	# Determine require-scope mode (--require-scope/--no-require-scope override config)
+	if [[ "${REQUIRE_SCOPE-unset}" == "1" ]]; then
+		require_scope=true
+	elif [[ "${REQUIRE_SCOPE-unset}" == "" ]]; then
+		require_scope=false
 	else
-		strict_mode="${CFG_SETTINGS[strict]:-false}"
+		require_scope="${CFG_SETTINGS[require_scope]:-false}"
 	fi
 
-	# In strict mode with scope, validate scope exists
-	if [[ "$strict_mode" == "true" && -n "$scope" ]]; then
+	# In require-scope mode with scope, validate scope exists
+	if [[ "$require_scope" == "true" && -n "$scope" ]]; then
 		[[ ${#CFG_SCOPES[@]} -eq 0 ]] && {
 			_err "scope '$scope' used but no scopes defined in config"
 			return 1
@@ -132,11 +132,11 @@ validate_paths_if_needed() {
 	mapfile -t files < <(get_files_to_validate)
 	[[ ${#files[@]} -eq 0 ]] && return 0
 
-	# No scope provided - strict mode check
+	# No scope provided - require-scope mode check
 	if [[ -z "$scope" ]]; then
-		[[ "$strict_mode" != "true" ]] && return 0
+		[[ "$require_scope" != "true" ]] && return 0
 		if ! validate_strict_no_scope "${files[@]}"; then
-			_err "strict mode requires scope for scoped files"
+			_err "scope required for scoped files"
 			_show_errors "${STRICT_MATCHES[@]}"
 			_hint "Hint: add a scope that matches these files"
 			return 1

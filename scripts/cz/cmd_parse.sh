@@ -24,7 +24,7 @@ cmd_parse() {
 	# Show settings
 	if [[ ${#CFG_SETTINGS[@]} -gt 0 ]]; then
 		echo "Settings:"
-		[[ -v CFG_SETTINGS[strict] ]] && echo "  strict = ${CFG_SETTINGS[strict]}"
+		[[ -v CFG_SETTINGS[require_scope] ]] && echo "  require-scope = ${CFG_SETTINGS[require_scope]}"
 		[[ -v CFG_SETTINGS[multi_scope] ]] && echo "  multi-scope = ${CFG_SETTINGS[multi_scope]}"
 		[[ -v CFG_SETTINGS[multi_scope_separator] ]] && echo "  multi-scope-separator = ${CFG_SETTINGS[multi_scope_separator]}"
 		echo
