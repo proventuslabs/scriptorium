@@ -91,8 +91,8 @@ cmd_lint() {
 # Usage: get_files_to_validate
 # Returns file list (one per line) or empty string
 get_files_to_validate() {
-	[[ -z "${FILES:-}" ]] && return
-	echo "$FILES" | tr ' ' '\n' | grep -v '^$'
+	[[ -z "${PATHS:-}" ]] && return
+	echo "$PATHS" | tr ' ' '\n' | grep -v '^$'
 }
 
 # Check if scope contains multi-scope separator
