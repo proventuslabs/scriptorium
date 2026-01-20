@@ -22,6 +22,25 @@ theme_discover_provider() {
 	return 1
 }
 
+# Discover detector functions by prefix
+# Sets THEME_DETECTORS array with all discovered detector function names
+theme_discover_detectors() {
+	THEME_DETECTORS=()
+
+	# Find functions matching theme_detector_* prefix, sorted alphabetically
+	# grep returns 1 when no matches, so use || true to handle empty results
+	local detectors
+	detectors=$(declare -F | awk '{print $3}' | grep '^theme_detector_' | sort) || true
+
+	if [[ -n "$detectors" ]]; then
+		while IFS= read -r detector; do
+			THEME_DETECTORS+=("$detector")
+		done <<<"$detectors"
+	fi
+
+	return 0
+}
+
 # Discover handler functions by prefix
 # Sets THEME_HANDLERS array with all discovered handler function names
 theme_discover_handlers() {
@@ -64,9 +83,12 @@ theme_source_handlers_dir() {
 }
 
 # Source user configuration files
-# Sources: config.sh, provider.sh, handlers.d/*.sh
+# Sources: detectors.d/*.sh, config.sh, provider.sh, handlers.d/*.sh
 theme_source_config() {
 	local config_dir="${1:-$THEME_CONFIG_DIR}"
+
+	# Source detectors first (needed before detection)
+	theme_source_handlers_dir "$config_dir/detectors.d"
 
 	# Source user config if exists
 	if [[ -f "$config_dir/config.sh" ]]; then
@@ -86,11 +108,23 @@ theme_source_config() {
 	return 0
 }
 
-# List discovered provider and handlers
+# List discovered detectors, provider, and handlers
 theme_list() {
+	theme_discover_detectors
 	theme_discover_provider || true
 	theme_discover_handlers
 
+	echo "Detectors:"
+	if [[ ${#THEME_DETECTORS[@]} -gt 0 ]]; then
+		local d
+		for d in "${THEME_DETECTORS[@]}"; do
+			echo "  $d"
+		done
+	else
+		echo "  (none found)"
+	fi
+
+	echo ""
 	echo "Provider:"
 	if [[ -n "$THEME_PROVIDER" ]]; then
 		echo "  $THEME_PROVIDER"

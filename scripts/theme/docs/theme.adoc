@@ -18,20 +18,20 @@ theme - extensible theme orchestrator for shell environments
 == DESCRIPTION
 
 *theme* detects the system appearance (dark or light mode) and orchestrates
-theme configuration across multiple tools via an extensible provider/handler
+theme configuration across multiple tools via an extensible detector/provider/handler
 system.
 
 The command performs three steps:
 
-1. *Detection* - Determines system appearance (dark/light) using OS-native
-   methods
+1. *Detection* - Determines system appearance (dark/light) using user-provided
+   detector functions
 2. *Provider* - Calls a user-registered provider function that maps appearance
    to theme variables (e.g., THEME_VARIANT, THEME_ACCENT)
 3. *Handlers* - Calls all registered handler functions that configure
    individual tools using the exported theme variables
 
-Providers and handlers are auto-discovered by function name prefix or loaded
-from configuration files.
+Detectors, providers, and handlers are auto-discovered by function name prefix
+or loaded from configuration files.
 
 == OPTIONS
 
@@ -40,7 +40,7 @@ from configuration files.
   the provider or handlers.
 
 *-l*, *--list*::
-  List the discovered provider and all registered handlers.
+  List the discovered detectors, provider, and all registered handlers.
 
 *-q*, *--quiet*::
   Suppress warning messages.
@@ -57,28 +57,107 @@ from configuration files.
   Override the detected appearance. When specified, detection is skipped and
   this value is passed directly to the provider.
 
-== DETECTION
+== DETECTORS
 
-*theme* uses OS-native methods to detect appearance:
+Detectors are user-provided shell functions that detect the system appearance.
+This allows users to implement detection for their specific system rather than
+relying on hardcoded methods.
+
+=== Detector Contract
+
+Detectors must:
+
+* Be named with prefix `theme_detector_` (e.g., `theme_detector_macos`)
+* Return 1 if detection doesn't apply (wrong OS, missing tools)
+* Return 0 and set `THEME_APPEARANCE=dark` or `THEME_APPEARANCE=light` on success
+
+=== Detector Discovery
+
+Detectors are discovered from:
+
+1. Functions matching `theme_detector_*` in current shell
+2. Functions defined in scripts under `~/.config/theme/detectors.d/*.sh`
+
+Detectors are tried in alphabetical order. The first one that returns 0 wins.
+
+=== Detection Fallback
+
+If no detector succeeds:
+
+1. Uses `THEME` environment variable if set to "dark" or "light"
+2. Otherwise defaults to "light"
+
+=== Example Detectors
 
 *macOS*::
-  Reads `AppleInterfaceStyle` via `defaults read -g AppleInterfaceStyle`.
-  Returns "dark" if set to "Dark", otherwise "light".
++
+[source,bash]
+----
+theme_detector_macos() {
+  [[ "$(uname -s)" == "Darwin" ]] || return 1
+  command -v defaults >/dev/null || return 1
 
-*Linux (GNOME/Unity)*::
-  Queries `org.gnome.desktop.interface color-scheme` via `gsettings`.
+  if defaults read -g AppleInterfaceStyle 2>/dev/null | grep -qi dark; then
+    THEME_APPEARANCE=dark
+  else
+    THEME_APPEARANCE=light
+  fi
+}
+----
 
-*Linux (KDE Plasma)*::
-  Reads `ColorScheme` from `kdeglobals` via `kreadconfig5`.
+*GNOME*::
++
+[source,bash]
+----
+theme_detector_gnome() {
+  [[ "${XDG_CURRENT_DESKTOP:-}" == *GNOME* ]] || return 1
+  command -v gsettings >/dev/null || return 1
 
-*Linux (XFCE)*::
-  Queries `/Net/ThemeName` via `xfconf-query`.
+  local scheme
+  scheme=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null) || return 1
 
-*Windows (WSL/Cygwin)*::
-  Queries `AppsUseLightTheme` from Windows registry via `reg.exe`.
+  case "$scheme" in
+    *dark*) THEME_APPEARANCE=dark ;;
+    *)      THEME_APPEARANCE=light ;;
+  esac
+}
+----
 
-*Fallback*::
-  Uses `THEME` environment variable if set, otherwise defaults to "light".
+*KDE Plasma*::
++
+[source,bash]
+----
+theme_detector_kde() {
+  command -v kreadconfig5 >/dev/null || return 1
+
+  local scheme
+  scheme=$(kreadconfig5 --file kdeglobals --group General --key ColorScheme 2>/dev/null) || return 1
+
+  case "${scheme,,}" in
+    *dark*) THEME_APPEARANCE=dark ;;
+    *)      THEME_APPEARANCE=light ;;
+  esac
+}
+----
+
+*Windows (WSL)*::
++
+[source,bash]
+----
+theme_detector_wsl() {
+  [[ -n "${WSL_DISTRO_NAME:-}" ]] || return 1
+  command -v reg.exe >/dev/null || return 1
+
+  local result
+  result=$(reg.exe query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize" /v AppsUseLightTheme 2>/dev/null) || return 1
+
+  if [[ "$result" == *"0x0"* ]]; then
+    THEME_APPEARANCE=dark
+  else
+    THEME_APPEARANCE=light
+  fi
+}
+----
 
 == PROVIDERS
 
@@ -181,8 +260,12 @@ theme_handler_bottom() {
 == FILES
 
 *~/.config/theme/config.sh*::
-  User configuration file. Sourced before provider/handler discovery.
-  Can be used to set default variables or configure behavior.
+  User configuration file. Sourced after detectors but before provider/handler
+  discovery. Can be used to set default variables or configure behavior.
+
+*~/.config/theme/detectors.d/*.sh*::
+  Detector scripts. All `.sh` files in this directory are sourced first.
+  Define `theme_detector_*` functions to detect system appearance.
 
 *~/.config/theme/provider.sh*::
   Custom provider definition. Sourced during provider discovery.
@@ -242,6 +325,16 @@ Add to shell configuration for automatic theming on startup:
 ----
 # ~/.bashrc or ~/.zshrc
 source /path/to/theme.sh
+
+# Define detector (required - detection is user-provided)
+theme_detector_macos() {
+  [[ "$(uname -s)" == "Darwin" ]] || return 1
+  if defaults read -g AppleInterfaceStyle 2>/dev/null | grep -qi dark; then
+    THEME_APPEARANCE=dark
+  else
+    THEME_APPEARANCE=light
+  fi
+}
 
 # Define provider
 theme_provider_catppuccin() {

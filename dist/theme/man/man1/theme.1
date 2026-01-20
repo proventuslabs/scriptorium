@@ -35,7 +35,7 @@ theme \- extensible theme orchestrator for shell environments
 .SH "DESCRIPTION"
 .sp
 \fBtheme\fP detects the system appearance (dark or light mode) and orchestrates
-theme configuration across multiple tools via an extensible provider/handler
+theme configuration across multiple tools via an extensible detector/provider/handler
 system.
 .sp
 The command performs three steps:
@@ -48,8 +48,8 @@ The command performs three steps:
 .  sp -1
 .  IP " 1." 4.2
 .\}
-\fBDetection\fP \- Determines system appearance (dark/light) using OS\-native
-methods
+\fBDetection\fP \- Determines system appearance (dark/light) using user\-provided
+detector functions
 .RE
 .sp
 .RS 4
@@ -76,8 +76,8 @@ to theme variables (e.g., THEME_VARIANT, THEME_ACCENT)
 individual tools using the exported theme variables
 .RE
 .sp
-Providers and handlers are auto\-discovered by function name prefix or loaded
-from configuration files.
+Detectors, providers, and handlers are auto\-discovered by function name prefix
+or loaded from configuration files.
 .SH "OPTIONS"
 .sp
 \fB\-d\fP, \fB\-\-detect\fP
@@ -88,7 +88,7 @@ the provider or handlers.
 .sp
 \fB\-l\fP, \fB\-\-list\fP
 .RS 4
-List the discovered provider and all registered handlers.
+List the discovered detectors, provider, and all registered handlers.
 .RE
 .sp
 \fB\-q\fP, \fB\-\-quiet\fP
@@ -112,39 +112,189 @@ Show version information and exit.
 Override the detected appearance. When specified, detection is skipped and
 this value is passed directly to the provider.
 .RE
-.SH "DETECTION"
+.SH "DETECTORS"
 .sp
-\fBtheme\fP uses OS\-native methods to detect appearance:
+Detectors are user\-provided shell functions that detect the system appearance.
+This allows users to implement detection for their specific system rather than
+relying on hardcoded methods.
+.SS "Detector Contract"
+.sp
+Detectors must:
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Be named with prefix \f(CRtheme_detector_\fP (e.g., \f(CRtheme_detector_macos\fP)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Return 1 if detection doesn\(cqt apply (wrong OS, missing tools)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.  sp -1
+.  IP \(bu 2.3
+.\}
+Return 0 and set \f(CRTHEME_APPEARANCE=dark\fP or \f(CRTHEME_APPEARANCE=light\fP on success
+.RE
+.SS "Detector Discovery"
+.sp
+Detectors are discovered from:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 1." 4.2
+.\}
+Functions matching \f(CRtheme_detector_*\fP in current shell
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 2." 4.2
+.\}
+Functions defined in scripts under \f(CR~/.config/theme/detectors.d/*.sh\fP
+.RE
+.sp
+Detectors are tried in alphabetical order. The first one that returns 0 wins.
+.SS "Detection Fallback"
+.sp
+If no detector succeeds:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 1." 4.2
+.\}
+Uses \f(CRTHEME\fP environment variable if set to "dark" or "light"
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 2." 4.2
+.\}
+Otherwise defaults to "light"
+.RE
+.SS "Example Detectors"
 .sp
 \fBmacOS\fP
 .RS 4
-Reads \f(CRAppleInterfaceStyle\fP via \f(CRdefaults read \-g AppleInterfaceStyle\fP.
-Returns "dark" if set to "Dark", otherwise "light".
+.sp
+.if n .RS 4
+.nf
+.fam C
+theme_detector_macos() {
+  [[ "$(uname \-s)" == "Darwin" ]] || return 1
+  command \-v defaults >/dev/null || return 1
+
+  if defaults read \-g AppleInterfaceStyle 2>/dev/null | grep \-qi dark; then
+    THEME_APPEARANCE=dark
+  else
+    THEME_APPEARANCE=light
+  fi
+}
+.fam
+.fi
+.if n .RE
 .RE
 .sp
-\fBLinux (GNOME/Unity)\fP
+\fBGNOME\fP
 .RS 4
-Queries \f(CRorg.gnome.desktop.interface color\-scheme\fP via \f(CRgsettings\fP.
+.sp
+.if n .RS 4
+.nf
+.fam C
+theme_detector_gnome() {
+  [[ "${XDG_CURRENT_DESKTOP:\-}" == *GNOME* ]] || return 1
+  command \-v gsettings >/dev/null || return 1
+
+  local scheme
+  scheme=$(gsettings get org.gnome.desktop.interface color\-scheme 2>/dev/null) || return 1
+
+  case "$scheme" in
+    *dark*) THEME_APPEARANCE=dark ;;
+    *)\&      THEME_APPEARANCE=light ;;
+  esac
+}
+.fam
+.fi
+.if n .RE
 .RE
 .sp
-\fBLinux (KDE Plasma)\fP
+\fBKDE Plasma\fP
 .RS 4
-Reads \f(CRColorScheme\fP from \f(CRkdeglobals\fP via \f(CRkreadconfig5\fP.
+.sp
+.if n .RS 4
+.nf
+.fam C
+theme_detector_kde() {
+  command \-v kreadconfig5 >/dev/null || return 1
+
+  local scheme
+  scheme=$(kreadconfig5 \-\-file kdeglobals \-\-group General \-\-key ColorScheme 2>/dev/null) || return 1
+
+  case "${scheme,,}" in
+    *dark*) THEME_APPEARANCE=dark ;;
+    *)\&      THEME_APPEARANCE=light ;;
+  esac
+}
+.fam
+.fi
+.if n .RE
 .RE
 .sp
-\fBLinux (XFCE)\fP
+\fBWindows (WSL)\fP
 .RS 4
-Queries \f(CR/Net/ThemeName\fP via \f(CRxfconf\-query\fP.
-.RE
 .sp
-\fBWindows (WSL/Cygwin)\fP
-.RS 4
-Queries \f(CRAppsUseLightTheme\fP from Windows registry via \f(CRreg.exe\fP.
-.RE
-.sp
-\fBFallback\fP
-.RS 4
-Uses \f(CRTHEME\fP environment variable if set, otherwise defaults to "light".
+.if n .RS 4
+.nf
+.fam C
+theme_detector_wsl() {
+  [[ \-n "${WSL_DISTRO_NAME:\-}" ]] || return 1
+  command \-v reg.exe >/dev/null || return 1
+
+  local result
+  result=$(reg.exe query "HKCU\(rs\(rsSoftware\(rs\(rsMicrosoft\(rs\(rsWindows\(rs\(rsCurrentVersion\(rs\(rsThemes\(rs\(rsPersonalize" /v AppsUseLightTheme 2>/dev/null) || return 1
+
+  if [[ "$result" == *"0x0"* ]]; then
+    THEME_APPEARANCE=dark
+  else
+    THEME_APPEARANCE=light
+  fi
+}
+.fam
+.fi
+.if n .RE
 .RE
 .SH "PROVIDERS"
 .sp
@@ -346,8 +496,14 @@ theme_handler_bottom() {
 .sp
 \fB~/.config/theme/config.sh\fP
 .RS 4
-User configuration file. Sourced before provider/handler discovery.
-Can be used to set default variables or configure behavior.
+User configuration file. Sourced after detectors but before provider/handler
+discovery. Can be used to set default variables or configure behavior.
+.RE
+.sp
+\fB~/.config/theme/detectors.d/\fP.sh*
+.RS 4
+Detector scripts. All \f(CR.sh\fP files in this directory are sourced first.
+Define \f(CRtheme_detector_*\fP functions to detect system appearance.
 .RE
 .sp
 \fB~/.config/theme/provider.sh\fP
@@ -453,6 +609,16 @@ Add to shell configuration for automatic theming on startup:
 .fam C
 # ~/.bashrc or ~/.zshrc
 source /path/to/theme.sh
+
+# Define detector (required \- detection is user\-provided)
+theme_detector_macos() {
+  [[ "$(uname \-s)" == "Darwin" ]] || return 1
+  if defaults read \-g AppleInterfaceStyle 2>/dev/null | grep \-qi dark; then
+    THEME_APPEARANCE=dark
+  else
+    THEME_APPEARANCE=light
+  fi
+}
 
 # Define provider
 theme_provider_catppuccin() {
