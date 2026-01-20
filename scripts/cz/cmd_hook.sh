@@ -58,7 +58,7 @@ HOOK
 # Pass staged files for scope-to-path validation
 files=$(git diff --cached --name-only | tr '\n' ' ')
 if [ -n "$files" ]; then
-    cz lint --files "$files" <"$1" || exit 1
+    cz lint --paths "$files" <"$1" || exit 1
 else
     cz lint <"$1" || exit 1
 fi
