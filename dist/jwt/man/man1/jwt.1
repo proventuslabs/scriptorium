@@ -68,7 +68,7 @@ Display all parts as a JSON object with \fBheader\fP, \fBpayload\fP, and
 .RE
 .SS "Verification"
 .sp
-\fB\-v\fP, \fB\-\-verify\fP=\fISECRET_OR_KEY\fP
+\fB\-k\fP, \fB\-\-key\fP=\fISECRET_OR_KEY\fP
 .RS 4
 Verify the JWT signature. The value can be:
 .sp
@@ -335,8 +335,8 @@ cat token.txt | jwt \-\-header
 .sp
 Read key from stdin
 .RS 4
-echo "secret" | jwt \-v @\- "$TOKEN"
-jwt \-v \- "$TOKEN" < keyfile.pem
+echo "secret" | jwt \-k @\- "$TOKEN"
+jwt \-k \- "$TOKEN" < keyfile.pem
 .RE
 .SH "EXIT STATUS"
 .sp
