@@ -134,7 +134,7 @@ clean:
 
 # Test: all, specific script, or utils (with coverage by default, KCOV=0 to disable)
 KCOV ?= 1
-KCOV_OPTS = $(if $(filter 1,$(KCOV)),--kcov --kcov-options="--include-pattern=$(DIST_DIR)/$(1)",)
+KCOV_OPTS = $(if $(filter 1,$(KCOV)),--kcov --kcov-options="--include-pattern=$(DIST_DIR)/$(1) --exclude-region=@start-kcov-exclude:@end-kcov-exclude",)
 
 test:
 ifdef NAME
