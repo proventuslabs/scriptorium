@@ -23,7 +23,7 @@ eval "set -- $REST"
 # Set globals for jwt functions
 JWT_QUIET="${QUIET:-}"
 
-# Handle -v value: secret string, @file, @-, or -
+# Handle -k value: secret string, @file, @-, or -
 # Always pass content to verify_signature (it handles temp files for asymmetric)
 verify_key=${VERIFY:-}
 if [[ -n $verify_key ]]; then

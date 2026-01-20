@@ -17,7 +17,7 @@ parser_definition() {
 	flag    OUTPUT  -A --all                      on:all     -- "Display all parts as JSON"
 	msg -- ''
 	msg -- '  Verification:'
-	param   VERIFY  -v --verify -- "Verify signature (secret, @file, or @-/- for stdin)"
+	param   VERIFY  -k --key -- "Verify signature (secret, @file, or @-/- for stdin)"
 	msg -- ''
 	msg -- '  General:'
 	flag    QUIET   -q --quiet -- "Suppress warnings"

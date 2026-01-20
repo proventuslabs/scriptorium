@@ -9,7 +9,7 @@ _jwt() {
 		'(-H --header -P --payload -S --signature -A --all)'{-P,--payload}'[Display JWT payload (default)]' \
 		'(-H --header -P --payload -S --signature -A --all)'{-S,--signature}'[Display raw signature]' \
 		'(-H --header -P --payload -S --signature -A --all)'{-A,--all}'[Display all parts as JSON]' \
-		'(-v --verify)'{-v,--verify}'[Verify signature with secret or key file]:secret or key file:_files' \
+		'(-k --key)'{-k,--key}'[Verify signature with secret or key file]:secret or key file:_files' \
 		'(-q --quiet)'{-q,--quiet}'[Suppress warnings]' \
 		'(-h --help)'{-h,--help}'[Show help message]' \
 		'(-V --version)'{-V,--version}'[Show version]' \
