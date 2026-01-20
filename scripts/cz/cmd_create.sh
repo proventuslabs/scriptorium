@@ -43,8 +43,10 @@ cmd_create() {
 		require_scope="${CFG_SETTINGS[require_scope]:-false}"
 	fi
 
-	# Determine no-custom-scope mode (create-specific flag)
-	local no_custom_scope="${NO_CUSTOM_SCOPE:-}"
+	# Determine custom-scope mode (--custom-scope/--no-custom-scope)
+	# Default (unset) allows custom scope; --no-custom-scope disables it
+	local allow_custom_scope=true
+	[[ "${CUSTOM_SCOPE-unset}" == "" ]] && allow_custom_scope=false
 
 	# Select or input scope
 	local scope=""
@@ -59,9 +61,9 @@ cmd_create() {
 		if [[ ${#scope_choices[@]} -gt 0 ]]; then
 			local scope_selection
 			# Add options based on flags:
-			# - (custom): only if no_custom_scope is not set
+			# - (custom): only if allow_custom_scope is true
 			# - (none): only if require_scope is not set
-			[[ -z "$no_custom_scope" ]] && scope_choices+=("(custom)")
+			[[ "$allow_custom_scope" == "true" ]] && scope_choices+=("(custom)")
 			[[ "$require_scope" != "true" ]] && scope_choices+=("(none)")
 
 			scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
