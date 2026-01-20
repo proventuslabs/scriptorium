@@ -132,87 +132,6 @@ GETOPTIONSHERE
 
 # --- begin: scripts/theme/detect.sh ---
 
-_theme_detect_macos() {
-	local result
-	if ! command -v defaults >/dev/null 2>&1; then
-		return 1
-	fi
-
-	if result=$(defaults read -g AppleInterfaceStyle 2>/dev/null); then
-		case "${result,,}" in
-			dark) THEME_APPEARANCE=dark ;;
-			*) THEME_APPEARANCE=light ;;
-		esac
-	else
-		THEME_APPEARANCE=light
-	fi
-	return 0
-}
-
-_theme_detect_linux() {
-	local result
-	local desktop="${XDG_CURRENT_DESKTOP:-}"
-
-	case "$desktop" in
-		GNOME | Unity | ubuntu:GNOME | gnome)
-			if command -v gsettings >/dev/null 2>&1; then
-				result=$(gsettings get org.gnome.desktop.interface color-scheme 2>/dev/null) || return 1
-				case "$result" in
-					*prefer-dark* | *dark*) THEME_APPEARANCE=dark ;;
-					*) THEME_APPEARANCE=light ;;
-				esac
-				return 0
-			fi
-			;;
-		KDE | plasma)
-			if command -v kreadconfig5 >/dev/null 2>&1; then
-				result=$(kreadconfig5 --file kdeglobals --group General --key ColorScheme 2>/dev/null) || return 1
-				case "${result,,}" in
-					*dark*) THEME_APPEARANCE=dark ;;
-					*) THEME_APPEARANCE=light ;;
-				esac
-				return 0
-			elif command -v kreadconfig >/dev/null 2>&1; then
-				result=$(kreadconfig --file kdeglobals --group General --key ColorScheme 2>/dev/null) || return 1
-				case "${result,,}" in
-					*dark*) THEME_APPEARANCE=dark ;;
-					*) THEME_APPEARANCE=light ;;
-				esac
-				return 0
-			fi
-			;;
-		XFCE | xfce)
-			if command -v xfconf-query >/dev/null 2>&1; then
-				result=$(xfconf-query -c xsettings -p /Net/ThemeName 2>/dev/null) || return 1
-				case "${result,,}" in
-					*dark*) THEME_APPEARANCE=dark ;;
-					*) THEME_APPEARANCE=light ;;
-				esac
-				return 0
-			fi
-			;;
-	esac
-
-	return 1
-}
-
-_theme_detect_windows() {
-	local result
-
-	if ! command -v reg.exe >/dev/null 2>&1; then
-		return 1
-	fi
-
-	result=$(reg.exe query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize" /v AppsUseLightTheme 2>/dev/null) || return 1
-
-	if [[ "$result" == *"0x0"* ]]; then
-		THEME_APPEARANCE=dark
-	else
-		THEME_APPEARANCE=light
-	fi
-	return 0
-}
-
 theme_detect() {
 	local override="${1:-}"
 
@@ -235,32 +154,14 @@ theme_detect() {
 		esac
 	fi
 
-	case "$(uname -s)" in
-		Darwin)
-			if _theme_detect_macos; then
-				THEME_SOURCE=detected
-				return 0
-			fi
-			;;
-		Linux)
-			if [[ -n "${WSL_DISTRO_NAME:-}" ]] || grep -qi microsoft /proc/version 2>/dev/null; then
-				if _theme_detect_windows; then
-					THEME_SOURCE=detected
-					return 0
-				fi
-			fi
-			if _theme_detect_linux; then
-				THEME_SOURCE=detected
-				return 0
-			fi
-			;;
-		CYGWIN* | MINGW* | MSYS*)
-			if _theme_detect_windows; then
-				THEME_SOURCE=detected
-				return 0
-			fi
-			;;
-	esac
+	theme_discover_detectors
+	local detector
+	for detector in "${THEME_DETECTORS[@]}"; do
+		if "$detector"; then
+			THEME_SOURCE=detected
+			return 0
+		fi
+	done
 
 	if [[ -n "${THEME:-}" ]]; then
 		case "${THEME,,}" in
@@ -300,6 +201,21 @@ theme_discover_provider() {
 	return 1
 }
 
+theme_discover_detectors() {
+	THEME_DETECTORS=()
+
+	local detectors
+	detectors=$(declare -F | awk '{print $3}' | grep '^theme_detector_' | sort) || true
+
+	if [[ -n "$detectors" ]]; then
+		while IFS= read -r detector; do
+			THEME_DETECTORS+=("$detector")
+		done <<<"$detectors"
+	fi
+
+	return 0
+}
+
 theme_discover_handlers() {
 	THEME_HANDLERS=()
 
@@ -335,6 +251,8 @@ theme_source_handlers_dir() {
 theme_source_config() {
 	local config_dir="${1:-$THEME_CONFIG_DIR}"
 
+	theme_source_handlers_dir "$config_dir/detectors.d"
+
 	if [[ -f "$config_dir/config.sh" ]]; then
 		source "$config_dir/config.sh"
 	fi
@@ -349,9 +267,21 @@ theme_source_config() {
 }
 
 theme_list() {
+	theme_discover_detectors
 	theme_discover_provider || true
 	theme_discover_handlers
 
+	echo "Detectors:"
+	if [[ ${#THEME_DETECTORS[@]} -gt 0 ]]; then
+		local d
+		for d in "${THEME_DETECTORS[@]}"; do
+			echo "  $d"
+		done
+	else
+		echo "  (none found)"
+	fi
+
+	echo ""
 	echo "Provider:"
 	if [[ -n "$THEME_PROVIDER" ]]; then
 		echo "  $THEME_PROVIDER"
@@ -441,6 +371,7 @@ eval "set -- $REST"
 THEME_QUIET="${QUIET:-}"
 
 if [[ "${DETECT:-}" == "1" ]]; then
+	theme_source_config
 	theme_detect "${1:-}"
 	printf '%s\n' "$THEME_APPEARANCE"
 	exit 0

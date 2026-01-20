@@ -27,6 +27,7 @@ THEME_QUIET="${QUIET:-}"
 
 # Handle flags
 if [[ "${DETECT:-}" == "1" ]]; then
+	theme_source_config
 	theme_detect "${1:-}"
 	printf '%s\n' "$THEME_APPEARANCE"
 	exit 0

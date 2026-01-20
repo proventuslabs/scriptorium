@@ -364,6 +364,134 @@ EOF
 	End
 
 	#═══════════════════════════════════════════════════════════════
+	# PLUGGABLE DETECTION
+	#═══════════════════════════════════════════════════════════════
+	Describe 'pluggable detection'
+		# These tests verify detection uses user-provided detector functions
+		# from detectors.d/ directory, not hardcoded system detection.
+
+		It 'uses detector function for detection'
+			mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+			cat > "$XDG_CONFIG_HOME/theme/detectors.d/always_dark.sh" << 'EOF'
+theme_detector_always_dark() {
+	THEME_APPEARANCE=dark
+	return 0
+}
+EOF
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	echo "DETECTED=$1"
+}
+EOF
+			When run script "$BIN"
+			The status should be success
+			The output should equal "DETECTED=dark"
+		End
+
+		It 'tries detectors in alphabetical order until one succeeds'
+			mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+			cat > "$XDG_CONFIG_HOME/theme/detectors.d/aaa_fail.sh" << 'EOF'
+theme_detector_aaa_fail() {
+	return 1
+}
+EOF
+			cat > "$XDG_CONFIG_HOME/theme/detectors.d/bbb_dark.sh" << 'EOF'
+theme_detector_bbb_dark() {
+	THEME_APPEARANCE=dark
+	return 0
+}
+EOF
+			cat > "$XDG_CONFIG_HOME/theme/detectors.d/ccc_light.sh" << 'EOF'
+theme_detector_ccc_light() {
+	THEME_APPEARANCE=light
+	return 0
+}
+EOF
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	echo "DETECTED=$1"
+}
+EOF
+			When run script "$BIN"
+			The status should be success
+			The output should equal "DETECTED=dark"
+		End
+
+		It 'falls back to THEME env var when no detector succeeds'
+			mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+			cat > "$XDG_CONFIG_HOME/theme/detectors.d/always_fail.sh" << 'EOF'
+theme_detector_always_fail() {
+	return 1
+}
+EOF
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	echo "SOURCE=$2"
+}
+EOF
+			export THEME=dark
+			When run script "$BIN"
+			The status should be success
+			The output should equal "SOURCE=environment"
+		End
+
+		It 'falls back to light when no detector and no THEME env'
+			mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+			cat > "$XDG_CONFIG_HOME/theme/detectors.d/always_fail.sh" << 'EOF'
+theme_detector_always_fail() {
+	return 1
+}
+EOF
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	echo "RESULT=$1 SOURCE=$2"
+}
+EOF
+			When run script "$BIN"
+			The status should be success
+			The output should equal "RESULT=light SOURCE=default"
+		End
+
+		It 'sets source to detected when detector succeeds'
+			mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+			cat > "$XDG_CONFIG_HOME/theme/detectors.d/test.sh" << 'EOF'
+theme_detector_test() {
+	THEME_APPEARANCE=dark
+	return 0
+}
+EOF
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	echo "SOURCE=$2"
+}
+EOF
+			When run script "$BIN"
+			The status should be success
+			The output should equal "SOURCE=detected"
+		End
+
+		It 'shows detectors in --list output'
+			mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+			cat > "$XDG_CONFIG_HOME/theme/detectors.d/macos.sh" << 'EOF'
+theme_detector_macos() {
+	return 1
+}
+EOF
+			When run script "$BIN" --list
+			The status should be success
+			The output should include "Detectors:"
+			The output should include "theme_detector_macos"
+		End
+
+		It 'shows none found when no detectors configured'
+			mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+			When run script "$BIN" --list
+			The status should be success
+			The output should match pattern "*Detectors:*none found*"
+		End
+	End
+
+	#═══════════════════════════════════════════════════════════════
 	# QUIET MODE
 	#═══════════════════════════════════════════════════════════════
 	Describe 'quiet mode'
