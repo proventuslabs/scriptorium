@@ -322,17 +322,6 @@ theme_warn() {
 theme_run() {
 	local arg="${1:-}"
 
-	if [[ "$arg" == "--detect" ]]; then
-		theme_detect
-		printf '%s\n' "$THEME_APPEARANCE"
-		return 0
-	fi
-
-	if [[ "$arg" == "--list" ]]; then
-		theme_list
-		return 0
-	fi
-
 	theme_source_config
 
 	if ! theme_discover_provider; then
@@ -353,9 +342,7 @@ theme_run() {
 			;;
 	esac
 
-	if ! theme_detect "$override"; then
-		return 1
-	fi
+	theme_detect "$override"
 
 	"$THEME_PROVIDER" "$THEME_APPEARANCE" "$THEME_SOURCE"
 
