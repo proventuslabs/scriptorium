@@ -31,15 +31,15 @@
 cz \- conventional commit message builder
 .SH "SYNOPSIS"
 .sp
-\fBcz\fP [\fB\-r\fP | \fB\-\-no\-require\-scope\fP] [\fB\-m\fP | \fB\-\-no\-multi\-scope\fP] [\fB\-q\fP] [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
+\fBcz\fP [\fB\-r\fP | \fB\-\-no\-require\-scope\fP] [\fB\-d\fP | \fB\-\-no\-defined\-scope\fP] [\fB\-e\fP | \fB\-\-no\-enforce\-patterns\fP] [\fB\-m\fP | \fB\-\-no\-multi\-scope\fP] [\fB\-q\fP] [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
 .sp
-\fBcz\fP \fBcreate\fP [\fB\-\-custom\-scope\fP | \fB\-\-no\-custom\-scope\fP]
+\fBcz\fP \fBcreate\fP
 .br
 \fBcz\fP \fBlint\fP [\fB\-p\fP \fIPATHS\fP]
 .br
 \fBcz\fP \fBparse\fP
 .br
-\fBcz\fP \fBinit\fP [\fB\-f\fP]
+\fBcz\fP \fBinit\fP [\fB\-o\fP \fIFILE\fP] [\fB\-f\fP]
 .br
 \fBcz\fP \fBhook\fP [\fBinstall\fP | \fBuninstall\fP | \fBstatus\fP]
 .SH "DESCRIPTION"
@@ -52,23 +52,12 @@ When invoked without a subcommand, \fBcz\fP defaults to \fBcreate\fP mode if run
 in a terminal, or \fBlint\fP mode if receiving input on standard input.
 .SH "SUBCOMMANDS"
 .sp
-\fBcreate\fP [\fB\-\-custom\-scope\fP | \fB\-\-no\-custom\-scope\fP]
+\fBcreate\fP
 .RS 4
 Compose a commit message interactively using \fBgum\fP(1). Prompts for type,
 scope, breaking change indicator, description, body, and footer. Output
 is written to standard output. Default when run interactively.
 Requires \fBgum\fP to be installed.
-.sp
-\fB\-\-custom\-scope\fP
-.RS 4
-Allow free\-form scope input (default behavior).
-.RE
-.sp
-\fB\-\-no\-custom\-scope\fP
-.RS 4
-Only allow scopes defined in configuration (no free\-form input).
-The "(none)" option is still available unless \fB\-\-require\-scope\fP is also set.
-.RE
 .RE
 .sp
 \fBlint\fP [\fB\-p\fP \fIPATHS\fP]
@@ -76,15 +65,13 @@ The "(none)" option is still available unless \fB\-\-require\-scope\fP is also s
 Validate a commit message against the Conventional Commits rules and the
 \fB.gitcommitizen\fP(5) configuration. Reads from standard input. Prints
 diagnostic messages explaining any errors. Exits non\-zero if validation
-fails. When \fB\-\-require\-scope\fP is enabled, validates that scopes are defined
-in configuration and requires a scope when files match scope patterns.
+fails. Use \fB\-e\fP to enforce scope matching against file patterns.
 .sp
 \fB\-p\fP, \fB\-\-paths\fP \fIPATHS\fP
 .RS 4
 Validate that the commit scope matches the specified file paths. Accepts a
-space\-separated list of paths. Uses glob patterns from the \f(CR[scopes]\fP
-section of the configuration to verify the scope is appropriate for the
-files being committed.
+space\-separated list of paths. Requires \fB\-e\fP (enforce\-patterns) to actually
+validate the scope matches.
 .RE
 .RE
 .sp
@@ -125,32 +112,47 @@ not specified.
 .sp
 \fB\-r\fP, \fB\-\-require\-scope\fP
 .RS 4
-Enforce scope requirements. Affects both \fBcreate\fP and \fBlint\fP commands.
-For \fBcreate\fP: scope is mandatory (no "(none)" option). Custom input is still
-allowed unless \fB\-\-no\-custom\-scope\fP is also set.
-For \fBlint\fP: requires scope when files match scope patterns, and validates
-that any scope used is defined in configuration. Overrides the \f(CRrequire\-scope\fP
-setting in the configuration file. See BEHAVIOR TABLE below for details.
+Require a scope to be present. For \fBcreate\fP: removes the "(none)" option.
+For \fBlint\fP: fails if commit has no scope. Overrides \f(CRrequire\-scope\fP config.
 .RE
 .sp
 \fB\-\-no\-require\-scope\fP
 .RS 4
-Disable scope requirements. Allows custom scopes in \fBcreate\fP and commits
-without scope in \fBlint\fP even when files match scope patterns. Overrides
-the \f(CRrequire\-scope\fP setting in the configuration file.
+Allow commits without scope. Overrides \f(CRrequire\-scope\fP config.
+.RE
+.sp
+\fB\-d\fP, \fB\-\-defined\-scope\fP
+.RS 4
+Require scope to be defined in configuration. For \fBcreate\fP: removes the
+"(custom)" option, only allowing configured scopes. For \fBlint\fP: fails if
+scope is not in \f(CR[scopes]\fP. Overrides \f(CRdefined\-scope\fP config.
+.RE
+.sp
+\fB\-\-no\-defined\-scope\fP
+.RS 4
+Allow any scope, even if not in configuration. Overrides \f(CRdefined\-scope\fP config.
+.RE
+.sp
+\fB\-e\fP, \fB\-\-enforce\-patterns\fP
+.RS 4
+Enforce scope\-file pattern matching. Requires scope to match file patterns
+from \f(CR[scopes]\fP when \fB\-\-paths\fP is provided. Also implies \fB\-d\fP (scope must
+exist in config). Overrides \f(CRenforce\-patterns\fP config.
+.RE
+.sp
+\fB\-\-no\-enforce\-patterns\fP
+.RS 4
+Disable pattern enforcement. Overrides \f(CRenforce\-patterns\fP config.
 .RE
 .sp
 \fB\-m\fP, \fB\-\-multi\-scope\fP
 .RS 4
-Allow multiple scopes in a commit like \f(CRfeat(api,db):\fP. Overrides the
-\f(CRmulti\-scope\fP setting in the configuration file.
+Allow multiple scopes like \f(CRfeat(api,db):\fP. Overrides \f(CRmulti\-scope\fP config.
 .RE
 .sp
 \fB\-\-no\-multi\-scope\fP
 .RS 4
-Disallow multiple scopes. Commits with multiple scopes like \f(CRfeat(api,db):\fP
-will fail validation. Overrides the \f(CRmulti\-scope\fP setting in the
-configuration file.
+Disallow multiple scopes. Overrides \f(CRmulti\-scope\fP config.
 .RE
 .sp
 \fB\-q\fP, \fB\-\-quiet\fP
@@ -177,7 +179,7 @@ style, refactor, perf, test, build, ci, chore, revert).
 .RE
 .SH "BEHAVIOR TABLE"
 .sp
-The \fB\-\-require\-scope\fP and \fB\-\-no\-custom\-scope\fP options affect the \fBcreate\fP command:
+The \fB\-r\fP and \fB\-d\fP flags affect the \fBcreate\fP command:
 .TS
 allbox tab(:);
 ltB ltB.
@@ -199,21 +201,21 @@ scopes + "(custom)" + "(none)"
 T}
 T{
 .sp
-\fB\-\-require\-scope\fP
+\fB\-r\fP (require\-scope)
 T}:T{
 .sp
 scopes + "(custom)" (scope mandatory, custom allowed)
 T}
 T{
 .sp
-\fB\-\-no\-custom\-scope\fP
+\fB\-d\fP (defined\-scope)
 T}:T{
 .sp
 scopes + "(none)" (can skip scope, no custom input)
 T}
 T{
 .sp
-\fB\-\-require\-scope \-\-no\-custom\-scope\fP
+\fB\-r \-d\fP (both)
 T}:T{
 .sp
 scopes only (must pick configured scope)
@@ -221,7 +223,7 @@ T}
 .TE
 .sp
 .sp
-The \fB\-\-require\-scope\fP option also affects the \fBlint\fP command:
+The \fB\-r\fP, \fB\-d\fP, and \fB\-e\fP flags affect the \fBlint\fP command:
 .TS
 allbox tab(:);
 ltB ltB.
@@ -239,28 +241,40 @@ T{
 default
 T}:T{
 .sp
-Validates format; scope is optional
+Validates format only; scope is optional
 T}
 T{
 .sp
-\fB\-\-require\-scope\fP
+\fB\-r\fP
 T}:T{
 .sp
-Requires scope for scoped files; validates scope exists in config
+Scope must be present
 T}
 T{
 .sp
-\fB\-\-no\-require\-scope\fP
+\fB\-d\fP
 T}:T{
 .sp
-Allows no scope even for scoped files
+Scope must exist in config (if provided)
+T}
+T{
+.sp
+\fB\-e\fP
+T}:T{
+.sp
+Scope must match file patterns (implies \fB\-d\fP)
+T}
+T{
+.sp
+\fB\-r \-e\fP
+T}:T{
+.sp
+Scope required and must match patterns
 T}
 .TE
 .sp
 .sp
-The config settings \f(CRrequire\-scope = true\fP and \f(CRmulti\-scope = true\fP in \f(CR[settings]\fP
-have the same effect as their corresponding CLI flags, but CLI flags always
-override config settings.
+CLI flags always override config settings.
 .SH "EXAMPLES"
 .sp
 Create and commit interactively
@@ -270,7 +284,7 @@ git commit \-m "$(cz)"
 .sp
 Create with required scopes (only configured scopes allowed)
 .RS 4
-git commit \-m "$(cz \-\-require\-scope)"
+git commit \-m "$(cz \-r \-d)"
 .RE
 .sp
 Lint the last commit message
@@ -293,14 +307,14 @@ Lint with scope validation against specific files
 echo "feat(api): add endpoint" | cz lint \-\-paths "src/api/routes.ts"
 .RE
 .sp
-Lint with required scope for scoped files
+Lint with scope\-file pattern enforcement
 .RS 4
-cz \-\-require\-scope lint \-\-paths "$(git diff \-\-cached \-\-name\-only)" < "$1"
+cz \-e lint \-\-paths "$(git diff \-\-cached \-\-name\-only)" < "$1"
 .RE
 .sp
 Lint with multi\-scope enabled
 .RS 4
-echo "feat(api,db): cross\-cutting change" | cz \-\-multi\-scope lint
+echo "feat(api,db): cross\-cutting change" | cz \-m lint
 .RE
 .sp
 Show resolved configuration

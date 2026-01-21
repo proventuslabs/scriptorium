@@ -9,12 +9,14 @@ parser_definition() {
 		"Usage: cz [options...] [command] [arguments...]"
 	msg -- '' 'Conventional commit message builder' ''
 	msg -- 'Options:'
-	param   CONFIG_FILE   -c --config-file var:FILE -- "Config file path"
-	flag    REQUIRE_SCOPE -r --{no-}require-scope init:@unset -- "Require scope (create: mandatory, lint: enforce for scoped files)"
-	flag    MULTI_SCOPE   -m --{no-}multi-scope   init:@unset -- "Allow multiple scopes like feat(api,db):"
-	flag    QUIET         -q --quiet       -- "Suppress warnings and non-essential output"
-	disp    :usage        -h --help
-	disp    VERSION       -V --version
+	param   CONFIG_FILE      -c --config-file var:FILE -- "Config file path"
+	flag    REQUIRE_SCOPE    -r --{no-}require-scope    init:@unset -- "Require scope to be present"
+	flag    DEFINED_SCOPE    -d --{no-}defined-scope    init:@unset -- "Scope must exist in [scopes]"
+	flag    ENFORCE_PATTERNS -e --{no-}enforce-patterns init:@unset validate:'DEFINED_SCOPE=1' -- "Scope must match file patterns (implies -d)"
+	flag    MULTI_SCOPE      -m --{no-}multi-scope      init:@unset -- "Allow multiple scopes like feat(api,db):"
+	flag    QUIET            -q --quiet       -- "Suppress warnings and non-essential output"
+	disp    :usage           -h --help
+	disp    VERSION          -V --version
 
 	msg -- '' 'Commands:'
 	cmd create -- "Compose a commit message interactively"
@@ -29,7 +31,6 @@ parser_definition_create() {
 		"Usage: cz create [options...]"
 	msg -- '' 'Compose a commit message interactively' ''
 	msg -- 'Options:'
-	flag    CUSTOM_SCOPE  --{no-}custom-scope init:@unset -- "Allow custom scope input (default: allowed)"
 	disp    :usage           -h --help
 }
 

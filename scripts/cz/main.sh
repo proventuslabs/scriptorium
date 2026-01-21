@@ -32,9 +32,11 @@ if [[ $# -gt 0 ]]; then
 	shift
 else
 	# Default: create if TTY, lint if stdin
+	# @start-kcov-exclude - TTY detection can't be tested in ShellSpec (uses pipes)
 	if [[ -t 0 ]]; then
 		cmd=create
 	else
+		# @end-kcov-exclude
 		cmd=lint
 	fi
 fi
@@ -85,10 +87,12 @@ case $cmd in
 		cmd_hook "$@"
 		;;
 	--)
-		# No subcommand, just arguments
+		# No subcommand, just arguments (e.g., cz --)
 		;;
+	# @start-kcov-exclude - getoptions validates commands; this is defensive only
 	*)
 		echo "cz: unknown command '$cmd'" >&2
 		exit 2
 		;;
+		# @end-kcov-exclude
 esac

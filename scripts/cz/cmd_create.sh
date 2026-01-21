@@ -43,10 +43,15 @@ cmd_create() {
 		require_scope="${CFG_SETTINGS[require_scope]:-false}"
 	fi
 
-	# Determine custom-scope mode (--custom-scope/--no-custom-scope)
-	# Default (unset) allows custom scope; --no-custom-scope disables it
-	local allow_custom_scope=true
-	[[ "${CUSTOM_SCOPE-unset}" == "" ]] && allow_custom_scope=false
+	# Determine defined-scope mode (replaces custom-scope)
+	local defined_scope
+	if [[ "${DEFINED_SCOPE-unset}" == "1" ]]; then
+		defined_scope=true
+	elif [[ "${DEFINED_SCOPE-unset}" == "" ]]; then
+		defined_scope=false
+	else
+		defined_scope="${CFG_SETTINGS[defined_scope]:-false}"
+	fi
 
 	# Select or input scope
 	local scope=""
@@ -61,15 +66,15 @@ cmd_create() {
 		if [[ ${#scope_choices[@]} -gt 0 ]]; then
 			local scope_selection
 			# Add options based on flags:
-			# - (custom): only if allow_custom_scope is true
-			# - (none): only if require_scope is not set
-			[[ "$allow_custom_scope" == "true" ]] && scope_choices+=("(custom)")
+			# - (custom): only if defined_scope is false
+			# - (none): only if require_scope is false
+			[[ "$defined_scope" != "true" ]] && scope_choices+=("(custom)")
 			[[ "$require_scope" != "true" ]] && scope_choices+=("(none)")
 
 			scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
 			case "$scope_selection" in
 				"(custom)") scope=$(_scope_input_custom) ;;
-				"(none)") ;;
+				"(none)") ;; # @kcov-ignore - kcov can't track empty case statements
 				*) scope="$scope_selection" ;;
 			esac
 		else

@@ -13,12 +13,12 @@ cz - conventional commit message builder
 
 == SYNOPSIS
 
-*cz* [*-r* | *--no-require-scope*] [*-m* | *--no-multi-scope*] [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
+*cz* [*-r* | *--no-require-scope*] [*-d* | *--no-defined-scope*] [*-e* | *--no-enforce-patterns*] [*-m* | *--no-multi-scope*] [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
 
-*cz* *create* [*--custom-scope* | *--no-custom-scope*] +
+*cz* *create* +
 *cz* *lint* [*-p* _PATHS_] +
 *cz* *parse* +
-*cz* *init* [*-f*] +
+*cz* *init* [*-o* _FILE_] [*-f*] +
 *cz* *hook* [*install* | *uninstall* | *status*]
 
 == DESCRIPTION
@@ -32,34 +32,23 @@ in a terminal, or *lint* mode if receiving input on standard input.
 
 == SUBCOMMANDS
 
-*create* [*--custom-scope* | *--no-custom-scope*]::
+*create*::
   Compose a commit message interactively using *gum*(1). Prompts for type,
   scope, breaking change indicator, description, body, and footer. Output
   is written to standard output. Default when run interactively.
   Requires *gum* to be installed.
-+
---
-*--custom-scope*:::
-  Allow free-form scope input (default behavior).
-
-*--no-custom-scope*:::
-  Only allow scopes defined in configuration (no free-form input).
-  The "(none)" option is still available unless *--require-scope* is also set.
---
 
 *lint* [*-p* _PATHS_]::
   Validate a commit message against the Conventional Commits rules and the
   *.gitcommitizen*(5) configuration. Reads from standard input. Prints
   diagnostic messages explaining any errors. Exits non-zero if validation
-  fails. When *--require-scope* is enabled, validates that scopes are defined
-  in configuration and requires a scope when files match scope patterns.
+  fails. Use *-e* to enforce scope matching against file patterns.
 +
 --
 *-p*, *--paths* _PATHS_:::
   Validate that the commit scope matches the specified file paths. Accepts a
-  space-separated list of paths. Uses glob patterns from the `[scopes]`
-  section of the configuration to verify the scope is appropriate for the
-  files being committed.
+  space-separated list of paths. Requires *-e* (enforce-patterns) to actually
+  validate the scope matches.
 --
 
 *parse*::
@@ -89,26 +78,33 @@ in a terminal, or *lint* mode if receiving input on standard input.
   not specified.
 
 *-r*, *--require-scope*::
-  Enforce scope requirements. Affects both *create* and *lint* commands.
-  For *create*: scope is mandatory (no "(none)" option). Custom input is still
-  allowed unless *--no-custom-scope* is also set.
-  For *lint*: requires scope when files match scope patterns, and validates
-  that any scope used is defined in configuration. Overrides the `require-scope`
-  setting in the configuration file. See BEHAVIOR TABLE below for details.
+  Require a scope to be present. For *create*: removes the "(none)" option.
+  For *lint*: fails if commit has no scope. Overrides `require-scope` config.
 
 *--no-require-scope*::
-  Disable scope requirements. Allows custom scopes in *create* and commits
-  without scope in *lint* even when files match scope patterns. Overrides
-  the `require-scope` setting in the configuration file.
+  Allow commits without scope. Overrides `require-scope` config.
+
+*-d*, *--defined-scope*::
+  Require scope to be defined in configuration. For *create*: removes the
+  "(custom)" option, only allowing configured scopes. For *lint*: fails if
+  scope is not in `[scopes]`. Overrides `defined-scope` config.
+
+*--no-defined-scope*::
+  Allow any scope, even if not in configuration. Overrides `defined-scope` config.
+
+*-e*, *--enforce-patterns*::
+  Enforce scope-file pattern matching. Requires scope to match file patterns
+  from `[scopes]` when *--paths* is provided. Also implies *-d* (scope must
+  exist in config). Overrides `enforce-patterns` config.
+
+*--no-enforce-patterns*::
+  Disable pattern enforcement. Overrides `enforce-patterns` config.
 
 *-m*, *--multi-scope*::
-  Allow multiple scopes in a commit like `feat(api,db):`. Overrides the
-  `multi-scope` setting in the configuration file.
+  Allow multiple scopes like `feat(api,db):`. Overrides `multi-scope` config.
 
 *--no-multi-scope*::
-  Disallow multiple scopes. Commits with multiple scopes like `feat(api,db):`
-  will fail validation. Overrides the `multi-scope` setting in the
-  configuration file.
+  Disallow multiple scopes. Overrides `multi-scope` config.
 
 *-q*, *--quiet*::
   Suppress warnings and non-essential output.
@@ -128,7 +124,7 @@ in a terminal, or *lint* mode if receiving input on standard input.
 
 == BEHAVIOR TABLE
 
-The *--require-scope* and *--no-custom-scope* options affect the *create* command:
+The *-r* and *-d* flags affect the *create* command:
 
 [cols="1,3", options="header"]
 |===
@@ -137,35 +133,39 @@ The *--require-scope* and *--no-custom-scope* options affect the *create* comman
 |default (no flags)
 |scopes + "(custom)" + "(none)"
 
-|*--require-scope*
+|*-r* (require-scope)
 |scopes + "(custom)" (scope mandatory, custom allowed)
 
-|*--no-custom-scope*
+|*-d* (defined-scope)
 |scopes + "(none)" (can skip scope, no custom input)
 
-|*--require-scope --no-custom-scope*
+|*-r -d* (both)
 |scopes only (must pick configured scope)
 |===
 
-The *--require-scope* option also affects the *lint* command:
+The *-r*, *-d*, and *-e* flags affect the *lint* command:
 
 [cols="1,3", options="header"]
 |===
 |Flag |lint behavior
 
 |default
-|Validates format; scope is optional
+|Validates format only; scope is optional
 
-|*--require-scope*
-|Requires scope for scoped files; validates scope exists in config
+|*-r*
+|Scope must be present
 
-|*--no-require-scope*
-|Allows no scope even for scoped files
+|*-d*
+|Scope must exist in config (if provided)
+
+|*-e*
+|Scope must match file patterns (implies *-d*)
+
+|*-r -e*
+|Scope required and must match patterns
 |===
 
-The config settings `require-scope = true` and `multi-scope = true` in `[settings]`
-have the same effect as their corresponding CLI flags, but CLI flags always
-override config settings.
+CLI flags always override config settings.
 
 == EXAMPLES
 
@@ -175,7 +175,7 @@ Create and commit interactively::
 
 Create with required scopes (only configured scopes allowed)::
 
-  git commit -m "$(cz --require-scope)"
+  git commit -m "$(cz -r -d)"
 
 Lint the last commit message::
 
@@ -193,13 +193,13 @@ Lint with scope validation against specific files::
 
   echo "feat(api): add endpoint" | cz lint --paths "src/api/routes.ts"
 
-Lint with required scope for scoped files::
+Lint with scope-file pattern enforcement::
 
-  cz --require-scope lint --paths "$(git diff --cached --name-only)" < "$1"
+  cz -e lint --paths "$(git diff --cached --name-only)" < "$1"
 
 Lint with multi-scope enabled::
 
-  echo "feat(api,db): cross-cutting change" | cz --multi-scope lint
+  echo "feat(api,db): cross-cutting change" | cz -m lint
 
 Show resolved configuration::
 
