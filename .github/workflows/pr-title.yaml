@@ -21,7 +21,7 @@ jobs:
         run: |
           FILES=$(gh pr view "$PR_NUMBER" --json files -q '.files[].path' | tr '\n' ' ')
 
-          if ! OUTPUT=$(echo "$PR_TITLE" | nix shell .#cz --command cz lint --files "$FILES" 2>&1); then
+          if ! OUTPUT=$(echo "$PR_TITLE" | nix shell .#cz --command cz lint --paths "$FILES" 2>&1); then
             echo "::error title=Invalid PR Title::$OUTPUT"
             exit 1
           fi

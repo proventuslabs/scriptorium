@@ -33,7 +33,7 @@ _cz() {
 				lint)
 					_arguments \
 						'(-h --help)'{-h,--help}'[Show help message]' \
-						'(-f --files)'{-f,--files}'[Validate scope against file paths]:files:_files' \
+						'(-p --paths)'{-p,--paths}'[Validate scope against file paths]:files:_files' \
 						'(-s --strict)'{-s,--strict}'[Require scope for scoped files]' \
 						'--no-strict[Allow missing scope]'
 					;;

@@ -35,7 +35,7 @@ cz \- conventional commit message builder
 .sp
 \fBcz\fP \fBcreate\fP [\fB\-\-custom\-scope\fP | \fB\-\-no\-custom\-scope\fP]
 .br
-\fBcz\fP \fBlint\fP [\fB\-f\fP \fIFILES\fP]
+\fBcz\fP \fBlint\fP [\fB\-p\fP \fIPATHS\fP]
 .br
 \fBcz\fP \fBparse\fP
 .br
@@ -71,7 +71,7 @@ The "(none)" option is still available unless \fB\-\-require\-scope\fP is also s
 .RE
 .RE
 .sp
-\fBlint\fP [\fB\-f\fP \fIFILES\fP]
+\fBlint\fP [\fB\-p\fP \fIPATHS\fP]
 .RS 4
 Validate a commit message against the Conventional Commits rules and the
 \fB.gitcommitizen\fP(5) configuration. Reads from standard input. Prints
@@ -79,7 +79,7 @@ diagnostic messages explaining any errors. Exits non\-zero if validation
 fails. When \fB\-\-require\-scope\fP is enabled, validates that scopes are defined
 in configuration and requires a scope when files match scope patterns.
 .sp
-\fB\-f\fP, \fB\-\-files\fP \fIFILES\fP
+\fB\-p\fP, \fB\-\-paths\fP \fIPATHS\fP
 .RS 4
 Validate that the commit scope matches the specified file paths. Accepts a
 space\-separated list of paths. Uses glob patterns from the \f(CR[scopes]\fP
@@ -276,12 +276,12 @@ cz lint \-q < "$1" || exit 1
 .sp
 Lint with scope validation against specific files
 .RS 4
-echo "feat(api): add endpoint" | cz lint \-\-files "src/api/routes.ts"
+echo "feat(api): add endpoint" | cz lint \-\-paths "src/api/routes.ts"
 .RE
 .sp
 Lint with required scope for scoped files
 .RS 4
-cz \-\-require\-scope lint \-\-files "$(git diff \-\-cached \-\-name\-only)" < "$1"
+cz \-\-require\-scope lint \-\-paths "$(git diff \-\-cached \-\-name\-only)" < "$1"
 .RE
 .sp
 Show resolved configuration

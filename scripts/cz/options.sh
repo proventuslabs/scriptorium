@@ -37,7 +37,7 @@ parser_definition_lint() {
 		"Usage: cz lint [options...]"
 	msg -- '' 'Validate a commit message from stdin' ''
 	msg -- 'Options:'
-	param   FILES   -f --files  -- "Validate scope against file paths (space-separated)"
+	param   PATHS   -p --paths  -- "Validate scope against file paths (space-separated)"
 	disp    :usage  -h --help
 }
 
