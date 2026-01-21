@@ -7,9 +7,10 @@ format_config() {
 	echo "# See: gitcommitizen(5)"
 	echo
 	echo "[settings]"
-	echo "# strict = false"
-	echo "# multi-scope = false"
-	echo "# multi-scope-separator = ,"
+	echo "# require-scope = false    # -r: scope must be present"
+	echo "# defined-scope = false    # -d: scope must exist in [scopes]"
+	echo "# enforce-patterns = false # -e: scope must match file patterns"
+	echo "# multi-scope = false      # -m: allow feat(api,db):"
 	echo
 	echo "[scopes]"
 	echo "# Define scopes and their file patterns"
