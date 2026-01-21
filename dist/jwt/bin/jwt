@@ -158,8 +158,6 @@ Options:
 
   Verification:
   -k, --key KEY               Verify signature (secret, @file, or @-/- for stdin)
-
-  General:
   -q, --quiet                 Suppress warnings
   -h, --help                  
   -V, --version               

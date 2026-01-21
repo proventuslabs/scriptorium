@@ -119,8 +119,6 @@ Detects system appearance and applies theme via provider/handlers.
 Options:
   -d, --detect                Only detect appearance, do not run handlers
   -l, --list                  List discovered provider and handlers
-
-  General:
   -q, --quiet                 Suppress warnings
   -h, --help                  
   -V, --version               

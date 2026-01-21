@@ -153,8 +153,6 @@ Options:
   -x, --exec                  Replace process with exec
   -o, --override              Override existing environment variables
   -s, --strict                Fail on warnings
-
-  General:
   -q, --quiet                 Suppress warnings
   -h, --help                  
   -V, --version               

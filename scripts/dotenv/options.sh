@@ -20,9 +20,7 @@ parser_definition() {
 	flag  EXEC_MODE -x --exec     -- "Replace process with exec"
 	flag  OVERRIDE  -o --override -- "Override existing environment variables"
 	flag  STRICT    -s --strict   -- "Fail on warnings"
-	msg -- ''
-	msg -- '  General:'
-	flag  QUIET     -q --quiet -- "Suppress warnings"
+	flag  QUIET     -q --quiet    -- "Suppress warnings"
 	disp  :usage    -h --help
 	disp  VERSION   -V --version
 }

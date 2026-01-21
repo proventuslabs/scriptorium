@@ -8,9 +8,7 @@ VERSION=0.1.0 # x-release-please-version
 parser_definition() {
 	setup REST help:usage abbr:true -- "Usage: <name> [options]" ''
 	msg -- 'Options:'
-	msg -- ''
-	msg -- '  General:'
-	flag    QUIET      -q --quiet           -- "Suppress warnings"
-	disp    :usage     -h --help
-	disp    VERSION    -V --version
+	flag    QUIET   -q --quiet -- "Suppress warnings"
+	disp    :usage  -h --help
+	disp    VERSION -V --version
 }
