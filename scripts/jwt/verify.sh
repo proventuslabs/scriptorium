@@ -74,17 +74,13 @@ check_algorithm_support() {
 # Uses: JWT_ALG
 # Returns empty string for EdDSA (no separate digest step)
 get_openssl_digest() {
+	# Note: No default case needed - verify_signature validates algorithm
+	# before calling verify_* functions that call this
 	case $JWT_ALG in
 		HS256 | RS256 | ES256 | PS256) echo "sha256" ;;
 		HS384 | RS384 | ES384 | PS384) echo "sha384" ;;
 		HS512 | RS512 | ES512 | PS512) echo "sha512" ;;
 		EdDSA) echo "" ;; # @kcov-ignore - EdDSA requires OpenSSL 3.x
-		# @start-kcov-exclude - verify_signature validates algorithm first
-		*)
-			echo "jwt: error: unsupported algorithm '$JWT_ALG'" >&2
-			return 1
-			;;
-			# @end-kcov-exclude
 	esac
 }
 
@@ -147,13 +143,11 @@ jwt_sig_to_der() {
 	local r_len r_hex s_hex
 
 	# R and S are each half the signature
+	# Note: No default case needed - only called with valid key_bits from verify_ecdsa
 	case $key_bits in
 		256) r_len=64 ;;  # 32 bytes = 64 hex chars
 		384) r_len=96 ;;  # 48 bytes = 96 hex chars
 		512) r_len=132 ;; # 66 bytes = 132 hex chars (P-521)
-		# @start-kcov-exclude - only called with valid key_bits from verify_ecdsa
-		*) return 1 ;;
-			# @end-kcov-exclude
 	esac
 
 	r_hex=${sig_hex:0:$r_len}
@@ -209,13 +203,7 @@ verify_ecdsa() {
 	# Decode signature to hex, convert to DER
 	local sig_hex der_hex
 	sig_hex=$(base64url_decode "$JWT_SIG_B64" | xxd -p | tr -d '\n')
-	# @start-kcov-exclude - jwt_sig_to_der only fails with invalid key_bits (defensive)
-	der_hex=$(jwt_sig_to_der "$sig_hex" "$key_bits") || {
-		echo "jwt: error: failed to convert ECDSA signature" >&2
-		rm -f "$sig_file" "$key_file"
-		return 1
-	}
-	# @end-kcov-exclude
+	der_hex=$(jwt_sig_to_der "$sig_hex" "$key_bits")
 
 	# Write DER signature as binary and key to temp files
 	echo "$der_hex" | xxd -r -p >"$sig_file"
@@ -321,11 +309,9 @@ verify_signature() {
 		EdDSA)
 			verify_eddsa "$key"
 			;;
-		# @start-kcov-exclude - jwt_decode_header validates alg exists; defensive only
 		*)
 			echo "jwt: error: unsupported algorithm '$JWT_ALG'" >&2
 			return 1
 			;;
-			# @end-kcov-exclude
 	esac
 }
