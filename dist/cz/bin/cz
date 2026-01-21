@@ -10,6 +10,8 @@ VERSION=0.1.0 # x-release-please-version
 # URL: https://github.com/ko1nksm/getoptions (v3.3.2)
 CONFIG_FILE=''
 unset REQUIRE_SCOPE ||:
+unset DEFINED_SCOPE ||:
+unset ENFORCE_PATTERNS ||:
 unset MULTI_SCOPE ||:
 QUIET=''
 REST=''
@@ -30,6 +32,22 @@ parse() {
 			case '--no-require-scope' in
 				"$1") OPTARG=; break ;;
 				$1*) OPTARG="$OPTARG --no-require-scope"
+			esac
+			case '--defined-scope' in
+				"$1") OPTARG=; break ;;
+				$1*) OPTARG="$OPTARG --defined-scope"
+			esac
+			case '--no-defined-scope' in
+				"$1") OPTARG=; break ;;
+				$1*) OPTARG="$OPTARG --no-defined-scope"
+			esac
+			case '--enforce-patterns' in
+				"$1") OPTARG=; break ;;
+				$1*) OPTARG="$OPTARG --enforce-patterns"
+			esac
+			case '--no-enforce-patterns' in
+				"$1") OPTARG=; break ;;
+				$1*) OPTARG="$OPTARG --no-enforce-patterns"
 			esac
 			case '--multi-scope' in
 				"$1") OPTARG=; break ;;
@@ -74,7 +92,7 @@ parse() {
 			-[c]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" "${OPTARG#??}"' ${1+'"$@"'}
 				;;
-			-[rmqhV]?*) OPTARG=$1; shift
+			-[rdemqhV]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" -"${OPTARG#??}"' ${1+'"$@"'}
 				case $2 in --*) set -- "$1" unknown "$2" && REST=x; esac;OPTARG= ;;
 		esac
@@ -88,6 +106,17 @@ parse() {
 				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
 				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
 				REQUIRE_SCOPE="$OPTARG"
+				;;
+			'-d'|'--defined-scope'|'--no-defined-scope')
+				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
+				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
+				DEFINED_SCOPE="$OPTARG"
+				;;
+			'-e'|'--enforce-patterns'|'--no-enforce-patterns')
+				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
+				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
+				DEFINED_SCOPE=1 || { set -- DEFINED_SCOPE=1:$? "$1" DEFINED_SCOPE=1; break; }
+				ENFORCE_PATTERNS="$OPTARG"
 				;;
 			'-m'|'--multi-scope'|'--no-multi-scope')
 				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
@@ -144,7 +173,9 @@ Conventional commit message builder
 
 Options:
   -c, --config-file FILE      Config file path
-  -r, --{no-}require-scope    Require scope (create: mandatory, lint: enforce for scoped files)
+  -r, --{no-}require-scope    Require scope to be present
+  -d, --{no-}defined-scope    Scope must exist in [scopes]
+  -e, --{no-}enforce-patterns Scope must match file patterns (implies -d)
   -m, --{no-}multi-scope      Allow multiple scopes like feat(api,db):
   -q, --quiet                 Suppress warnings and non-essential output
   -h, --help                  
@@ -175,9 +206,10 @@ format_config() {
 	echo "# See: gitcommitizen(5)"
 	echo
 	echo "[settings]"
-	echo "# strict = false"
-	echo "# multi-scope = false"
-	echo "# multi-scope-separator = ,"
+	echo "# require-scope = false    # -r: scope must be present"
+	echo "# defined-scope = false    # -d: scope must exist in [scopes]"
+	echo "# enforce-patterns = false # -e: scope must match file patterns"
+	echo "# multi-scope = false      # -m: allow feat(api,db):"
 	echo
 	echo "[scopes]"
 	echo "# Define scopes and their file patterns"
@@ -323,8 +355,9 @@ cmd_parse() {
 	if [[ ${#CFG_SETTINGS[@]} -gt 0 ]]; then
 		echo "Settings:"
 		[[ -v CFG_SETTINGS[require_scope] ]] && echo "  require-scope = ${CFG_SETTINGS[require_scope]}"
+		[[ -v CFG_SETTINGS[defined_scope] ]] && echo "  defined-scope = ${CFG_SETTINGS[defined_scope]}"
+		[[ -v CFG_SETTINGS[enforce_patterns] ]] && echo "  enforce-patterns = ${CFG_SETTINGS[enforce_patterns]}"
 		[[ -v CFG_SETTINGS[multi_scope] ]] && echo "  multi-scope = ${CFG_SETTINGS[multi_scope]}"
-		[[ -v CFG_SETTINGS[multi_scope_separator] ]] && echo "  multi-scope-separator = ${CFG_SETTINGS[multi_scope_separator]}"
 		echo
 	fi
 
@@ -603,11 +636,9 @@ _show_errors() {
 	for e in "$@"; do _hint "  $e"; done
 }
 
-_get_sep() { echo "${CFG_SETTINGS[multi_scope_separator]:-,}"; }
-
 _check_scopes_exist() {
-	local IFS s
-	IFS="$(_get_sep)"
+	local IFS=","
+	local s
 	read -ra _scopes <<<"$1"
 	for s in "${_scopes[@]}"; do
 		_trim s
@@ -666,10 +697,11 @@ get_files_to_validate() {
 	echo "$PATHS" | tr ' ' '\n' | grep -v '^$'
 }
 
-is_multi_scope() { [[ "$1" == *"$(_get_sep)"* ]]; }
+is_multi_scope() { [[ "$1" == *","* ]]; }
 
 validate_paths_if_needed() {
-	local scope="$1" require_scope multi_scope
+	local scope="$1"
+	local require_scope defined_scope enforce_patterns multi_scope
 
 	if [[ "${REQUIRE_SCOPE-unset}" == "1" ]]; then
 		require_scope=true
@@ -677,6 +709,22 @@ validate_paths_if_needed() {
 		require_scope=false
 	else
 		require_scope="${CFG_SETTINGS[require_scope]:-false}"
+	fi
+
+	if [[ "${DEFINED_SCOPE-unset}" == "1" ]]; then
+		defined_scope=true
+	elif [[ "${DEFINED_SCOPE-unset}" == "" ]]; then
+		defined_scope=false
+	else
+		defined_scope="${CFG_SETTINGS[defined_scope]:-false}"
+	fi
+
+	if [[ "${ENFORCE_PATTERNS-unset}" == "1" ]]; then
+		enforce_patterns=true
+	elif [[ "${ENFORCE_PATTERNS-unset}" == "" ]]; then
+		enforce_patterns=false
+	else
+		enforce_patterns="${CFG_SETTINGS[enforce_patterns]:-false}"
 	fi
 
 	if [[ "${MULTI_SCOPE-unset}" == "1" ]]; then
@@ -687,7 +735,12 @@ validate_paths_if_needed() {
 		multi_scope="${CFG_SETTINGS[multi_scope]:-false}"
 	fi
 
-	if [[ "$require_scope" == "true" && -n "$scope" ]]; then
+	if [[ "$require_scope" == "true" && -z "$scope" ]]; then
+		_err "scope required"
+		return 1
+	fi
+
+	if [[ "$defined_scope" == "true" && -n "$scope" ]]; then
 		[[ ${#CFG_SCOPES[@]} -eq 0 ]] && {
 			_err "scope '$scope' used but no scopes defined in config"
 			return 1
@@ -700,13 +753,13 @@ validate_paths_if_needed() {
 		fi
 	fi
 
+	[[ "$enforce_patterns" != "true" ]] && return 0
 	[[ ${#CFG_SCOPES[@]} -eq 0 ]] && return 0
 	local -a files=()
 	mapfile -t files < <(get_files_to_validate)
 	[[ ${#files[@]} -eq 0 ]] && return 0
 
 	if [[ -z "$scope" ]]; then
-		[[ "$require_scope" != "true" ]] && return 0
 		if ! validate_strict_no_scope "${files[@]}"; then
 			_err "scope required for scoped files"
 			_show_errors "${STRICT_MATCHES[@]}"
@@ -781,8 +834,14 @@ cmd_create() {
 		require_scope="${CFG_SETTINGS[require_scope]:-false}"
 	fi
 
-	local allow_custom_scope=true
-	[[ "${CUSTOM_SCOPE-unset}" == "" ]] && allow_custom_scope=false
+	local defined_scope
+	if [[ "${DEFINED_SCOPE-unset}" == "1" ]]; then
+		defined_scope=true
+	elif [[ "${DEFINED_SCOPE-unset}" == "" ]]; then
+		defined_scope=false
+	else
+		defined_scope="${CFG_SETTINGS[defined_scope]:-false}"
+	fi
 
 	local scope=""
 	if [[ ${#CFG_SCOPES[@]} -gt 0 ]]; then
@@ -794,7 +853,7 @@ cmd_create() {
 
 		if [[ ${#scope_choices[@]} -gt 0 ]]; then
 			local scope_selection
-			[[ "$allow_custom_scope" == "true" ]] && scope_choices+=("(custom)")
+			[[ "$defined_scope" != "true" ]] && scope_choices+=("(custom)")
 			[[ "$require_scope" != "true" ]] && scope_choices+=("(none)")
 
 			scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
@@ -884,7 +943,6 @@ case $cmd in
 		# --- begin: gengetoptions parser -f ./options.sh parser_definition_create parse_create ---
 		# Generated by getoptions (BEGIN)
 		# URL: https://github.com/ko1nksm/getoptions (v3.3.2)
-		unset CUSTOM_SCOPE ||:
 		REST=''
 		parse_create() {
 			OPTIND=$(($#+1))
@@ -892,14 +950,6 @@ case $cmd in
 				set -- "${1%%\=*}" "${1#*\=}" "$@"
 				while [ ${#1} -gt 2 ]; do
 					case $1 in (*[!a-zA-Z0-9_-]*) break; esac
-					case '--custom-scope' in
-						"$1") OPTARG=; break ;;
-						$1*) OPTARG="$OPTARG --custom-scope"
-					esac
-					case '--no-custom-scope' in
-						"$1") OPTARG=; break ;;
-						$1*) OPTARG="$OPTARG --no-custom-scope"
-					esac
 					case '--help' in
 						"$1") OPTARG=; break ;;
 						$1*) OPTARG="$OPTARG --help"
@@ -929,11 +979,6 @@ case $cmd in
 						case $2 in --*) set -- "$1" unknown "$2" && REST=x; esac;OPTARG= ;;
 				esac
 				case $1 in
-					'--custom-scope'|'--no-custom-scope')
-						[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
-						eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
-						CUSTOM_SCOPE="$OPTARG"
-						;;
 					'-h'|'--help')
 						usage
 						exit 0 ;;
@@ -969,7 +1014,6 @@ case $cmd in
 		Compose a commit message interactively
 
 		Options:
-		      --{no-}custom-scope     Allow custom scope input (default: allowed)
 		  -h, --help                  
 		GETOPTIONSHERE
 		}

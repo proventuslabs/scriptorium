@@ -10,6 +10,10 @@ _cz() {
 		'(-c --config-file)'{-c,--config-file}'[Config file path]:config file:_files' \
 		'(-r --require-scope --no-require-scope)'{-r,--require-scope}'[Require scope]' \
 		'(-r --require-scope --no-require-scope)--no-require-scope[Disable scope requirement]' \
+		'(-d --defined-scope --no-defined-scope)'{-d,--defined-scope}'[Require scope to exist in config]' \
+		'(-d --defined-scope --no-defined-scope)--no-defined-scope[Allow any scope]' \
+		'(-e --enforce-patterns --no-enforce-patterns)'{-e,--enforce-patterns}'[Enforce scope-file pattern matching]' \
+		'(-e --enforce-patterns --no-enforce-patterns)--no-enforce-patterns[Disable pattern enforcement]' \
 		'(-m --multi-scope --no-multi-scope)'{-m,--multi-scope}'[Allow multiple scopes]' \
 		'(-m --multi-scope --no-multi-scope)--no-multi-scope[Disallow multiple scopes]' \
 		'(-q --quiet)'{-q,--quiet}'[Suppress warnings and non-essential output]' \
@@ -31,9 +35,7 @@ _cz() {
 			case $line[1] in
 				create)
 					_arguments \
-						'(-h --help)'{-h,--help}'[Show help message]' \
-						'(--custom-scope --no-custom-scope)--custom-scope[Allow free-form scope input]' \
-						'(--custom-scope --no-custom-scope)--no-custom-scope[Only allow configured scopes]'
+						'(-h --help)'{-h,--help}'[Show help message]'
 					;;
 				lint)
 					_arguments \
