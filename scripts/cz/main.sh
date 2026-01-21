@@ -36,7 +36,7 @@ else
 	if [[ -t 0 ]]; then
 		cmd=create
 	else
-	# @end-kcov-exclude
+		# @end-kcov-exclude
 		cmd=lint
 	fi
 fi
@@ -94,5 +94,5 @@ case $cmd in
 		echo "cz: unknown command '$cmd'" >&2
 		exit 2
 		;;
-	# @end-kcov-exclude
+		# @end-kcov-exclude
 esac
