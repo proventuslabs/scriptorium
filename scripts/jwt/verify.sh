@@ -78,7 +78,7 @@ get_openssl_digest() {
 		HS256 | RS256 | ES256 | PS256) echo "sha256" ;;
 		HS384 | RS384 | ES384 | PS384) echo "sha384" ;;
 		HS512 | RS512 | ES512 | PS512) echo "sha512" ;;
-		EdDSA) echo "" ;; # EdDSA uses built-in hash
+		EdDSA) echo "" ;; # @kcov-ignore - EdDSA requires OpenSSL 3.x
 		# @start-kcov-exclude - verify_signature validates algorithm first
 		*)
 			echo "jwt: error: unsupported algorithm '$JWT_ALG'" >&2
