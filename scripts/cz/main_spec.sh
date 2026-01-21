@@ -473,24 +473,6 @@ EOF
 				The stderr should include "unknown scope"
 			End
 
-			It 'uses custom multi-scope separator'
-				cat > .gitcommitizen << 'EOF'
-[settings]
-multi-scope = true
-multi-scope-separator = /
-
-[types]
-feat = Feature
-
-[scopes]
-api = src/api/**
-ui = src/ui/**
-EOF
-				Data "feat(api/ui): cross-cutting change"
-				When run script "$BIN" lint --paths "src/api/handler.go src/ui/button.tsx"
-				The status should be success
-			End
-
 			It '--multi-scope flag enables multi-scope without config'
 				cat > .gitcommitizen << 'EOF'
 [types]
@@ -1359,7 +1341,7 @@ MOCK
 					The output should equal "feat(api): add endpoint"
 				End
 
-				It '--no-custom-scope removes (custom) option but keeps (none)'
+				It '--defined-scope removes (custom) option but keeps (none)'
 					# Mock that selects "(none)" when it's available
 					mkdir -p "$TEST_DIR/bin"
 					cat > "$TEST_DIR/bin/gum" << 'MOCK'
@@ -1388,13 +1370,13 @@ MOCK
 					chmod +x "$TEST_DIR/bin/gum"
 					PATH="$TEST_DIR/bin:$PATH"
 
-					When run script "$BIN" create --no-custom-scope
+					When run script "$BIN" --defined-scope create
 					The status should be success
 					The output should equal "feat: add endpoint"
 				End
 
 				It 'both flags together only allows configured scopes'
-					When run script "$BIN" --require-scope create --no-custom-scope
+					When run script "$BIN" --require-scope --defined-scope create
 					The status should be success
 					The output should equal "feat(api): add endpoint"
 				End
@@ -1593,7 +1575,6 @@ EOF
 			cat > .gitcommitizen << 'EOF'
 [settings]
 multi-scope = true
-multi-scope-separator = /
 
 [types]
 feat = Feature
@@ -1602,7 +1583,7 @@ feat = Feature
 api = src/api/**
 ui = src/ui/**
 EOF
-			Data "feat(api/ui): cross-cutting"
+			Data "feat(api,ui): cross-cutting"
 			When run script "$BIN" lint --paths "src/api/x.go src/ui/y.tsx"
 			The status should be success
 		End
