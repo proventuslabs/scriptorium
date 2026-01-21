@@ -349,6 +349,32 @@ EOF
 				The status should be success
 			End
 
+			It 'matches **/ prefix pattern for any directory depth'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+tests = **/test/**
+EOF
+				Data "feat(tests): add test"
+				When run script "$BIN" lint --paths "src/api/test/handler_test.go"
+				The status should be success
+			End
+
+			It 'matches **/ at start of pattern'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+spec = **/spec.ts
+EOF
+				Data "feat(spec): update spec"
+				When run script "$BIN" lint --paths "src/components/Button/spec.ts"
+				The status should be success
+			End
+
 			It 'single * does not cross directories'
 				cat > .gitcommitizen << 'EOF'
 [types]
@@ -517,6 +543,35 @@ EOF
 				Data "feat(api,ui): cross-cutting change"
 				When run script "$BIN" -m lint --paths "src/api/handler.go src/ui/button.tsx"
 				The status should be success
+			End
+
+			It 'multi-scope with enforce-patterns validates all scopes match files'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+ui = src/ui/**
+EOF
+				Data "feat(api,ui): cross-cutting change"
+				When run script "$BIN" -m -e lint --paths "src/api/handler.go src/ui/button.tsx"
+				The status should be success
+			End
+
+			It 'multi-scope with enforce-patterns fails when file does not match any scope'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+ui = src/ui/**
+EOF
+				Data "feat(api,ui): cross-cutting change"
+				When run script "$BIN" -m -e lint --paths "src/api/handler.go src/other/file.txt"
+				The status should be failure
+				The stderr should include "does not match"
 			End
 		End
 
@@ -709,6 +764,15 @@ EOF
 				When run script "$BIN" -e lint --paths "other/file.txt"
 				The status should be failure
 				The stderr should include "unknown scope"
+			End
+
+			It '-e with unknown scope shows defined scopes hint'
+				Data "feat(unknown): add feature"
+				When run script "$BIN" -e lint --paths "src/api/x.go"
+				The status should be failure
+				The stderr should include "unknown scope"
+				The stderr should include "api"
+				The stderr should include "ui"
 			End
 
 			It '--no-enforce-patterns allows scope mismatch'
@@ -1395,6 +1459,174 @@ EOF
 					When run script "$BIN" create
 					The status should be success
 					The output should equal "feat(api): add endpoint"
+				End
+
+				It '--no-require-scope overrides config require-scope=true'
+					# Mock that selects "(none)" when available
+					mkdir -p "$TEST_DIR/bin"
+					cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+case "$1" in
+	choose)
+		if [[ "$*" == *"type"* ]]; then
+			echo "feat - A new feature"
+		elif [[ "$*" == *"scope"* ]]; then
+			echo "(none)"
+		fi
+		;;
+	input)
+		if [[ "$*" == *"Description"* ]]; then
+			echo "no scope needed"
+		fi
+		;;
+	confirm)
+		exit 1
+		;;
+	write)
+		echo ""
+		;;
+esac
+MOCK
+					chmod +x "$TEST_DIR/bin/gum"
+					PATH="$TEST_DIR/bin:$PATH"
+
+					cat > .gitcommitizen << 'EOF'
+[settings]
+require-scope = true
+
+[types]
+feat = A new feature
+
+[scopes]
+api = src/api/**
+EOF
+					When run script "$BIN" --no-require-scope create
+					The status should be success
+					The output should equal "feat: no scope needed"
+				End
+
+				It '--no-defined-scope overrides config defined-scope=true'
+					# Mock that selects "(custom)" and enters custom scope
+					mkdir -p "$TEST_DIR/bin"
+					cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+case "$1" in
+	choose)
+		if [[ "$*" == *"type"* ]]; then
+			echo "feat - A new feature"
+		elif [[ "$*" == *"scope"* ]]; then
+			echo "(custom)"
+		fi
+		;;
+	input)
+		if [[ "$*" == *"scope"* ]]; then
+			echo "my-custom"
+		elif [[ "$*" == *"Description"* ]]; then
+			echo "custom scope"
+		fi
+		;;
+	confirm)
+		exit 1
+		;;
+	write)
+		echo ""
+		;;
+esac
+MOCK
+					chmod +x "$TEST_DIR/bin/gum"
+					PATH="$TEST_DIR/bin:$PATH"
+
+					cat > .gitcommitizen << 'EOF'
+[settings]
+defined-scope = true
+
+[types]
+feat = A new feature
+
+[scopes]
+api = src/api/**
+EOF
+					When run script "$BIN" --no-defined-scope create
+					The status should be success
+					The output should equal "feat(my-custom): custom scope"
+				End
+			End
+
+			Describe 'no scopes configured'
+				It 'prompts for custom scope when require-scope=true and no scopes defined'
+					# Mock that provides custom scope input
+					mkdir -p "$TEST_DIR/bin"
+					cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+case "$1" in
+	choose)
+		if [[ "$*" == *"type"* ]]; then
+			echo "feat - A new feature"
+		fi
+		;;
+	input)
+		if [[ "$*" == *"scope"* ]] || [[ "$*" == *"Scope"* ]]; then
+			echo "custom-scope"
+		elif [[ "$*" == *"Description"* ]]; then
+			echo "add feature"
+		fi
+		;;
+	confirm)
+		exit 1
+		;;
+	write)
+		echo ""
+		;;
+esac
+MOCK
+					chmod +x "$TEST_DIR/bin/gum"
+					PATH="$TEST_DIR/bin:$PATH"
+
+					cat > .gitcommitizen << 'EOF'
+[types]
+feat = A new feature
+EOF
+					When run script "$BIN" --require-scope create
+					The status should be success
+					The output should equal "feat(custom-scope): add feature"
+				End
+
+				It 'prompts for optional scope when no scopes defined'
+					# Mock that provides scope input (or empty for optional)
+					mkdir -p "$TEST_DIR/bin"
+					cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+case "$1" in
+	choose)
+		if [[ "$*" == *"type"* ]]; then
+			echo "feat - A new feature"
+		fi
+		;;
+	input)
+		if [[ "$*" == *"scope"* ]] || [[ "$*" == *"Scope"* ]]; then
+			echo ""
+		elif [[ "$*" == *"Description"* ]]; then
+			echo "no scope"
+		fi
+		;;
+	confirm)
+		exit 1
+		;;
+	write)
+		echo ""
+		;;
+esac
+MOCK
+					chmod +x "$TEST_DIR/bin/gum"
+					PATH="$TEST_DIR/bin:$PATH"
+
+					cat > .gitcommitizen << 'EOF'
+[types]
+feat = A new feature
+EOF
+					When run script "$BIN" create
+					The status should be success
+					The output should equal "feat: no scope"
 				End
 			End
 
