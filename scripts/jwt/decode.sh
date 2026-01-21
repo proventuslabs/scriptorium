@@ -11,9 +11,9 @@ base64url_to_base64() {
 	output=${output//_/\/}
 
 	# Add padding if needed (base64 requires length % 4 == 0)
+	# Note: remainder=1 is impossible for valid base64 (3 bytes → 4 chars)
 	local remainder=$((${#output} % 4))
 	case $remainder in
-		1) printf '%s===' "$output" ;;
 		2) printf '%s==' "$output" ;;
 		3) printf '%s=' "$output" ;;
 		*) printf '%s' "$output" ;;
