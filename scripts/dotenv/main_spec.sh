@@ -137,6 +137,31 @@ Describe 'dotenv'
 			The status should be success
 			The output should equal "from_env"
 		End
+
+		It 'file values override env with -o flag'
+			echo 'TEST_VAR=from_file' > .env
+			export TEST_VAR=from_env
+			When run script "$BIN" -o printenv TEST_VAR
+			The status should be success
+			The output should equal "from_file"
+		End
+
+		It 'file values override env with --override flag'
+			echo 'TEST_VAR=from_file' > .env
+			export TEST_VAR=from_env
+			When run script "$BIN" --override printenv TEST_VAR
+			The status should be success
+			The output should equal "from_file"
+		End
+
+		It 'override respects file order (later wins)'
+			echo 'TEST_VAR=first' > a.env
+			echo 'TEST_VAR=second' > b.env
+			export TEST_VAR=from_env
+			When run script "$BIN" -o -e a.env -e b.env printenv TEST_VAR
+			The status should be success
+			The output should equal "second"
+		End
 	End
 
 	#═══════════════════════════════════════════════════════════════

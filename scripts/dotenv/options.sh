@@ -17,8 +17,9 @@ parser_definition() {
 	msg -- '' 'Load environment from .env files and execute command' ''
 	msg -- 'Options:'
 	param :append_env_file -e --env-file var:FILE init:'ENV_FILES=()' -- ".env file to load (repeatable)"
-	flag  EXEC_MODE -x --exec  -- "Replace process with exec"
-	flag  STRICT    -s --strict -- "Fail on warnings"
+	flag  EXEC_MODE -x --exec     -- "Replace process with exec"
+	flag  OVERRIDE  -o --override -- "Override existing environment variables"
+	flag  STRICT    -s --strict   -- "Fail on warnings"
 	msg -- ''
 	msg -- '  General:'
 	flag  QUIET     -q --quiet -- "Suppress warnings"
