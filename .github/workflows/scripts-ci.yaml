@@ -78,6 +78,8 @@ jobs:
 
   completions-sync:
     name: Completions sync
+    needs: detect-changes
+    if: needs.detect-changes.outputs.scripts != '[]'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -85,7 +87,12 @@ jobs:
       - uses: cachix/install-nix-action@v30
 
       - name: Check completions match options.sh
-        run: nix develop --command ./utils/check-completions.sh
+        run: |
+          scripts='${{ needs.detect-changes.outputs.scripts }}'
+          # Convert JSON array to space-separated paths: ["cz","jwt"] -> scripts/cz scripts/jwt
+          script_dirs=$(echo "$scripts" | jq -r '.[] | "scripts/\(.)"' | tr '\n' ' ')
+          echo "Checking: $script_dirs"
+          nix develop --command ./utils/check-completions.sh $script_dirs
 
   ci:
     name: ${{ matrix.script }}
