@@ -142,6 +142,8 @@ Options:
   -e, --env-file FILE         .env file to load (repeatable)
   -x, --exec                  Replace process with exec
   -s, --strict                Fail on warnings
+
+  General:
   -q, --quiet                 Suppress warnings
   -h, --help                  
   -V, --version               
