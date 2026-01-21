@@ -46,7 +46,7 @@ These options are mutually exclusive. Specifying more than one is an error.
 
 === Verification
 
-*-v*, *--verify*=_SECRET_OR_KEY_::
+*-k*, *--key*=_SECRET_OR_KEY_::
   Verify the JWT signature. The value can be:
 +
 --
@@ -133,8 +133,8 @@ Read token from stdin::
 
 Read key from stdin::
 
-  echo "secret" | jwt -v @- "$TOKEN"
-  jwt -v - "$TOKEN" < keyfile.pem
+  echo "secret" | jwt -k @- "$TOKEN"
+  jwt -k - "$TOKEN" < keyfile.pem
 
 == EXIT STATUS
 

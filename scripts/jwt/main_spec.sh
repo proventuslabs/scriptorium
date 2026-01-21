@@ -186,59 +186,59 @@ Describe 'jwt'
 	#═══════════════════════════════════════════════════════════════
 	Describe 'HMAC verification'
 		It 'verifies HS256 with correct secret'
-			When run script "$BIN" -v "$hs256_secret" "$hs256_token"
+			When run script "$BIN" -k"$hs256_secret" "$hs256_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'rejects HS256 with wrong secret'
-			When run script "$BIN" -v "wrong-secret" "$hs256_token"
+			When run script "$BIN" -k"wrong-secret" "$hs256_token"
 			The status should be failure
 			The stderr should include "verification failed"
 		End
 
 		It 'verifies HS384 with correct secret'
-			When run script "$BIN" -v "$hs384_secret" "$hs384_token"
+			When run script "$BIN" -k"$hs384_secret" "$hs384_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'verifies HS512 with correct secret'
-			When run script "$BIN" -v "$hs512_secret" "$hs512_token"
+			When run script "$BIN" -k"$hs512_secret" "$hs512_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'reads secret from file with @file'
 			echo -n "$hs256_secret" > secret.txt
-			When run script "$BIN" -v @secret.txt "$hs256_token"
+			When run script "$BIN" -k@secret.txt "$hs256_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'fails when key file not found'
-			When run script "$BIN" -v @nonexistent.txt "$hs256_token"
+			When run script "$BIN" -k@nonexistent.txt "$hs256_token"
 			The status should be failure
 			The stderr should include "cannot read key file"
 		End
 
 		It 'reads secret from stdin with @-'
 			Data "$hs256_secret"
-			When run script "$BIN" -v @- "$hs256_token"
+			When run script "$BIN" -k@- "$hs256_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'reads secret from stdin with - (requires token as arg)'
 			Data "$hs256_secret"
-			When run script "$BIN" -v - "$hs256_token"
+			When run script "$BIN" -k- "$hs256_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'errors when reading key from stdin without token argument'
 			Data "$hs256_secret"
-			When run script "$BIN" -v -
+			When run script "$BIN" -k-
 			The status should be failure
 			The stderr should include "token argument required"
 		End
@@ -249,25 +249,25 @@ Describe 'jwt'
 	#═══════════════════════════════════════════════════════════════
 	Describe 'RSA verification'
 		It 'verifies RS256 with correct public key'
-			When run script "$BIN" -v "@$FIXTURES/rs256_public.pem" "$rs256_token"
+			When run script "$BIN" -k"@$FIXTURES/rs256_public.pem" "$rs256_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'rejects RS256 with wrong key'
-			When run script "$BIN" -v "@$FIXTURES/ed25519_public.pem" "$rs256_token"
+			When run script "$BIN" -k"@$FIXTURES/ed25519_public.pem" "$rs256_token"
 			The status should be failure
 			The stderr should include "verification failed"
 		End
 
 		It 'verifies RS384 with correct public key'
-			When run script "$BIN" -v "@$FIXTURES/rs384_public.pem" "$rs384_token"
+			When run script "$BIN" -k"@$FIXTURES/rs384_public.pem" "$rs384_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'verifies RS512 with correct public key'
-			When run script "$BIN" -v "@$FIXTURES/rs512_public.pem" "$rs512_token"
+			When run script "$BIN" -k"@$FIXTURES/rs512_public.pem" "$rs512_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
@@ -278,25 +278,25 @@ Describe 'jwt'
 	#═══════════════════════════════════════════════════════════════
 	Describe 'RSA-PSS verification'
 		It 'verifies PS256 with correct public key'
-			When run script "$BIN" -v "@$FIXTURES/ps256_public.pem" "$ps256_token"
+			When run script "$BIN" -k"@$FIXTURES/ps256_public.pem" "$ps256_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'rejects PS256 with wrong key'
-			When run script "$BIN" -v "@$FIXTURES/ed25519_public.pem" "$ps256_token"
+			When run script "$BIN" -k"@$FIXTURES/ed25519_public.pem" "$ps256_token"
 			The status should be failure
 			The stderr should include "verification failed"
 		End
 
 		It 'verifies PS384 with correct public key'
-			When run script "$BIN" -v "@$FIXTURES/ps384_public.pem" "$ps384_token"
+			When run script "$BIN" -k"@$FIXTURES/ps384_public.pem" "$ps384_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'verifies PS512 with correct public key'
-			When run script "$BIN" -v "@$FIXTURES/ps512_public.pem" "$ps512_token"
+			When run script "$BIN" -k"@$FIXTURES/ps512_public.pem" "$ps512_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
@@ -307,37 +307,37 @@ Describe 'jwt'
 	#═══════════════════════════════════════════════════════════════
 	Describe 'ECDSA verification'
 		It 'verifies ES256 with correct public key'
-			When run script "$BIN" -v "@$FIXTURES/es256_public.pem" "$es256_token"
+			When run script "$BIN" -k"@$FIXTURES/es256_public.pem" "$es256_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'rejects ES256 with wrong key'
-			When run script "$BIN" -v "@$FIXTURES/es384_public.pem" "$es256_token"
+			When run script "$BIN" -k"@$FIXTURES/es384_public.pem" "$es256_token"
 			The status should be failure
 			The stderr should include "verification failed"
 		End
 
 		It 'verifies ES384 with correct public key'
-			When run script "$BIN" -v "@$FIXTURES/es384_public.pem" "$es384_token"
+			When run script "$BIN" -k"@$FIXTURES/es384_public.pem" "$es384_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'rejects ES384 with wrong key'
-			When run script "$BIN" -v "@$FIXTURES/es256_public.pem" "$es384_token"
+			When run script "$BIN" -k"@$FIXTURES/es256_public.pem" "$es384_token"
 			The status should be failure
 			The stderr should include "verification failed"
 		End
 
 		It 'verifies ES512 with correct public key'
-			When run script "$BIN" -v "@$FIXTURES/es512_public.pem" "$es512_token"
+			When run script "$BIN" -k"@$FIXTURES/es512_public.pem" "$es512_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'rejects ES512 with wrong key'
-			When run script "$BIN" -v "@$FIXTURES/es256_public.pem" "$es512_token"
+			When run script "$BIN" -k"@$FIXTURES/es256_public.pem" "$es512_token"
 			The status should be failure
 			The stderr should include "verification failed"
 		End
@@ -348,13 +348,13 @@ Describe 'jwt'
 	#═══════════════════════════════════════════════════════════════
 	Describe 'EdDSA verification'
 		It 'verifies EdDSA with correct public key'
-			When run script "$BIN" -v "@$FIXTURES/ed25519_public.pem" "$eddsa_token"
+			When run script "$BIN" -k"@$FIXTURES/ed25519_public.pem" "$eddsa_token"
 			The status should be success
 			The output should include '"sub":"1234567890"'
 		End
 
 		It 'rejects EdDSA with wrong key'
-			When run script "$BIN" -v "@$FIXTURES/ps256_public.pem" "$eddsa_token"
+			When run script "$BIN" -k"@$FIXTURES/ps256_public.pem" "$eddsa_token"
 			The status should be failure
 			The stderr should include "verification failed"
 		End
@@ -413,7 +413,7 @@ Describe 'jwt'
 		It 'rejects unsupported algorithm during verification'
 			# {"alg":"XX99","typ":"JWT"} = eyJhbGciOiJYWDk5IiwidHlwIjoiSldUIn0
 			# {"sub":"test"} = eyJzdWIiOiJ0ZXN0In0
-			When run script "$BIN" -v "secret" "eyJhbGciOiJYWDk5IiwidHlwIjoiSldUIn0.eyJzdWIiOiJ0ZXN0In0.sig"
+			When run script "$BIN" -k"secret" "eyJhbGciOiJYWDk5IiwidHlwIjoiSldUIn0.eyJzdWIiOiJ0ZXN0In0.sig"
 			The status should be failure
 			The stderr should include "unsupported algorithm"
 		End
