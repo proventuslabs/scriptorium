@@ -56,8 +56,10 @@ elif [[ ! -t 0 ]]; then
 	# Read from stdin
 	read -r token
 else
+	# @start-kcov-exclude - TTY + no args can't be tested in ShellSpec (uses pipes)
 	echo "jwt: error: no token provided" >&2
 	exit 1
+	# @end-kcov-exclude
 fi
 
 # Split and decode token

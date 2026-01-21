@@ -71,10 +71,12 @@ get_openssl_digest() {
 		HS384 | RS384 | ES384 | PS384) echo "sha384" ;;
 		HS512 | RS512 | ES512 | PS512) echo "sha512" ;;
 		EdDSA) echo "" ;; # EdDSA uses built-in hash
+		# @start-kcov-exclude - verify_signature validates algorithm first
 		*)
 			echo "jwt: error: unsupported algorithm '$JWT_ALG'" >&2
 			return 1
 			;;
+			# @end-kcov-exclude
 	esac
 }
 
@@ -141,7 +143,9 @@ jwt_sig_to_der() {
 		256) r_len=64 ;;  # 32 bytes = 64 hex chars
 		384) r_len=96 ;;  # 48 bytes = 96 hex chars
 		512) r_len=132 ;; # 66 bytes = 132 hex chars (P-521)
+		# @start-kcov-exclude - only called with valid key_bits from verify_ecdsa
 		*) return 1 ;;
+			# @end-kcov-exclude
 	esac
 
 	r_hex=${sig_hex:0:$r_len}
@@ -307,9 +311,11 @@ verify_signature() {
 		EdDSA)
 			verify_eddsa "$key"
 			;;
+		# @start-kcov-exclude - jwt_decode_header validates alg exists; defensive only
 		*)
 			echo "jwt: error: unsupported algorithm '$JWT_ALG'" >&2
 			return 1
 			;;
+			# @end-kcov-exclude
 	esac
 }

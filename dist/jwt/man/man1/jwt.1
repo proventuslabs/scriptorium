@@ -314,17 +314,17 @@ jwt \-\-all eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
 .sp
 Verify HMAC signature with secret
 .RS 4
-jwt \-\-verify=secret123 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
+jwt \-k secret123 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
 .RE
 .sp
 Verify RSA signature using public key file
 .RS 4
-jwt \-\-verify=@/path/to/public.pem eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
+jwt \-\-key=@/path/to/public.pem eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
 .RE
 .sp
 Verify and show header
 .RS 4
-jwt \-\-verify=secret123 \-\-header eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
+jwt \-k secret123 \-\-header eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.\|.\|.
 .RE
 .sp
 Read token from stdin

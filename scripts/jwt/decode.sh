@@ -13,7 +13,9 @@ base64url_to_base64() {
 	# Add padding if needed (base64 requires length % 4 == 0)
 	local remainder=$((${#output} % 4))
 	case $remainder in
+		# @start-kcov-exclude - remainder=1 impossible for valid base64 (defensive)
 		1) printf '%s===' "$output" ;;
+		# @end-kcov-exclude
 		2) printf '%s==' "$output" ;;
 		3) printf '%s=' "$output" ;;
 		*) printf '%s' "$output" ;;
