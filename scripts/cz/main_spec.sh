@@ -490,6 +490,52 @@ EOF
 				When run script "$BIN" lint --paths "src/api/handler.go src/ui/button.tsx"
 				The status should be success
 			End
+
+			It '--multi-scope flag enables multi-scope without config'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+ui = src/ui/**
+EOF
+				Data "feat(api,ui): cross-cutting change"
+				When run script "$BIN" --multi-scope lint --paths "src/api/handler.go src/ui/button.tsx"
+				The status should be success
+			End
+
+			It '--no-multi-scope flag disables multi-scope even with config'
+				cat > .gitcommitizen << 'EOF'
+[settings]
+multi-scope = true
+
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+ui = src/ui/**
+EOF
+				Data "feat(api,ui): cross-cutting change"
+				When run script "$BIN" --no-multi-scope lint --paths "src/api/x.go"
+				The status should be failure
+				The stderr should include "multi-scope not enabled"
+			End
+
+			It '-m shorthand enables multi-scope'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+ui = src/ui/**
+EOF
+				Data "feat(api,ui): cross-cutting change"
+				When run script "$BIN" -m lint --paths "src/api/handler.go src/ui/button.tsx"
+				The status should be success
+			End
 		End
 
 		#───────────────────────────────────────────────────────────

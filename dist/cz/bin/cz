@@ -10,6 +10,7 @@ VERSION=0.1.0 # x-release-please-version
 # URL: https://github.com/ko1nksm/getoptions (v3.3.2)
 CONFIG_FILE=''
 unset REQUIRE_SCOPE ||:
+unset MULTI_SCOPE ||:
 QUIET=''
 REST=''
 parse() {
@@ -29,6 +30,14 @@ parse() {
 			case '--no-require-scope' in
 				"$1") OPTARG=; break ;;
 				$1*) OPTARG="$OPTARG --no-require-scope"
+			esac
+			case '--multi-scope' in
+				"$1") OPTARG=; break ;;
+				$1*) OPTARG="$OPTARG --multi-scope"
+			esac
+			case '--no-multi-scope' in
+				"$1") OPTARG=; break ;;
+				$1*) OPTARG="$OPTARG --no-multi-scope"
 			esac
 			case '--quiet' in
 				"$1") OPTARG=; break ;;
@@ -65,7 +74,7 @@ parse() {
 			-[c]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" "${OPTARG#??}"' ${1+'"$@"'}
 				;;
-			-[rqhV]?*) OPTARG=$1; shift
+			-[rmqhV]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" -"${OPTARG#??}"' ${1+'"$@"'}
 				case $2 in --*) set -- "$1" unknown "$2" && REST=x; esac;OPTARG= ;;
 		esac
@@ -79,6 +88,11 @@ parse() {
 				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
 				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
 				REQUIRE_SCOPE="$OPTARG"
+				;;
+			'-m'|'--multi-scope'|'--no-multi-scope')
+				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
+				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
+				MULTI_SCOPE="$OPTARG"
 				;;
 			'-q'|'--quiet')
 				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
@@ -131,6 +145,7 @@ Conventional commit message builder
 Options:
   -c, --config-file FILE      Config file path
   -r, --{no-}require-scope    Require scope (create: mandatory, lint: enforce for scoped files)
+  -m, --{no-}multi-scope      Allow multiple scopes like feat(api,db):
   -q, --quiet                 Suppress warnings and non-essential output
   -h, --help                  
   -V, --version               
@@ -654,7 +669,7 @@ get_files_to_validate() {
 is_multi_scope() { [[ "$1" == *"$(_get_sep)"* ]]; }
 
 validate_paths_if_needed() {
-	local scope="$1" require_scope
+	local scope="$1" require_scope multi_scope
 
 	if [[ "${REQUIRE_SCOPE-unset}" == "1" ]]; then
 		require_scope=true
@@ -662,6 +677,14 @@ validate_paths_if_needed() {
 		require_scope=false
 	else
 		require_scope="${CFG_SETTINGS[require_scope]:-false}"
+	fi
+
+	if [[ "${MULTI_SCOPE-unset}" == "1" ]]; then
+		multi_scope=true
+	elif [[ "${MULTI_SCOPE-unset}" == "" ]]; then
+		multi_scope=false
+	else
+		multi_scope="${CFG_SETTINGS[multi_scope]:-false}"
 	fi
 
 	if [[ "$require_scope" == "true" && -n "$scope" ]]; then
@@ -696,9 +719,9 @@ validate_paths_if_needed() {
 	[[ "$scope" == "*" ]] && return 0
 
 	if is_multi_scope "$scope"; then
-		[[ "${CFG_SETTINGS[multi_scope]:-false}" != "true" ]] && {
-			_err "multi-scope not enabled in config"
-			_hint "Set multi-scope = true in [settings] to use multiple scopes"
+		[[ "$multi_scope" != "true" ]] && {
+			_err "multi-scope not enabled"
+			_hint "Use --multi-scope flag or set multi-scope = true in [settings]"
 			return 1
 		}
 		_check_scopes_exist "$scope" || return 1
