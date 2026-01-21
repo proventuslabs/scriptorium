@@ -331,14 +331,14 @@ EOF
 
 			It 'fails when file does not match scope'
 				Data "feat(api): add endpoint"
-				When run script "$BIN" lint --paths "src/ui/button.tsx"
+				When run script "$BIN" -e lint --paths "src/ui/button.tsx"
 				The status should be failure
 				The stderr should include "does not match scope"
 			End
 
 			It 'fails when some files do not match scope'
 				Data "feat(api): add endpoint"
-				When run script "$BIN" lint --paths "src/api/handler.go src/ui/button.tsx"
+				When run script "$BIN" -e lint --paths "src/api/handler.go src/ui/button.tsx"
 				The status should be failure
 				The stderr should include "src/ui/button.tsx"
 			End
@@ -358,7 +358,7 @@ feat = Feature
 scripts = scripts/*.sh
 EOF
 				Data "feat(scripts): update script"
-				When run script "$BIN" lint --paths "scripts/nested/main.sh"
+				When run script "$BIN" -e lint --paths "scripts/nested/main.sh"
 				The status should be failure
 				The stderr should include "does not match scope"
 			End
@@ -436,7 +436,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" lint --paths "src/api/x.go"
+				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "multi-scope not enabled"
 			End
@@ -451,7 +451,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" lint --paths "src/api/x.go"
+				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "multi-scope not enabled"
 			End
@@ -468,7 +468,7 @@ feat = Feature
 api = src/api/**
 EOF
 				Data "feat(api,unknown): change"
-				When run script "$BIN" lint --paths "src/api/x.go"
+				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "unknown scope"
 			End
@@ -500,7 +500,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" --no-multi-scope lint --paths "src/api/x.go"
+				When run script "$BIN" --no-multi-scope -e lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "multi-scope not enabled"
 			End
@@ -1538,7 +1538,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 			Data "feat(unknown): add feature"
-			When run script "$BIN" --require-scope lint
+			When run script "$BIN" --defined-scope lint
 			The status should be failure
 			The stderr should include "unknown scope"
 			The stderr should include "api"
