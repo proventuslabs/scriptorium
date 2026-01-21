@@ -65,6 +65,10 @@ theme_run() {
 	# Discover and run handlers
 	theme_discover_handlers
 
+	if [[ ${#THEME_HANDLERS[@]} -eq 0 ]]; then
+		theme_warn "no handlers found"
+	fi
+
 	local handler
 	for handler in "${THEME_HANDLERS[@]}"; do
 		"$handler" || theme_warn "handler '$handler' failed"
