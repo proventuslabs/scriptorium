@@ -19,15 +19,12 @@ _show_errors() {
 	for e in "$@"; do _hint "  $e"; done
 }
 
-# Get multi-scope separator
-_get_sep() { echo "${CFG_SETTINGS[multi_scope_separator]:-,}"; }
-
 # Check all scopes in a multi-scope string exist
 # Usage: _check_scopes_exist <scope_str>
 # Sets: _scopes array (trimmed scope names)
 _check_scopes_exist() {
-	local IFS s
-	IFS="$(_get_sep)"
+	local IFS=","
+	local s
 	read -ra _scopes <<<"$1"
 	for s in "${_scopes[@]}"; do
 		_trim s
@@ -96,14 +93,15 @@ get_files_to_validate() {
 }
 
 # Check if scope contains multi-scope separator
-is_multi_scope() { [[ "$1" == *"$(_get_sep)"* ]]; }
+is_multi_scope() { [[ "$1" == *","* ]]; }
 
-# Validate paths against scope(s) if INI format and files provided
+# Validate paths against scope(s) if files provided
 # Usage: validate_paths_if_needed <scope>
 validate_paths_if_needed() {
-	local scope="$1" require_scope multi_scope
+	local scope="$1"
+	local require_scope defined_scope enforce_patterns multi_scope
 
-	# Determine require-scope mode (--require-scope/--no-require-scope override config)
+	# Determine require-scope mode
 	if [[ "${REQUIRE_SCOPE-unset}" == "1" ]]; then
 		require_scope=true
 	elif [[ "${REQUIRE_SCOPE-unset}" == "" ]]; then
@@ -112,7 +110,25 @@ validate_paths_if_needed() {
 		require_scope="${CFG_SETTINGS[require_scope]:-false}"
 	fi
 
-	# Determine multi-scope mode (--multi-scope/--no-multi-scope override config)
+	# Determine defined-scope mode
+	if [[ "${DEFINED_SCOPE-unset}" == "1" ]]; then
+		defined_scope=true
+	elif [[ "${DEFINED_SCOPE-unset}" == "" ]]; then
+		defined_scope=false
+	else
+		defined_scope="${CFG_SETTINGS[defined_scope]:-false}"
+	fi
+
+	# Determine enforce-patterns mode
+	if [[ "${ENFORCE_PATTERNS-unset}" == "1" ]]; then
+		enforce_patterns=true
+	elif [[ "${ENFORCE_PATTERNS-unset}" == "" ]]; then
+		enforce_patterns=false
+	else
+		enforce_patterns="${CFG_SETTINGS[enforce_patterns]:-false}"
+	fi
+
+	# Determine multi-scope mode
 	if [[ "${MULTI_SCOPE-unset}" == "1" ]]; then
 		multi_scope=true
 	elif [[ "${MULTI_SCOPE-unset}" == "" ]]; then
@@ -121,8 +137,14 @@ validate_paths_if_needed() {
 		multi_scope="${CFG_SETTINGS[multi_scope]:-false}"
 	fi
 
-	# In require-scope mode with scope, validate scope exists
-	if [[ "$require_scope" == "true" && -n "$scope" ]]; then
+	# -r: require scope to be present
+	if [[ "$require_scope" == "true" && -z "$scope" ]]; then
+		_err "scope required"
+		return 1
+	fi
+
+	# -d: validate scope exists in config (if scope provided)
+	if [[ "$defined_scope" == "true" && -n "$scope" ]]; then
 		[[ ${#CFG_SCOPES[@]} -eq 0 ]] && {
 			_err "scope '$scope' used but no scopes defined in config"
 			return 1
@@ -135,15 +157,16 @@ validate_paths_if_needed() {
 		fi
 	fi
 
-	# Early exit if no scopes defined or no files to validate
+	# Early exit if enforce-patterns not enabled
+	[[ "$enforce_patterns" != "true" ]] && return 0
 	[[ ${#CFG_SCOPES[@]} -eq 0 ]] && return 0
 	local -a files=()
 	mapfile -t files < <(get_files_to_validate)
 	[[ ${#files[@]} -eq 0 ]] && return 0
 
-	# No scope provided - require-scope mode check
+	# -e: enforce pattern matching
+	# No scope provided - check if files match any pattern
 	if [[ -z "$scope" ]]; then
-		[[ "$require_scope" != "true" ]] && return 0
 		if ! validate_strict_no_scope "${files[@]}"; then
 			_err "scope required for scoped files"
 			_show_errors "${STRICT_MATCHES[@]}"
@@ -163,6 +186,7 @@ validate_paths_if_needed() {
 			_hint "Use --multi-scope flag or set multi-scope = true in [settings]"
 			return 1
 		}
+		# Validate scopes exist
 		_check_scopes_exist "$scope" || return 1
 		if ! validate_files_against_scopes "$scope" "${files[@]}"; then
 			_err "files do not match scopes '$scope'"
