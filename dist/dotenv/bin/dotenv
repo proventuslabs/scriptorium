@@ -16,6 +16,7 @@ append_env_file() {
 # URL: https://github.com/ko1nksm/getoptions (v3.3.2)
 ENV_FILES=()
 EXEC_MODE=''
+OVERRIDE=''
 STRICT=''
 QUIET=''
 REST=''
@@ -32,6 +33,10 @@ parse() {
 			case '--exec' in
 				"$1") OPTARG=; break ;;
 				$1*) OPTARG="$OPTARG --exec"
+			esac
+			case '--override' in
+				"$1") OPTARG=; break ;;
+				$1*) OPTARG="$OPTARG --override"
 			esac
 			case '--strict' in
 				"$1") OPTARG=; break ;;
@@ -72,7 +77,7 @@ parse() {
 			-[e]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" "${OPTARG#??}"' ${1+'"$@"'}
 				;;
-			-[xsqhV]?*) OPTARG=$1; shift
+			-[xosqhV]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" -"${OPTARG#??}"' ${1+'"$@"'}
 				case $2 in --*) set -- "$1" unknown "$2" && REST=x; esac;OPTARG= ;;
 		esac
@@ -86,6 +91,11 @@ parse() {
 				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
 				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
 				EXEC_MODE="$OPTARG"
+				;;
+			'-o'|'--override')
+				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
+				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
+				OVERRIDE="$OPTARG"
 				;;
 			'-s'|'--strict')
 				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
@@ -141,6 +151,7 @@ Load environment from .env files and execute command
 Options:
   -e, --env-file FILE         .env file to load (repeatable)
   -x, --exec                  Replace process with exec
+  -o, --override              Override existing environment variables
   -s, --strict                Fail on warnings
 
   General:
@@ -448,7 +459,9 @@ dotenv_exec() {
 	done
 
 	for key in "${!env_vars[@]}"; do
-		[[ -z "${!key+x}" ]] && env_args+=("$key=${env_vars[$key]}")
+		if [[ -n "${DOTENV_OVERRIDE:-}" ]] || [[ -z "${!key+x}" ]]; then
+			env_args+=("$key=${env_vars[$key]}")
+		fi
 	done
 
 	if [[ -n "${DOTENV_EXEC:-}" ]]; then
@@ -472,5 +485,6 @@ fi
 DOTENV_STRICT="$STRICT"
 DOTENV_QUIET="$QUIET"
 DOTENV_EXEC="$EXEC_MODE"
+DOTENV_OVERRIDE="$OVERRIDE"
 
 dotenv_exec "${#ENV_FILES[@]}" "${ENV_FILES[@]}" "$@"

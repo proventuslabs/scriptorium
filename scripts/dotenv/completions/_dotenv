@@ -8,6 +8,7 @@ _dotenv() {
 		'(-h --help)'{-h,--help}'[Show help message]' \
 		'(-V --version)'{-V,--version}'[Show version]' \
 		'(-x --exec)'{-x,--exec}'[Replace process with exec]' \
+		'(-o --override)'{-o,--override}'[Override existing environment variables]' \
 		'(-s --strict)'{-s,--strict}'[Fail on warnings]' \
 		'(-q --quiet)'{-q,--quiet}'[Suppress warnings]' \
 		'*'{-e,--env-file}'[Specify .env file to load]:env file:_files -g "*(.)"' \

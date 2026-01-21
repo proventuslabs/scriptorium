@@ -14,7 +14,7 @@ dotenv_warn() {
 
 # Load .env files and execute command using env(1)
 # Usage: dotenv_exec <num_files> file... command [args...]
-# Globals: DOTENV_STRICT, DOTENV_QUIET, DOTENV_EXEC
+# Globals: DOTENV_STRICT, DOTENV_QUIET, DOTENV_EXEC, DOTENV_OVERRIDE
 dotenv_exec() {
 	local num_files=$1
 	shift
@@ -43,9 +43,11 @@ dotenv_exec() {
 		fi
 	done
 
-	# Build env args (skip vars already in environment)
+	# Build env args (skip vars already in environment unless override is set)
 	for key in "${!env_vars[@]}"; do
-		[[ -z "${!key+x}" ]] && env_args+=("$key=${env_vars[$key]}")
+		if [[ -n "${DOTENV_OVERRIDE:-}" ]] || [[ -z "${!key+x}" ]]; then
+			env_args+=("$key=${env_vars[$key]}")
+		fi
 	done
 
 	# Execute with env

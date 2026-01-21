@@ -31,6 +31,7 @@ fi
 DOTENV_STRICT="$STRICT"
 DOTENV_QUIET="$QUIET"
 DOTENV_EXEC="$EXEC_MODE"
+DOTENV_OVERRIDE="$OVERRIDE"
 
 # Load environment and execute command
 dotenv_exec "${#ENV_FILES[@]}" "${ENV_FILES[@]}" "$@"

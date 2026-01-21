@@ -33,16 +33,17 @@ dotenv \- load environment variables from .env files and execute command
 .sp
 \fBdotenv\fP [\fB\-h\fP | \fB\-\-help\fP]
 .br
-\fBdotenv\fP [\fB\-x\fP | \fB\-\-exec\fP] [\fB\-s\fP | \fB\-\-strict\fP] [\fB\-q\fP | \fB\-\-quiet\fP] [\fB\-e\fP \fIFILE\fP].\|.\|. \fICOMMAND\fP [\fIARGS\fP.\|.\|.]
+\fBdotenv\fP [\fB\-x\fP | \fB\-\-exec\fP] [\fB\-o\fP | \fB\-\-override\fP] [\fB\-s\fP | \fB\-\-strict\fP] [\fB\-q\fP | \fB\-\-quiet\fP] [\fB\-e\fP \fIFILE\fP].\|.\|. \fICOMMAND\fP [\fIARGS\fP.\|.\|.]
 .SH "DESCRIPTION"
 .sp
 \fBdotenv\fP loads environment variables from one or more .env files and executes
 a command with the loaded environment. It supports multiline values, quoted
 strings, and comments.
 .sp
-Environment variables that are already set in the calling environment take
-precedence over variables defined in .env files. This allows for easy
-overriding of .env file values.
+By default, environment variables that are already set in the calling
+environment take precedence over variables defined in .env files. Use the
+\fB\-o\fP option to reverse this behavior and have .env file values override the
+calling environment.
 .sp
 The .env file format follows common conventions. For detailed syntax
 information, see \fBenv\fP(5).
@@ -59,6 +60,12 @@ with later files overriding variables from earlier files.
 .RS 4
 Replace the current shell process with the executed command instead of
 running it in a subprocess.
+.RE
+.sp
+\fB\-o\fP, \fB\-\-override\fP
+.RS 4
+Override existing environment variables with values from .env files. By
+default, environment variables already set take precedence over .env values.
 .RE
 .sp
 \fB\-s\fP, \fB\-\-strict\fP
@@ -94,7 +101,7 @@ Arguments to pass to the command.
 .RE
 .SH "VARIABLE PRECEDENCE"
 .sp
-Variables are resolved in the following order (highest to lowest precedence):
+By default, variables are resolved in the following order (highest to lowest):
 .sp
 .RS 4
 .ie n \{\
@@ -121,9 +128,33 @@ Variables from .env files (processed in command\-line order)
 This means that \fBTEST=override dotenv \-e .env command\fP will use "override" as
 the value of TEST, regardless of what .env contains.
 .sp
-When multiple .env files are specified, later files override variables from
-earlier files, but only if those variables are not already set in the
-environment.
+When \fB\-o\fP is specified, .env file values take precedence over the calling
+environment:
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 1.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 1." 4.2
+.\}
+Variables from .env files (processed in command\-line order)
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04' 2.\h'+01'\c
+.\}
+.el \{\
+.  sp -1
+.  IP " 2." 4.2
+.\}
+Environment variables set in the calling shell
+.RE
+.sp
+When multiple .env files are specified, later files always override variables
+from earlier files.
 .if n .sp
 .RS 4
 .it 1 an-trap
@@ -136,8 +167,8 @@ environment.
 .br
 .sp
 An environment variable set to an empty string is still considered "set"
-and will take precedence over .env file values. Use \fBunset VAR\fP to allow the
-\&.env value to be used.
+and will take precedence over .env file values (unless \fB\-o\fP is used). Use
+\fBunset VAR\fP to allow the .env value to be used.
 .sp .5v
 .RE
 .SH "EXAMPLES"
@@ -160,6 +191,11 @@ dotenv \-e .env.local npm start
 Override .env file value with environment variable
 .RS 4
 TEST=override dotenv \-e .env printenv TEST
+.RE
+.sp
+Force .env file values to override existing environment variables
+.RS 4
+TEST=existing dotenv \-o \-e .env printenv TEST
 .RE
 .sp
 Fail if .env.production is missing instead of just warning

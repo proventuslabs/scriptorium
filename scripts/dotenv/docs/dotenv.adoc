@@ -14,7 +14,7 @@ dotenv - load environment variables from .env files and execute command
 == SYNOPSIS
 
 *dotenv* [*-h* | *--help*] +
-*dotenv* [*-x* | *--exec*] [*-s* | *--strict*] [*-q* | *--quiet*] [*-e* _FILE_]... _COMMAND_ [_ARGS_...]
+*dotenv* [*-x* | *--exec*] [*-o* | *--override*] [*-s* | *--strict*] [*-q* | *--quiet*] [*-e* _FILE_]... _COMMAND_ [_ARGS_...]
 
 == DESCRIPTION
 
@@ -22,9 +22,10 @@ dotenv - load environment variables from .env files and execute command
 a command with the loaded environment. It supports multiline values, quoted
 strings, and comments.
 
-Environment variables that are already set in the calling environment take
-precedence over variables defined in .env files. This allows for easy
-overriding of .env file values.
+By default, environment variables that are already set in the calling
+environment take precedence over variables defined in .env files. Use the
+*-o* option to reverse this behavior and have .env file values override the
+calling environment.
 
 The .env file format follows common conventions. For detailed syntax
 information, see *env*(5).
@@ -39,6 +40,10 @@ information, see *env*(5).
 *-x*, *--exec*::
   Replace the current shell process with the executed command instead of
   running it in a subprocess.
+
+*-o*, *--override*::
+  Override existing environment variables with values from .env files. By
+  default, environment variables already set take precedence over .env values.
 
 *-s*, *--strict*::
   Fail with exit code 1 when warnings occur (e.g., missing .env files,
@@ -63,7 +68,7 @@ _ARGS_...::
 
 == VARIABLE PRECEDENCE
 
-Variables are resolved in the following order (highest to lowest precedence):
+By default, variables are resolved in the following order (highest to lowest):
 
 1. Environment variables set in the calling shell
 2. Variables from .env files (processed in command-line order)
@@ -71,13 +76,18 @@ Variables are resolved in the following order (highest to lowest precedence):
 This means that *TEST=override dotenv -e .env command* will use "override" as
 the value of TEST, regardless of what .env contains.
 
-When multiple .env files are specified, later files override variables from
-earlier files, but only if those variables are not already set in the
-environment.
+When *-o* is specified, .env file values take precedence over the calling
+environment:
+
+1. Variables from .env files (processed in command-line order)
+2. Environment variables set in the calling shell
+
+When multiple .env files are specified, later files always override variables
+from earlier files.
 
 NOTE: An environment variable set to an empty string is still considered "set"
-and will take precedence over .env file values. Use *unset VAR* to allow the
-.env value to be used.
+and will take precedence over .env file values (unless *-o* is used). Use
+*unset VAR* to allow the .env value to be used.
 
 == EXAMPLES
 
@@ -96,6 +106,10 @@ Use custom .env file with npm::
 Override .env file value with environment variable::
 
   TEST=override dotenv -e .env printenv TEST
+
+Force .env file values to override existing environment variables::
+
+  TEST=existing dotenv -o -e .env printenv TEST
 
 Fail if .env.production is missing instead of just warning::
 
