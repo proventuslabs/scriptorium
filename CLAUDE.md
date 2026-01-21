@@ -35,6 +35,13 @@ When renaming or modifying CLI flags, update all locations:
 - `.github/workflows/` - CI scripts using the command
 - Internal commands generating scripts (e.g., hook templates)
 
+## Implementation Plans
+
+- Plan files (`docs/plans/*.md`) are local artifacts for implementation guidance
+- Do NOT commit plan files - they are gitignored
+- Create plans before complex multi-step implementations
+- Delete or keep locally after implementation is complete
+
 ## Pull Requests
 
 - Always run tests, lint, build using make targets before pushing

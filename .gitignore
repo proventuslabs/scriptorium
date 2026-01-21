@@ -21,3 +21,7 @@
 # Track subdirectories (each has its own .gitignore)
 !*/
 !.github/
+
+# Local artifacts (not committed)
+docs/plans/
+.worktrees/
