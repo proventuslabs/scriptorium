@@ -101,7 +101,7 @@ is_multi_scope() { [[ "$1" == *"$(_get_sep)"* ]]; }
 # Validate paths against scope(s) if INI format and files provided
 # Usage: validate_paths_if_needed <scope>
 validate_paths_if_needed() {
-	local scope="$1" require_scope
+	local scope="$1" require_scope multi_scope
 
 	# Determine require-scope mode (--require-scope/--no-require-scope override config)
 	if [[ "${REQUIRE_SCOPE-unset}" == "1" ]]; then
@@ -110,6 +110,15 @@ validate_paths_if_needed() {
 		require_scope=false
 	else
 		require_scope="${CFG_SETTINGS[require_scope]:-false}"
+	fi
+
+	# Determine multi-scope mode (--multi-scope/--no-multi-scope override config)
+	if [[ "${MULTI_SCOPE-unset}" == "1" ]]; then
+		multi_scope=true
+	elif [[ "${MULTI_SCOPE-unset}" == "" ]]; then
+		multi_scope=false
+	else
+		multi_scope="${CFG_SETTINGS[multi_scope]:-false}"
 	fi
 
 	# In require-scope mode with scope, validate scope exists
@@ -149,9 +158,9 @@ validate_paths_if_needed() {
 
 	# Multi-scope validation
 	if is_multi_scope "$scope"; then
-		[[ "${CFG_SETTINGS[multi_scope]:-false}" != "true" ]] && {
-			_err "multi-scope not enabled in config"
-			_hint "Set multi-scope = true in [settings] to use multiple scopes"
+		[[ "$multi_scope" != "true" ]] && {
+			_err "multi-scope not enabled"
+			_hint "Use --multi-scope flag or set multi-scope = true in [settings]"
 			return 1
 		}
 		_check_scopes_exist "$scope" || return 1

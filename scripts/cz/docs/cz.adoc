@@ -13,7 +13,7 @@ cz - conventional commit message builder
 
 == SYNOPSIS
 
-*cz* [*-r* | *--no-require-scope*] [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
+*cz* [*-r* | *--no-require-scope*] [*-m* | *--no-multi-scope*] [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
 
 *cz* *create* [*--custom-scope* | *--no-custom-scope*] +
 *cz* *lint* [*-p* _PATHS_] +
@@ -101,6 +101,15 @@ in a terminal, or *lint* mode if receiving input on standard input.
   without scope in *lint* even when files match scope patterns. Overrides
   the `require-scope` setting in the configuration file.
 
+*-m*, *--multi-scope*::
+  Allow multiple scopes in a commit like `feat(api,db):`. Overrides the
+  `multi-scope` setting in the configuration file.
+
+*--no-multi-scope*::
+  Disallow multiple scopes. Commits with multiple scopes like `feat(api,db):`
+  will fail validation. Overrides the `multi-scope` setting in the
+  configuration file.
+
 *-q*, *--quiet*::
   Suppress warnings and non-essential output.
 
@@ -154,8 +163,9 @@ The *--require-scope* option also affects the *lint* command:
 |Allows no scope even for scoped files
 |===
 
-The config setting `require-scope = true` in `[settings]` has the same effect as
-*--require-scope*, but CLI flags override the config setting.
+The config settings `require-scope = true` and `multi-scope = true` in `[settings]`
+have the same effect as their corresponding CLI flags, but CLI flags always
+override config settings.
 
 == EXAMPLES
 
@@ -186,6 +196,10 @@ Lint with scope validation against specific files::
 Lint with required scope for scoped files::
 
   cz --require-scope lint --paths "$(git diff --cached --name-only)" < "$1"
+
+Lint with multi-scope enabled::
+
+  echo "feat(api,db): cross-cutting change" | cz --multi-scope lint
 
 Show resolved configuration::
 

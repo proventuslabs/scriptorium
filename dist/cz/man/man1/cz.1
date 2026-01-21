@@ -31,7 +31,7 @@
 cz \- conventional commit message builder
 .SH "SYNOPSIS"
 .sp
-\fBcz\fP [\fB\-r\fP | \fB\-\-no\-require\-scope\fP] [\fB\-q\fP] [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
+\fBcz\fP [\fB\-r\fP | \fB\-\-no\-require\-scope\fP] [\fB\-m\fP | \fB\-\-no\-multi\-scope\fP] [\fB\-q\fP] [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
 .sp
 \fBcz\fP \fBcreate\fP [\fB\-\-custom\-scope\fP | \fB\-\-no\-custom\-scope\fP]
 .br
@@ -140,6 +140,19 @@ without scope in \fBlint\fP even when files match scope patterns. Overrides
 the \f(CRrequire\-scope\fP setting in the configuration file.
 .RE
 .sp
+\fB\-m\fP, \fB\-\-multi\-scope\fP
+.RS 4
+Allow multiple scopes in a commit like \f(CRfeat(api,db):\fP. Overrides the
+\f(CRmulti\-scope\fP setting in the configuration file.
+.RE
+.sp
+\fB\-\-no\-multi\-scope\fP
+.RS 4
+Disallow multiple scopes. Commits with multiple scopes like \f(CRfeat(api,db):\fP
+will fail validation. Overrides the \f(CRmulti\-scope\fP setting in the
+configuration file.
+.RE
+.sp
 \fB\-q\fP, \fB\-\-quiet\fP
 .RS 4
 Suppress warnings and non\-essential output.
@@ -245,8 +258,9 @@ T}
 .TE
 .sp
 .sp
-The config setting \f(CRrequire\-scope = true\fP in \f(CR[settings]\fP has the same effect as
-\fB\-\-require\-scope\fP, but CLI flags override the config setting.
+The config settings \f(CRrequire\-scope = true\fP and \f(CRmulti\-scope = true\fP in \f(CR[settings]\fP
+have the same effect as their corresponding CLI flags, but CLI flags always
+override config settings.
 .SH "EXAMPLES"
 .sp
 Create and commit interactively
@@ -282,6 +296,11 @@ echo "feat(api): add endpoint" | cz lint \-\-paths "src/api/routes.ts"
 Lint with required scope for scoped files
 .RS 4
 cz \-\-require\-scope lint \-\-paths "$(git diff \-\-cached \-\-name\-only)" < "$1"
+.RE
+.sp
+Lint with multi\-scope enabled
+.RS 4
+echo "feat(api,db): cross\-cutting change" | cz \-\-multi\-scope lint
 .RE
 .sp
 Show resolved configuration

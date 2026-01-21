@@ -7,7 +7,7 @@ _cz() {
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
 	local commands="create lint parse init hook"
-	local global_opts="-c --config-file -q --quiet -h --help -V --version"
+	local global_opts="-c --config-file -r --require-scope --no-require-scope -m --multi-scope --no-multi-scope -q --quiet -h --help -V --version"
 
 	# Complete config file path after -c/--config-file
 	if [[ "$prev" == "-c" || "$prev" == "--config-file" ]]; then
@@ -36,13 +36,13 @@ _cz() {
 	else
 		case "$cmd" in
 			create)
-				mapfile -t COMPREPLY < <(compgen -W "-s --strict-scopes -h --help" -- "$cur")
+				mapfile -t COMPREPLY < <(compgen -W "--custom-scope --no-custom-scope -h --help" -- "$cur")
 				;;
 			lint)
-				mapfile -t COMPREPLY < <(compgen -W "-p --paths -s --strict --no-strict -h --help" -- "$cur")
+				mapfile -t COMPREPLY < <(compgen -W "-p --paths -h --help" -- "$cur")
 				;;
 			init)
-				mapfile -t COMPREPLY < <(compgen -W "-f --force -h --help" -- "$cur")
+				mapfile -t COMPREPLY < <(compgen -W "-o --output -f --force -h --help" -- "$cur")
 				;;
 			hook)
 				mapfile -t COMPREPLY < <(compgen -W "install uninstall status -h --help" -- "$cur")
