@@ -539,14 +539,152 @@ EOF
 		End
 
 		#───────────────────────────────────────────────────────────
-		# Global --require-scope option
+		# Scope validation flags
 		#───────────────────────────────────────────────────────────
-		Describe 'require-scope (global option)'
-			setup_require_scope_config() {
+		Describe 'defined-scope flag'
+			It 'rejects unknown scope when -d is set'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+EOF
+				Data "feat(unknown): add feature"
+				When run script "$BIN" -d lint
+				The status should be failure
+				The stderr should include "unknown scope"
+			End
+
+			It 'accepts defined scope when -d is set'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+EOF
+				Data "feat(api): add feature"
+				When run script "$BIN" -d lint
+				The status should be success
+			End
+
+			It 'allows any scope when -d is not set'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+EOF
+				Data "feat(unknown): add feature"
+				When run script "$BIN" lint
+				The status should be success
+			End
+
+			It 'rejects any scope when no scopes defined and -d is set'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+EOF
+				Data "feat(anything): add feature"
+				When run script "$BIN" -d lint
+				The status should be failure
+				The stderr should include "no scopes defined"
+			End
+
+			It '--no-defined-scope overrides config'
+				cat > .gitcommitizen << 'EOF'
+[settings]
+defined-scope = true
+
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+EOF
+				Data "feat(unknown): add feature"
+				When run script "$BIN" --no-defined-scope lint
+				The status should be success
+			End
+
+			It 'config defined-scope = true validates scope'
+				cat > .gitcommitizen << 'EOF'
+[settings]
+defined-scope = true
+
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+EOF
+				Data "feat(unknown): add feature"
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "unknown scope"
+			End
+		End
+
+		Describe 'require-scope flag'
+			It 'requires scope when -r is set'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+EOF
+				Data "feat: add feature"
+				When run script "$BIN" -r lint
+				The status should be failure
+				The stderr should include "scope required"
+			End
+
+			It 'accepts scope when -r is set'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+EOF
+				Data "feat(api): add feature"
+				When run script "$BIN" -r lint
+				The status should be success
+			End
+
+			It 'allows no scope when -r is not set'
+				cat > .gitcommitizen << 'EOF'
+[types]
+feat = Feature
+EOF
+				Data "feat: add feature"
+				When run script "$BIN" lint
+				The status should be success
+			End
+
+			It '--no-require-scope overrides config'
 				cat > .gitcommitizen << 'EOF'
 [settings]
 require-scope = true
 
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+EOF
+				Data "feat: add feature"
+				When run script "$BIN" --no-require-scope lint
+				The status should be success
+			End
+		End
+
+		Describe 'enforce-patterns flag'
+			setup_enforce_config() {
+				cat > .gitcommitizen << 'EOF'
 [types]
 feat = Feature
 
@@ -556,65 +694,45 @@ ui = src/ui/**
 EOF
 			}
 
-			BeforeEach 'setup_require_scope_config'
+			BeforeEach 'setup_enforce_config'
 
-			It 'lint: requires scope when files match scoped paths'
+			It 'requires scope to match files when -e is set'
+				Data "feat(api): add endpoint"
+				When run script "$BIN" -e lint --paths "src/ui/button.tsx"
+				The status should be failure
+				The stderr should include "does not match scope"
+			End
+
+			It 'passes when scope matches files with -e'
+				Data "feat(api): add endpoint"
+				When run script "$BIN" -e lint --paths "src/api/handler.go"
+				The status should be success
+			End
+
+			It 'requires scope for scoped files when -e is set'
 				Data "feat: add feature"
-				When run script "$BIN" lint --paths "src/api/handler.go"
+				When run script "$BIN" -e lint --paths "src/api/handler.go"
 				The status should be failure
 				The stderr should include "scope required"
-				The stderr should include "Hint"
 			End
 
-			It 'lint: allows no scope when files match no scoped paths'
+			It 'allows no scope for unscoped files when -e is set'
 				Data "feat: add feature"
-				When run script "$BIN" lint --paths "other/file.txt"
+				When run script "$BIN" -e lint --paths "other/file.txt"
 				The status should be success
 			End
 
-			It 'lint: allows no scope when no files provided'
-				Data "feat: add feature"
-				When run script "$BIN" lint
-				The status should be success
-			End
-
-			It 'lint: rejects unknown scope'
+			It '-e implies -d (validates scope exists)'
 				Data "feat(unknown): add feature"
-				When run script "$BIN" lint
+				When run script "$BIN" -e lint --paths "other/file.txt"
 				The status should be failure
 				The stderr should include "unknown scope"
 			End
 
-			It 'lint: accepts defined scope'
-				Data "feat(api): add feature"
-				When run script "$BIN" lint
-				The status should be success
-			End
-
-			It 'lint: rejects any scope when no scopes defined'
+			It '--no-enforce-patterns allows scope mismatch'
 				cat > .gitcommitizen << 'EOF'
 [settings]
-require-scope = true
-
-[types]
-feat = Feature
-EOF
-				Data "feat(anything): add feature"
-				When run script "$BIN" lint
-				The status should be failure
-				The stderr should include "no scopes defined"
-			End
-
-			It 'global --no-require-scope overrides config'
-				Data "feat: add feature"
-				When run script "$BIN" --no-require-scope lint -p "src/api/handler.go"
-				The status should be success
-			End
-
-			It 'global --require-scope overrides config'
-				cat > .gitcommitizen << 'EOF'
-[settings]
-require-scope = false
+enforce-patterns = true
 
 [types]
 feat = Feature
@@ -622,10 +740,26 @@ feat = Feature
 [scopes]
 api = src/api/**
 EOF
-				Data "feat: add feature"
-				When run script "$BIN" --require-scope lint --paths "src/api/handler.go"
+				Data "feat(api): add endpoint"
+				When run script "$BIN" --no-enforce-patterns lint --paths "src/ui/button.tsx"
+				The status should be success
+			End
+
+			It 'config enforce-patterns = true validates patterns'
+				cat > .gitcommitizen << 'EOF'
+[settings]
+enforce-patterns = true
+
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+EOF
+				Data "feat(api): add endpoint"
+				When run script "$BIN" lint --paths "src/ui/button.tsx"
 				The status should be failure
-				The stderr should include "scope required"
+				The stderr should include "does not match scope"
 			End
 		End
 
