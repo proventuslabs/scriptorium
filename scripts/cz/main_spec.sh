@@ -176,6 +176,14 @@ Describe 'cz'
 		# Config file handling
 		#───────────────────────────────────────────────────────────
 		Describe 'config file'
+			It 'uses default types when no config file exists'
+				# Ensure no config file exists
+				rm -f .gitcommitizen
+				Data "feat: add feature"
+				When run script "$BIN" lint
+				The status should be success
+			End
+
 			It 'uses .gitcommitizen in current directory'
 				cat > .gitcommitizen << 'EOF'
 [types]
@@ -358,7 +366,7 @@ feat = Feature
 tests = **/test/**
 EOF
 				Data "feat(tests): add test"
-				When run script "$BIN" lint --paths "src/api/test/handler_test.go"
+				When run script "$BIN" -e lint --paths "src/api/test/handler_test.go"
 				The status should be success
 			End
 
@@ -371,7 +379,7 @@ feat = Feature
 spec = **/spec.ts
 EOF
 				Data "feat(spec): update spec"
-				When run script "$BIN" lint --paths "src/components/Button/spec.ts"
+				When run script "$BIN" -e lint --paths "src/components/Button/spec.ts"
 				The status should be success
 			End
 
@@ -806,6 +814,23 @@ EOF
 				When run script "$BIN" lint --paths "src/ui/button.tsx"
 				The status should be failure
 				The stderr should include "does not match scope"
+			End
+
+			It 'config enforce-patterns without defined-scope rejects unknown scope'
+				cat > .gitcommitizen << 'EOF'
+[settings]
+enforce-patterns = true
+
+[types]
+feat = Feature
+
+[scopes]
+api = src/api/**
+EOF
+				Data "feat(unknown): add feature"
+				When run script "$BIN" lint --paths "src/api/x.go"
+				The status should be failure
+				The stderr should include "unknown scope"
 			End
 		End
 
@@ -1627,6 +1652,88 @@ EOF
 					When run script "$BIN" create
 					The status should be success
 					The output should equal "feat: no scope"
+				End
+
+				It 'prompts for scope when only wildcard scope configured'
+					# Mock that provides custom scope input
+					mkdir -p "$TEST_DIR/bin"
+					cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+case "$1" in
+	choose)
+		if [[ "$*" == *"type"* ]]; then
+			echo "feat - A new feature"
+		fi
+		;;
+	input)
+		if [[ "$*" == *"scope"* ]] || [[ "$*" == *"Scope"* ]]; then
+			echo "my-scope"
+		elif [[ "$*" == *"Description"* ]]; then
+			echo "add feature"
+		fi
+		;;
+	confirm)
+		exit 1
+		;;
+	write)
+		echo ""
+		;;
+esac
+MOCK
+					chmod +x "$TEST_DIR/bin/gum"
+					PATH="$TEST_DIR/bin:$PATH"
+
+					cat > .gitcommitizen << 'EOF'
+[types]
+feat = A new feature
+
+[scopes]
+* = **
+EOF
+					When run script "$BIN" create
+					The status should be success
+					The output should equal "feat(my-scope): add feature"
+				End
+
+				It 'requires scope when only wildcard scope and require-scope=true'
+					# Mock that provides required scope input
+					mkdir -p "$TEST_DIR/bin"
+					cat > "$TEST_DIR/bin/gum" << 'MOCK'
+#!/bin/bash
+case "$1" in
+	choose)
+		if [[ "$*" == *"type"* ]]; then
+			echo "feat - A new feature"
+		fi
+		;;
+	input)
+		if [[ "$*" == *"scope"* ]] || [[ "$*" == *"Scope"* ]]; then
+			echo "required-scope"
+		elif [[ "$*" == *"Description"* ]]; then
+			echo "add feature"
+		fi
+		;;
+	confirm)
+		exit 1
+		;;
+	write)
+		echo ""
+		;;
+esac
+MOCK
+					chmod +x "$TEST_DIR/bin/gum"
+					PATH="$TEST_DIR/bin:$PATH"
+
+					cat > .gitcommitizen << 'EOF'
+[types]
+feat = A new feature
+
+[scopes]
+* = **
+EOF
+					When run script "$BIN" --require-scope create
+					The status should be success
+					The output should equal "feat(required-scope): add feature"
 				End
 			End
 
