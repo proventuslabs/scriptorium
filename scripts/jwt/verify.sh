@@ -2,17 +2,20 @@
 # JWT verification functions
 
 # Warning helper
+# @start-kcov-exclude - only called when version warnings trigger (OpenSSL < 3.x)
 jwt_warn() {
 	[[ -n "${JWT_QUIET:-}" ]] && return 0
 	echo "jwt: warning: $1" >&2
 	return 0
 }
+# @end-kcov-exclude
 
 # Check required dependencies are available
 # $1: algorithm (optional) - if ECDSA, also checks for xxd
 check_dependencies() {
 	local alg=${1:-}
 
+	# @start-kcov-exclude - can't mock PATH to test missing dependencies
 	if ! command -v openssl &>/dev/null; then
 		echo "jwt: error: openssl not found" >&2
 		return 1
@@ -27,6 +30,7 @@ check_dependencies() {
 			fi
 			;;
 	esac
+	# @end-kcov-exclude
 }
 
 # Get OpenSSL major version number
@@ -35,10 +39,12 @@ get_openssl_major_version() {
 	local version_string version
 	version_string=$(openssl version 2>/dev/null)
 	# LibreSSL returns "LibreSSL x.y.z" - not compatible with PS/EdDSA
+	# @start-kcov-exclude - only triggers on LibreSSL systems
 	if [[ "$version_string" == LibreSSL* ]]; then
 		echo "0"
 		return
 	fi
+	# @end-kcov-exclude
 	version=$(echo "$version_string" | awk '{print $2}')
 	echo "${version%%.*}"
 }
@@ -53,10 +59,12 @@ check_algorithm_support() {
 	case $alg in
 		PS256 | PS384 | PS512 | EdDSA)
 			# These require OpenSSL 3.x
+			# @start-kcov-exclude - only triggers on OpenSSL < 3.x or LibreSSL
 			if [[ "$major_version" -lt 3 ]]; then
 				jwt_warn "algorithm '$alg' requires OpenSSL 3.x (found: $(openssl version))"
 				return 1
 			fi
+			# @end-kcov-exclude
 			;;
 	esac
 	return 0
@@ -201,11 +209,13 @@ verify_ecdsa() {
 	# Decode signature to hex, convert to DER
 	local sig_hex der_hex
 	sig_hex=$(base64url_decode "$JWT_SIG_B64" | xxd -p | tr -d '\n')
+	# @start-kcov-exclude - jwt_sig_to_der only fails with invalid key_bits (defensive)
 	der_hex=$(jwt_sig_to_der "$sig_hex" "$key_bits") || {
 		echo "jwt: error: failed to convert ECDSA signature" >&2
 		rm -f "$sig_file" "$key_file"
 		return 1
 	}
+	# @end-kcov-exclude
 
 	# Write DER signature as binary and key to temp files
 	echo "$der_hex" | xxd -r -p >"$sig_file"

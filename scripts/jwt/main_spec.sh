@@ -410,6 +410,32 @@ Describe 'jwt'
 			The stderr should include "invalid"
 		End
 
+		It 'rejects token with empty header part'
+			When run script "$BIN" ".eyJzdWIiOiJ0ZXN0In0.sig"
+			The status should be failure
+			The stderr should include "invalid JWT format"
+		End
+
+		It 'rejects token with empty payload part'
+			When run script "$BIN" "eyJhbGciOiJIUzI1NiJ9..sig"
+			The status should be failure
+			The stderr should include "invalid JWT format"
+		End
+
+		It 'rejects token with empty signature part'
+			When run script "$BIN" "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0."
+			The status should be failure
+			The stderr should include "invalid JWT format"
+		End
+
+		It 'rejects invalid base64 in payload'
+			# Valid header: {"alg":"HS256"} = eyJhbGciOiJIUzI1NiJ9
+			# Invalid base64 in payload
+			When run script "$BIN" "eyJhbGciOiJIUzI1NiJ9.!!invalid!!.sig"
+			The status should be failure
+			The stderr should include "failed to decode payload"
+		End
+
 		It 'rejects unsupported algorithm during verification'
 			# {"alg":"XX99","typ":"JWT"} = eyJhbGciOiJYWDk5IiwidHlwIjoiSldUIn0
 			# {"sub":"test"} = eyJzdWIiOiJ0ZXN0In0
