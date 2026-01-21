@@ -414,6 +414,20 @@ EOF
 			The output should equal "PROVIDER_RAN"
 			The stderr should include "no detectors configured"
 		End
+
+		It 'handles non-existent handlers.d directory gracefully'
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	echo "PROVIDER_RAN"
+}
+EOF
+			# Remove handlers.d directory entirely
+			rm -rf "$XDG_CONFIG_HOME/theme/handlers.d"
+			export THEME=dark
+			When run script "$BIN" -q
+			The status should be success
+			The output should equal "PROVIDER_RAN"
+		End
 	End
 
 	#═══════════════════════════════════════════════════════════════
