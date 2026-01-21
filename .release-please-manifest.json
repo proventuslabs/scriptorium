@@ -1,1 +1,4 @@
-{"scripts/dotenv":"0.1.0"}
+{
+  "scripts/dotenv": "0.1.0",
+  "scripts/theme": "0.1.0"
+}
