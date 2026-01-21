@@ -23,13 +23,10 @@ format_config() {
 	done
 }
 
-# Load default Conventional Commits (Angular) configuration
-# Sets associative arrays: CFG_TYPES, CFG_SCOPES, CFG_SETTINGS
-default_config() {
-	# Note: =() initialization required for set -u compatibility
-	unset CFG_TYPES CFG_SCOPES CFG_SETTINGS
-	# shellcheck disable=SC2034 # used by other modules
-	declare -gA CFG_SCOPES=() CFG_SETTINGS=()
+# Set default Conventional Commits (Angular) types
+# Only sets CFG_TYPES, preserves other arrays if they exist
+_set_default_types() {
+	# @start-kcov-exclude - kcov can't track multi-line array element definitions
 	declare -gA CFG_TYPES=(
 		[feat]="A new feature"
 		[fix]="A bug fix"
@@ -43,6 +40,15 @@ default_config() {
 		[chore]="Other changes that don't modify src or test files"
 		[revert]="Reverts a previous commit"
 	)
+	# @end-kcov-exclude
+}
 
-	return 0
+# Load default Conventional Commits (Angular) configuration
+# Sets associative arrays: CFG_TYPES, CFG_SCOPES, CFG_SETTINGS
+default_config() {
+	# Note: =() initialization required for set -u compatibility
+	unset CFG_TYPES CFG_SCOPES CFG_SETTINGS
+	# shellcheck disable=SC2034 # used by other modules
+	declare -gA CFG_SCOPES=() CFG_SETTINGS=()
+	_set_default_types
 }

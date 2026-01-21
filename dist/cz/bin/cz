@@ -222,9 +222,8 @@ format_config() {
 	done
 }
 
-default_config() {
-	unset CFG_TYPES CFG_SCOPES CFG_SETTINGS
-	declare -gA CFG_SCOPES=() CFG_SETTINGS=()
+_set_default_types() {
+	# @start-kcov-exclude - kcov can't track multi-line array element definitions
 	declare -gA CFG_TYPES=(
 		[feat]="A new feature"
 		[fix]="A bug fix"
@@ -238,8 +237,13 @@ default_config() {
 		[chore]="Other changes that don't modify src or test files"
 		[revert]="Reverts a previous commit"
 	)
+	# @end-kcov-exclude
+}
 
-	return 0
+default_config() {
+	unset CFG_TYPES CFG_SCOPES CFG_SETTINGS
+	declare -gA CFG_SCOPES=() CFG_SETTINGS=()
+	_set_default_types
 }
 # --- end: scripts/cz/config_defaults.sh ---
 # --- begin: scripts/cz/config_parser.sh ---
@@ -318,19 +322,7 @@ load_config() {
 
 		if [[ ${#CFG_TYPES[@]} -eq 0 ]]; then
 			[[ -z "${QUIET:-}" ]] && echo "cz: warning: no [types] in $CONFIG_FILE, using defaults" >&2
-			declare -gA CFG_TYPES=(
-				[feat]="A new feature"
-				[fix]="A bug fix"
-				[docs]="Documentation only changes"
-				[style]="Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)"
-				[refactor]="A code change that neither fixes a bug nor adds a feature"
-				[perf]="A code change that improves performance"
-				[test]="Adding missing tests or correcting existing tests"
-				[build]="Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)"
-				[ci]="Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)"
-				[chore]="Other changes that don't modify src or test files"
-				[revert]="Reverts a previous commit"
-			)
+			_set_default_types
 		fi
 	else
 		default_config
@@ -859,7 +851,7 @@ cmd_create() {
 			scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
 			case "$scope_selection" in
 				"(custom)") scope=$(_scope_input_custom) ;;
-				"(none)") ;;
+				"(none)") ;; # @kcov-ignore - kcov can't track empty case statements
 				*) scope="$scope_selection" ;;
 			esac
 		else

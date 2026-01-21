@@ -74,7 +74,7 @@ cmd_create() {
 			scope_selection=$(_gum choose --header "Select scope:" "${scope_choices[@]}")
 			case "$scope_selection" in
 				"(custom)") scope=$(_scope_input_custom) ;;
-				"(none)") ;;
+				"(none)") ;; # @kcov-ignore - kcov can't track empty case statements
 				*) scope="$scope_selection" ;;
 			esac
 		else
