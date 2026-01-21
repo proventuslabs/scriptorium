@@ -14,6 +14,10 @@ Describe 'theme'
 		# Set XDG_CONFIG_HOME to isolate from user config
 		export XDG_CONFIG_HOME="$TEST_DIR/config"
 		mkdir -p "$XDG_CONFIG_HOME/theme/handlers.d"
+		mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+		# Create no-op handler and detector to prevent warnings in unrelated tests
+		echo 'theme_handler_noop() { :; }' > "$XDG_CONFIG_HOME/theme/handlers.d/noop.sh"
+		echo 'theme_detector_noop() { THEME_APPEARANCE=light; return 0; }' > "$XDG_CONFIG_HOME/theme/detectors.d/noop.sh"
 	}
 
 	cleanup() {
@@ -162,6 +166,8 @@ theme_provider_test() {
 	:
 }
 EOF
+			# Remove noop handler from setup to test "none found" display
+			rm -f "$XDG_CONFIG_HOME/theme/handlers.d/noop.sh"
 			When run script "$BIN" --list
 			The status should be success
 			The output should include "theme_provider_test"
@@ -349,17 +355,49 @@ EOF
 			The output should match pattern "SOURCE=*"
 		End
 
-		It 'handles empty handlers.d directory'
+		It 'warns when no handlers found'
 			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
 theme_provider_test() {
 	echo "PROVIDER_RAN"
 }
 EOF
-			# handlers.d exists but has no .sh files (created in setup)
+			# Remove noop handler from setup to test warning
+			rm -f "$XDG_CONFIG_HOME/theme/handlers.d/noop.sh"
 			export THEME=dark
 			When run script "$BIN"
 			The status should be success
 			The output should equal "PROVIDER_RAN"
+			The stderr should include "no handlers found"
+		End
+
+		It 'warns when handler file source fails'
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	echo "PROVIDER_RAN"
+}
+EOF
+			# Create a handler file with syntax error
+			echo "this is not valid bash {{{{" > "$XDG_CONFIG_HOME/theme/handlers.d/bad.sh"
+			export THEME=dark
+			When run script "$BIN"
+			The status should be success
+			The output should equal "PROVIDER_RAN"
+			The stderr should include "failed to source"
+		End
+
+		It 'warns when no detectors configured'
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	echo "PROVIDER_RAN"
+}
+EOF
+			# Remove noop detector from setup to test warning
+			rm -f "$XDG_CONFIG_HOME/theme/detectors.d/noop.sh"
+			export THEME=dark
+			When run script "$BIN"
+			The status should be success
+			The output should equal "PROVIDER_RAN"
+			The stderr should include "no detectors configured"
 		End
 	End
 
@@ -418,7 +456,8 @@ EOF
 		End
 
 		It 'falls back to THEME env var when no detector succeeds'
-			mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+			# Remove noop detector so only failing detector exists
+			rm -f "$XDG_CONFIG_HOME/theme/detectors.d/noop.sh"
 			cat > "$XDG_CONFIG_HOME/theme/detectors.d/always_fail.sh" << 'EOF'
 theme_detector_always_fail() {
 	return 1
@@ -436,7 +475,8 @@ EOF
 		End
 
 		It 'falls back to light when no detector and no THEME env'
-			mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+			# Remove noop detector so only failing detector exists
+			rm -f "$XDG_CONFIG_HOME/theme/detectors.d/noop.sh"
 			cat > "$XDG_CONFIG_HOME/theme/detectors.d/always_fail.sh" << 'EOF'
 theme_detector_always_fail() {
 	return 1
@@ -484,7 +524,8 @@ EOF
 		End
 
 		It 'shows none found when no detectors configured'
-			mkdir -p "$XDG_CONFIG_HOME/theme/detectors.d"
+			# Remove noop detector from setup
+			rm -f "$XDG_CONFIG_HOME/theme/detectors.d/noop.sh"
 			When run script "$BIN" --list
 			The status should be success
 			The output should match pattern "*Detectors:*none found*"
@@ -495,7 +536,7 @@ EOF
 	# QUIET MODE
 	#═══════════════════════════════════════════════════════════════
 	Describe 'quiet mode'
-		It '-q suppresses warnings'
+		It '-q suppresses handler failure warning'
 			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
 theme_provider_test() {
 	:
@@ -512,7 +553,7 @@ EOF
 			The stderr should equal ""
 		End
 
-		It '--quiet suppresses warnings'
+		It '--quiet suppresses handler failure warning'
 			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
 theme_provider_test() {
 	:
@@ -525,6 +566,47 @@ theme_handler_fail() {
 EOF
 			export THEME=dark
 			When run script "$BIN" --quiet
+			The status should be success
+			The stderr should equal ""
+		End
+
+		It '-q suppresses no handlers warning'
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	:
+}
+EOF
+			# Remove noop handler from setup to test warning suppression
+			rm -f "$XDG_CONFIG_HOME/theme/handlers.d/noop.sh"
+			export THEME=dark
+			When run script "$BIN" -q
+			The status should be success
+			The stderr should equal ""
+		End
+
+		It '-q suppresses source failure warning'
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	:
+}
+EOF
+			echo "invalid bash {{{{" > "$XDG_CONFIG_HOME/theme/handlers.d/bad.sh"
+			export THEME=dark
+			When run script "$BIN" -q
+			The status should be success
+			The stderr should equal ""
+		End
+
+		It '-q suppresses no detectors warning'
+			cat > "$XDG_CONFIG_HOME/theme/provider.sh" << 'EOF'
+theme_provider_test() {
+	:
+}
+EOF
+			# Remove noop detector from setup to test warning suppression
+			rm -f "$XDG_CONFIG_HOME/theme/detectors.d/noop.sh"
+			export THEME=dark
+			When run script "$BIN" -q
 			The status should be success
 			The stderr should equal ""
 		End

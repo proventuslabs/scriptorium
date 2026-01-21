@@ -75,7 +75,9 @@ theme_source_handlers_dir() {
 	for f in "$dir"/*.sh; do
 		if [[ -f "$f" ]]; then
 			# shellcheck source=/dev/null
-			source "$f"
+			if ! source "$f" 2>/dev/null; then
+				theme_warn "failed to source '$f'"
+			fi
 		fi
 	done
 

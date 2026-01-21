@@ -153,6 +153,11 @@ theme_detect() {
 	fi
 
 	theme_discover_detectors
+
+	if [[ ${#THEME_DETECTORS[@]} -eq 0 ]]; then
+		theme_warn "no detectors configured"
+	fi
+
 	local detector
 	for detector in "${THEME_DETECTORS[@]}"; do
 		if "$detector"; then
@@ -239,7 +244,9 @@ theme_source_handlers_dir() {
 	local f
 	for f in "$dir"/*.sh; do
 		if [[ -f "$f" ]]; then
-			source "$f"
+			if ! source "$f" 2>/dev/null; then
+				theme_warn "failed to source '$f'"
+			fi
 		fi
 	done
 
@@ -353,6 +360,10 @@ theme_run() {
 	"$THEME_PROVIDER" "$THEME_APPEARANCE" "$THEME_SOURCE"
 
 	theme_discover_handlers
+
+	if [[ ${#THEME_HANDLERS[@]} -eq 0 ]]; then
+		theme_warn "no handlers found"
+	fi
 
 	local handler
 	for handler in "${THEME_HANDLERS[@]}"; do

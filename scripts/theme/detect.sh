@@ -30,6 +30,11 @@ theme_detect() {
 
 	# Try each detector in alphabetical order
 	theme_discover_detectors
+
+	if [[ ${#THEME_DETECTORS[@]} -eq 0 ]]; then
+		theme_warn "no detectors configured"
+	fi
+
 	local detector
 	for detector in "${THEME_DETECTORS[@]}"; do
 		if "$detector"; then
