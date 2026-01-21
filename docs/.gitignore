@@ -1,2 +1,5 @@
 # Track all docs
 !*
+
+# Except local plan files
+plans/
