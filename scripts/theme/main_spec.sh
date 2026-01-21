@@ -98,6 +98,21 @@ Describe 'theme'
 			The output should be present
 		End
 
+		It 'falls back to THEME env var when set to light'
+			# Remove detector so it falls through to THEME env
+			rm -f "$XDG_CONFIG_HOME/theme/detectors.d/noop.sh"
+			export THEME=light
+			When run script "$BIN" -q --detect
+			The status should be success
+			The output should equal "light"
+		End
+
+		It 'rejects invalid override with --detect'
+			When run script "$BIN" --detect invalid
+			The status should be failure
+			The stderr should include "invalid appearance"
+		End
+
 		It 'falls back to light when THEME env var is invalid'
 			export THEME=invalid_value
 			# Clear any system-level detection by running in isolated env

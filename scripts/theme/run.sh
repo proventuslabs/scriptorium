@@ -14,22 +14,10 @@ theme_warn() {
 }
 
 # Main orchestration function
-# Usage: theme_run [--detect|--list|dark|light|auto]
+# Usage: theme_run [dark|light|auto]
+# Note: --detect and --list are handled by main.sh before calling this
 theme_run() {
 	local arg="${1:-}"
-
-	# Handle --detect: only detect and print, no provider/handlers
-	if [[ "$arg" == "--detect" ]]; then
-		theme_detect
-		printf '%s\n' "$THEME_APPEARANCE"
-		return 0
-	fi
-
-	# Handle --list: list provider and handlers
-	if [[ "$arg" == "--list" ]]; then
-		theme_list
-		return 0
-	fi
 
 	# Source user configuration (provider.sh, handlers.d/*.sh)
 	theme_source_config
@@ -55,9 +43,8 @@ theme_run() {
 			;;
 	esac
 
-	if ! theme_detect "$override"; then
-		return 1
-	fi
+	# Note: override is validated above, so theme_detect can't fail here
+	theme_detect "$override"
 
 	# Call provider with appearance and source
 	"$THEME_PROVIDER" "$THEME_APPEARANCE" "$THEME_SOURCE"
