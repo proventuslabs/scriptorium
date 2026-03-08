@@ -1,0 +1,54 @@
+name: Nix Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "flake.nix"
+      - "flake.lock"
+      - "scripts/**"
+      - "utils/**"
+      - "Makefile"
+  pull_request:
+    branches: [main]
+    paths:
+      - "flake.nix"
+      - "flake.lock"
+      - "scripts/**"
+      - "utils/**"
+      - "Makefile"
+
+jobs:
+  build:
+    name: nix build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      - name: Build all packages
+        run: |
+          for pkg in cz dotenv jwt theme; do
+            echo "=== Building $pkg ==="
+            nix build .#$pkg -L
+          done
+
+      - name: Verify outputs
+        run: |
+          for pkg in cz dotenv jwt theme; do
+            nix build .#$pkg
+
+            bin="./result/bin/$pkg"
+            size=$(wc -c < "$bin")
+
+            if [ "$size" -eq 0 ]; then
+              echo "::error::$pkg binary is 0 bytes"
+              exit 1
+            fi
+
+            echo "$pkg: $size bytes, OK"
+          done
+
+      - name: Build meta-package
+        run: nix build -L
