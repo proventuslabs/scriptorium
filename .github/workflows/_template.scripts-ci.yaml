@@ -124,23 +124,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: cachix/install-nix-action@v30
+      - uses: cachix/install-nix-action@v31
 
-      - name: Build script
-        run: nix develop --command make build NAME=${{ inputs.script }}
+      - name: Build
+        run: nix build .#${{ inputs.script }} -L
+
+      - name: Verify output
+        run: |
+          bin="./result/bin/${{ inputs.script }}"
+          size=$(wc -c < "$bin")
+
+          if [ "$size" -eq 0 ]; then
+            echo "::error::${{ inputs.script }} binary is 0 bytes"
+            exit 1
+          fi
+
+          echo "${{ inputs.script }}: $size bytes, OK"
 
       - name: Verify artifacts are up to date
         run: |
-          changed_files=$(git diff --name-only dist/${{ inputs.script }}/)
-          if [ -n "$changed_files" ]; then
-            echo "$changed_files" | while IFS= read -r file; do
-              echo "::error file=$file::Artifact out of sync with source. Run 'make build NAME=${{ inputs.script }}' and commit."
-            done
-            echo ""
-            echo "❌ Committed artifacts don't match source."
+          # Compare nix output against committed dist/ (skip shebang line, patched by nix)
+          built="./result/bin/${{ inputs.script }}"
+          committed="dist/${{ inputs.script }}/bin/${{ inputs.script }}"
+
+          if ! diff <(tail -n +2 "$built") <(tail -n +2 "$committed"); then
+            echo "::error file=$committed::Artifact out of sync with source. Run 'make build NAME=${{ inputs.script }}' and commit."
             exit 1
           fi
-          echo "✅ Artifacts are up to date."
 
   completions-sync:
     name: Completions sync
