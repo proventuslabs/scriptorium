@@ -1188,6 +1188,17 @@ EOF
 			The stderr should include "using defaults"
 		End
 
+		It 'shows breaking-footer setting'
+			cat > .gitcommitizen << 'EOF'
+[settings]
+breaking-footer = false
+EOF
+			When run script "$BIN" parse
+			The output should include "Settings:"
+			The output should include "breaking-footer = false"
+			The stderr should include "using defaults"
+		End
+
 		It 'shows scopes with patterns'
 			cat > .gitcommitizen << 'EOF'
 [types]

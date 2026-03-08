@@ -95,14 +95,12 @@ validate_files_against_scope() {
 
 # Validate files match any of multiple scopes
 # Usage: validate_files_against_scopes <scope,scope,...> <file>...
-# Uses separator from settings (default: ,)
 # Sets VALIDATION_ERRORS array on failures
 validate_files_against_scopes() {
 	local scopes_str="$1"
 	shift
 	local file scope matched
-	local IFS
-	IFS="${CFG_SETTINGS[multi_scope_separator]:-,}"
+	local IFS=","
 	VALIDATION_ERRORS=()
 
 	read -ra scopes_arr <<<"$scopes_str"

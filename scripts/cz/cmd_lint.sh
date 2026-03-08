@@ -50,6 +50,7 @@ cmd_lint() {
 
 	# Parse first line: type[(scope)][!]: description
 	local first_line="${message%%$'\n'*}"
+	# Conventional Commits compliant regex (conventionalcommits.org/en/v1.0.0)
 	local pattern='^([a-z]+)(\(([a-zA-Z0-9_@/,*-]+)\))?(!)?: (.+)$'
 
 	if [[ ! "$first_line" =~ $pattern ]]; then
