@@ -350,6 +350,7 @@ cmd_parse() {
 		[[ -v CFG_SETTINGS[defined_scope] ]] && echo "  defined-scope = ${CFG_SETTINGS[defined_scope]}"
 		[[ -v CFG_SETTINGS[enforce_patterns] ]] && echo "  enforce-patterns = ${CFG_SETTINGS[enforce_patterns]}"
 		[[ -v CFG_SETTINGS[multi_scope] ]] && echo "  multi-scope = ${CFG_SETTINGS[multi_scope]}"
+		[[ -v CFG_SETTINGS[breaking_footer] ]] && echo "  breaking-footer = ${CFG_SETTINGS[breaking_footer]}"
 		echo
 	fi
 
@@ -588,8 +589,7 @@ validate_files_against_scopes() {
 	local scopes_str="$1"
 	shift
 	local file scope matched
-	local IFS
-	IFS="${CFG_SETTINGS[multi_scope_separator]:-,}"
+	local IFS=","
 	VALIDATION_ERRORS=()
 
 	read -ra scopes_arr <<<"$scopes_str"
