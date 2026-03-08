@@ -93,12 +93,17 @@ cmd_lint() {
 	validate_paths_if_needed "$scope"
 }
 
+# Accumulator for repeated --paths flags (called by getoptions parser)
+# shellcheck disable=SC2317 # Called indirectly via getoptions :function prefix
+append_paths() { PATHS="${PATHS:+${PATHS}${_NL}}$OPTARG"; }
+_NL=$'\n'
+
 # Get list of files to validate
 # Usage: get_files_to_validate
 # Returns file list (one per line) or empty string
 get_files_to_validate() {
 	[[ -z "${PATHS:-}" ]] && return
-	echo "$PATHS" | tr ' ' '\n' | grep -v '^$'
+	printf '%s\n' "$PATHS" | grep -v '^$'
 }
 
 # Check if scope contains multi-scope separator

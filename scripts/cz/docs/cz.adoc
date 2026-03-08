@@ -16,7 +16,7 @@ cz - conventional commit message builder
 *cz* [*-r* | *--no-require-scope*] [*-d* | *--no-defined-scope*] [*-e* | *--no-enforce-patterns*] [*-m* | *--no-multi-scope*] [*--breaking-footer* | *--no-breaking-footer*] [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
 
 *cz* *create* +
-*cz* *lint* [*-p* _PATHS_] +
+*cz* *lint* [*-p* _PATH_]... +
 *cz* *parse* +
 *cz* *init* [*-o* _FILE_] [*-f*] +
 *cz* *hook* [*install* | *uninstall* | *status*]
@@ -38,17 +38,17 @@ in a terminal, or *lint* mode if receiving input on standard input.
   is written to standard output. Default when run interactively.
   Requires *gum* to be installed.
 
-*lint* [*-p* _PATHS_]::
+*lint* [*-p* _PATH_]...::
   Validate a commit message against the Conventional Commits rules and the
   *.gitcommitizen*(5) configuration. Reads from standard input. Prints
   diagnostic messages explaining any errors. Exits non-zero if validation
   fails. Use *-e* to enforce scope matching against file patterns.
 +
 --
-*-p*, *--paths* _PATHS_:::
-  Validate that the commit scope matches the specified file paths. Accepts a
-  space-separated list of paths. Requires *-e* (enforce-patterns) to actually
-  validate the scope matches.
+*-p*, *--paths* _PATH_:::
+  Validate that the commit scope matches the specified file path. Can be
+  repeated for multiple paths. Supports filenames with spaces. Requires
+  *-e* (enforce-patterns) to actually validate the scope matches.
 --
 
 *parse*::
@@ -207,9 +207,10 @@ Lint with scope validation against specific files::
 
   echo "feat(api): add endpoint" | cz lint --paths "src/api/routes.ts"
 
-Lint with scope-file pattern enforcement::
+Lint with scope-file pattern enforcement (in commit-msg hook)::
 
-  cz -e lint --paths "$(git diff --cached --name-only)" < "$1"
+  files=$(git diff --cached --name-only)
+  cz -e lint --paths "$files" < "$1"
 
 Lint with multi-scope enabled::
 

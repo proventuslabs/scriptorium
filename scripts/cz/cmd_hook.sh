@@ -56,7 +56,7 @@ HOOK
 	cat >>"$hook_path" <<'HOOK'
 # Validate commit message with cz lint
 # Pass staged files for scope-to-path validation
-files=$(git diff --cached --name-only | tr '\n' ' ')
+files=$(git diff --cached --name-only)
 if [ -n "$files" ]; then
     cz lint --paths "$files" <"$1" || exit 1
 else

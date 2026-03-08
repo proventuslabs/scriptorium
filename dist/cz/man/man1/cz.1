@@ -35,7 +35,7 @@ cz \- conventional commit message builder
 .sp
 \fBcz\fP \fBcreate\fP
 .br
-\fBcz\fP \fBlint\fP [\fB\-p\fP \fIPATHS\fP]
+\fBcz\fP \fBlint\fP [\fB\-p\fP \fIPATH\fP].\|.\|.
 .br
 \fBcz\fP \fBparse\fP
 .br
@@ -60,18 +60,18 @@ is written to standard output. Default when run interactively.
 Requires \fBgum\fP to be installed.
 .RE
 .sp
-\fBlint\fP [\fB\-p\fP \fIPATHS\fP]
+\fBlint\fP [\fB\-p\fP \fIPATH\fP].\|.\|.
 .RS 4
 Validate a commit message against the Conventional Commits rules and the
 \fB.gitcommitizen\fP(5) configuration. Reads from standard input. Prints
 diagnostic messages explaining any errors. Exits non\-zero if validation
 fails. Use \fB\-e\fP to enforce scope matching against file patterns.
 .sp
-\fB\-p\fP, \fB\-\-paths\fP \fIPATHS\fP
+\fB\-p\fP, \fB\-\-paths\fP \fIPATH\fP
 .RS 4
-Validate that the commit scope matches the specified file paths. Accepts a
-space\-separated list of paths. Requires \fB\-e\fP (enforce\-patterns) to actually
-validate the scope matches.
+Validate that the commit scope matches the specified file path. Can be
+repeated for multiple paths. Supports filenames with spaces. Requires
+\fB\-e\fP (enforce\-patterns) to actually validate the scope matches.
 .RE
 .RE
 .sp
@@ -333,9 +333,10 @@ Lint with scope validation against specific files
 echo "feat(api): add endpoint" | cz lint \-\-paths "src/api/routes.ts"
 .RE
 .sp
-Lint with scope\-file pattern enforcement
+Lint with scope\-file pattern enforcement (in commit\-msg hook)
 .RS 4
-cz \-e lint \-\-paths "$(git diff \-\-cached \-\-name\-only)" < "$1"
+files=$(git diff \-\-cached \-\-name\-only)
+cz \-e lint \-\-paths "$files" < "$1"
 .RE
 .sp
 Lint with multi\-scope enabled
