@@ -86,7 +86,7 @@ cmd_lint() {
 	# be indicated by a BREAKING CHANGE footer
 	# Spec #16: BREAKING-CHANGE MUST be synonymous with BREAKING CHANGE
 	# Spec #15: BREAKING CHANGE MUST be uppercase
-	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[-[:space:]]CHANGE: ]] && {
+	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[\ -]CHANGE: ]] && {
 		_err "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
 		return 1
 	}

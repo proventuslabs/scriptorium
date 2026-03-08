@@ -104,7 +104,7 @@ cmd_create() {
 	local description=""
 	while [[ -z "$description" ]]; do
 		description=$(_gum input --header "Description (required):" --placeholder "Short summary of the change")
-		[[ -z "$description" ]] && _err "description MUST immediately follow the colon and space"
+		[[ -z "$description" ]] && _err "description MUST NOT be empty"
 	done
 
 	# Get body (optional)

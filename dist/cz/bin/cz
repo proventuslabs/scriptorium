@@ -349,7 +349,7 @@ load_config() {
 		parse_config <"$CONFIG_FILE"
 
 		if [[ ${#CFG_TYPES[@]} -eq 0 ]]; then
-			[[ -z "${QUIET:-}" ]] && echo "cz: warning: no [types] in $CONFIG_FILE, using defaults" >&2
+			_hint "cz: warning: no [types] in $CONFIG_FILE, using defaults"
 			_set_default_types
 		fi
 	else
@@ -705,7 +705,7 @@ cmd_lint() {
 		breaking_footer="${CFG_SETTINGS[breaking_footer]:-true}"
 	fi
 
-	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[-[:space:]]CHANGE: ]] && {
+	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[\ -]CHANGE: ]] && {
 		_err "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
 		return 1
 	}
@@ -905,7 +905,7 @@ cmd_create() {
 	local description=""
 	while [[ -z "$description" ]]; do
 		description=$(_gum input --header "Description (required):" --placeholder "Short summary of the change")
-		[[ -z "$description" ]] && _err "description MUST immediately follow the colon and space"
+		[[ -z "$description" ]] && _err "description MUST NOT be empty"
 	done
 
 	local body

@@ -50,7 +50,7 @@ load_config() {
 
 		# If no types defined, use default types but preserve settings/scopes
 		if [[ ${#CFG_TYPES[@]} -eq 0 ]]; then
-			[[ -z "${QUIET:-}" ]] && echo "cz: warning: no [types] in $CONFIG_FILE, using defaults" >&2
+			_hint "cz: warning: no [types] in $CONFIG_FILE, using defaults"
 			_set_default_types
 		fi
 	else

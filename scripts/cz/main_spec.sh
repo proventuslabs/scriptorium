@@ -918,6 +918,16 @@ EOF
 				The status should be success
 			End
 
+			It 'accepts BREAKING-CHANGE footer with --breaking-footer flag'
+				Data
+					#|feat!: breaking change
+					#|
+					#|BREAKING-CHANGE: this is breaking
+				End
+				When run script "$BIN" --breaking-footer lint
+				The status should be success
+			End
+
 			It 'rejects lowercase breaking change footer'
 				Data
 					#|feat!: breaking change
