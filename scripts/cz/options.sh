@@ -14,6 +14,7 @@ parser_definition() {
 	flag    DEFINED_SCOPE    -d --{no-}defined-scope    init:@unset -- "Scope must exist in [scopes]"
 	flag    ENFORCE_PATTERNS -e --{no-}enforce-patterns init:@unset validate:'DEFINED_SCOPE=1' -- "Scope must match file patterns (implies -d)"
 	flag    MULTI_SCOPE      -m --{no-}multi-scope      init:@unset -- "Allow multiple scopes like feat(api,db):"
+	flag    BREAKING_FOOTER      --{no-}breaking-footer  init:@unset -- "Require BREAKING CHANGE footer when ! is used"
 	flag    QUIET            -q --quiet       -- "Suppress warnings and non-essential output"
 	disp    :usage           -h --help
 	disp    VERSION          -V --version

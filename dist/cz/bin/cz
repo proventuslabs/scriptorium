@@ -13,6 +13,7 @@ unset REQUIRE_SCOPE ||:
 unset DEFINED_SCOPE ||:
 unset ENFORCE_PATTERNS ||:
 unset MULTI_SCOPE ||:
+unset BREAKING_FOOTER ||:
 QUIET=''
 REST=''
 parse() {
@@ -56,6 +57,14 @@ parse() {
 			case '--no-multi-scope' in
 				"$1") OPTARG=; break ;;
 				$1*) OPTARG="$OPTARG --no-multi-scope"
+			esac
+			case '--breaking-footer' in
+				"$1") OPTARG=; break ;;
+				$1*) OPTARG="$OPTARG --breaking-footer"
+			esac
+			case '--no-breaking-footer' in
+				"$1") OPTARG=; break ;;
+				$1*) OPTARG="$OPTARG --no-breaking-footer"
 			esac
 			case '--quiet' in
 				"$1") OPTARG=; break ;;
@@ -123,6 +132,11 @@ parse() {
 				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
 				MULTI_SCOPE="$OPTARG"
 				;;
+			'--breaking-footer'|'--no-breaking-footer')
+				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
+				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
+				BREAKING_FOOTER="$OPTARG"
+				;;
 			'-q'|'--quiet')
 				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
 				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
@@ -177,6 +191,7 @@ Options:
   -d, --{no-}defined-scope    Scope must exist in [scopes]
   -e, --{no-}enforce-patterns Scope must match file patterns (implies -d)
   -m, --{no-}multi-scope      Allow multiple scopes like feat(api,db):
+      --{no-}breaking-footer  Require BREAKING CHANGE footer when ! is used
   -q, --quiet                 Suppress warnings and non-essential output
   -h, --help                  
   -V, --version               
@@ -210,6 +225,7 @@ format_config() {
 	echo "# defined-scope = false    # -d: scope must exist in [scopes]"
 	echo "# enforce-patterns = false # -e: scope must match file patterns"
 	echo "# multi-scope = false      # -m: allow feat(api,db):"
+	echo "# breaking-footer = true   # breaking ! requires BREAKING CHANGE footer"
 	echo
 	echo "[scopes]"
 	echo "# Define scopes and their file patterns"
@@ -676,7 +692,15 @@ cmd_lint() {
 		return 1
 	}
 
-	[[ -n "$breaking" && ! "$message" =~ BREAKING[[:space:]]CHANGE: ]] && {
+	if [[ "${BREAKING_FOOTER-unset}" == "1" ]]; then
+		breaking_footer=true
+	elif [[ "${BREAKING_FOOTER-unset}" == "" ]]; then
+		breaking_footer=false
+	else
+		breaking_footer="${CFG_SETTINGS[breaking_footer]:-true}"
+	fi
+
+	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[[:space:]]CHANGE: ]] && {
 		_err "breaking change (!) requires 'BREAKING CHANGE:' footer"
 		return 1
 	}
