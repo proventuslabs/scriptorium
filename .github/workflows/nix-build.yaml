@@ -20,35 +20,29 @@ on:
 
 jobs:
   build:
-    name: nix build
+    name: ${{ matrix.package }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [cz, dotenv, jwt, theme, default]
     steps:
       - uses: actions/checkout@v4
 
       - uses: cachix/install-nix-action@v31
 
-      - name: Build all packages
+      - name: Build
+        run: nix build .#${{ matrix.package }} -L
+
+      - name: Verify output
+        if: matrix.package != 'default'
         run: |
-          for pkg in cz dotenv jwt theme; do
-            echo "=== Building $pkg ==="
-            nix build .#$pkg -L
-          done
+          bin="./result/bin/${{ matrix.package }}"
+          size=$(wc -c < "$bin")
 
-      - name: Verify outputs
-        run: |
-          for pkg in cz dotenv jwt theme; do
-            nix build .#$pkg
+          if [ "$size" -eq 0 ]; then
+            echo "::error::${{ matrix.package }} binary is 0 bytes"
+            exit 1
+          fi
 
-            bin="./result/bin/$pkg"
-            size=$(wc -c < "$bin")
-
-            if [ "$size" -eq 0 ]; then
-              echo "::error::$pkg binary is 0 bytes"
-              exit 1
-            fi
-
-            echo "$pkg: $size bytes, OK"
-          done
-
-      - name: Build meta-package
-        run: nix build -L
+          echo "${{ matrix.package }}: $size bytes, OK"
