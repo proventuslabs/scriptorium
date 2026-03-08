@@ -433,6 +433,12 @@ EOF
 				The status should be success
 			End
 
+			It 'skips path validation when --paths is empty'
+				Data "feat(api): add endpoint"
+				When run script "$BIN" -e lint --paths ""
+				The status should be success
+			End
+
 			It 'skips path validation when no scopes configured'
 				cat > .gitcommitizen << 'EOF'
 [types]
