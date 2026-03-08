@@ -17,11 +17,15 @@ jobs:
 
       - uses: cachix/install-nix-action@v30
 
+      - name: Pre-build cz
+        run: nix build --no-link .#cz
+
       - name: Validate PR title
+        shell: nix shell .#cz -c bash -e {0}
         run: |
           FILES=$(gh pr view "$PR_NUMBER" --json files -q '.files[].path' | tr '\n' ' ')
 
-          if ! OUTPUT=$(echo "$PR_TITLE" | nix shell .#cz --command cz lint --paths "$FILES" 2>&1); then
+          if ! OUTPUT=$(echo "$PR_TITLE" | cz lint --paths "$FILES" 2>&1); then
             echo "::error title=Invalid PR Title::$OUTPUT"
             exit 1
           fi
