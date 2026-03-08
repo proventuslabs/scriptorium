@@ -70,8 +70,10 @@ fails. Use \fB\-e\fP to enforce scope matching against file patterns.
 \fB\-p\fP, \fB\-\-paths\fP \fIPATH\fP
 .RS 4
 Validate that the commit scope matches the specified file path. Can be
-repeated for multiple paths. Supports filenames with spaces. Requires
-\fB\-e\fP (enforce\-patterns) to actually validate the scope matches.
+repeated for multiple paths. Supports filenames with spaces. Also accepts
+newline\-separated paths in a single argument (e.g., from \f(CRgit diff
+\-\-name\-only\fP). Requires \fB\-e\fP (enforce\-patterns) to actually validate the
+scope matches.
 .RE
 .RE
 .sp

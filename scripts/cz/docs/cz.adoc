@@ -47,8 +47,10 @@ in a terminal, or *lint* mode if receiving input on standard input.
 --
 *-p*, *--paths* _PATH_:::
   Validate that the commit scope matches the specified file path. Can be
-  repeated for multiple paths. Supports filenames with spaces. Requires
-  *-e* (enforce-patterns) to actually validate the scope matches.
+  repeated for multiple paths. Supports filenames with spaces. Also accepts
+  newline-separated paths in a single argument (e.g., from `git diff
+  --name-only`). Requires *-e* (enforce-patterns) to actually validate the
+  scope matches.
 --
 
 *parse*::
