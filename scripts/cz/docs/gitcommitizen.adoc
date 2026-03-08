@@ -135,6 +135,43 @@ Place **.gitcommitizen** in the root of a Git repository.
 * Scopes may include letters, numbers, dashes, underscores, and `@` (e.g., `@types/node`).
 * Glob patterns follow standard shell globbing with `**` for recursive matching.
 
+== SPEC COMPLIANCE
+
+Validation rules from https://www.conventionalcommits.org/en/v1.0.0/[Conventional Commits v1.0.0]:
+
+[cols="2,3,1", options="header"]
+|===
+|Rule |Enforcement |Ref
+
+|Type prefix required
+|Always (lint, create)
+|§1
+
+|Description required
+|Always
+|§5
+
+|Blank line before body
+|Always (lint)
+|§6
+
+|BREAKING CHANGE uppercase
+|Always (lint)
+|§15
+
+|BREAKING-CHANGE synonym
+|Accepted in footers
+|§16
+
+|Scope defined/required
+|Configurable (`-r`, `-d`, `-e`)
+|—
+
+|Breaking footer required
+|Configurable (`--breaking-footer`)
+|—
+|===
+
 == SEE ALSO
 
 git-commit(1)::

@@ -315,6 +315,97 @@ Scopes may include letters, numbers, dashes, underscores, and \f(CR@\fP (e.g., \
 .\}
 Glob patterns follow standard shell globbing with \f(CR**\fP for recursive matching.
 .RE
+.SH "SPEC COMPLIANCE"
+.sp
+Validation rules from \c
+.URL "https://www.conventionalcommits.org/en/v1.0.0/" "Conventional Commits v1.0.0" ":"
+.TS
+allbox tab(:);
+ltB ltB ltB.
+T{
+.sp
+Rule
+T}:T{
+.sp
+Enforcement
+T}:T{
+.sp
+Ref
+T}
+.T&
+lt lt lt.
+T{
+.sp
+Type prefix required
+T}:T{
+.sp
+Always (lint, create)
+T}:T{
+.sp
+§1
+T}
+T{
+.sp
+Description required
+T}:T{
+.sp
+Always
+T}:T{
+.sp
+§5
+T}
+T{
+.sp
+Blank line before body
+T}:T{
+.sp
+Always (lint)
+T}:T{
+.sp
+§6
+T}
+T{
+.sp
+BREAKING CHANGE uppercase
+T}:T{
+.sp
+Always (lint)
+T}:T{
+.sp
+§15
+T}
+T{
+.sp
+BREAKING\-CHANGE synonym
+T}:T{
+.sp
+Accepted in footers
+T}:T{
+.sp
+§16
+T}
+T{
+.sp
+Scope defined/required
+T}:T{
+.sp
+Configurable (\f(CR\-r\fP, \f(CR\-d\fP, \f(CR\-e\fP)
+T}:T{
+.sp
+—
+T}
+T{
+.sp
+Breaking footer required
+T}:T{
+.sp
+Configurable (\f(CR\-\-breaking\-footer\fP)
+T}:T{
+.sp
+—
+T}
+.TE
+.sp
 .SH "SEE ALSO"
 .sp
 git\-commit(1)
