@@ -7,7 +7,7 @@ _cz() {
 	prev="${COMP_WORDS[COMP_CWORD-1]}"
 
 	local commands="create lint parse init hook"
-	local global_opts="-c --config-file -r --require-scope --no-require-scope -d --defined-scope --no-defined-scope -e --enforce-patterns --no-enforce-patterns -m --multi-scope --no-multi-scope --breaking-footer --no-breaking-footer -q --quiet -h --help -V --version"
+	local global_opts="-c --config-file -r --require-scope --no-require-scope -d --defined-scope --no-defined-scope -e --enforce-patterns --no-enforce-patterns -m --multi-scope --no-multi-scope -b --breaking-footer --no-breaking-footer -q --quiet -h --help -V --version"
 
 	# Complete config file path after -c/--config-file
 	if [[ "$prev" == "-c" || "$prev" == "--config-file" ]]; then

@@ -16,8 +16,8 @@ _cz() {
 		'(-e --enforce-patterns --no-enforce-patterns)--no-enforce-patterns[Disable pattern enforcement]' \
 		'(-m --multi-scope --no-multi-scope)'{-m,--multi-scope}'[Allow multiple scopes]' \
 		'(-m --multi-scope --no-multi-scope)--no-multi-scope[Disallow multiple scopes]' \
-		'(--breaking-footer --no-breaking-footer)--breaking-footer[Require BREAKING CHANGE footer]' \
-		'(--breaking-footer --no-breaking-footer)--no-breaking-footer[Allow breaking changes without footer]' \
+		'(-b --breaking-footer --no-breaking-footer)'{-b,--breaking-footer}'[Require BREAKING CHANGE footer]' \
+		'(-b --breaking-footer --no-breaking-footer)--no-breaking-footer[Allow breaking changes without footer]' \
 		'(-q --quiet)'{-q,--quiet}'[Suppress warnings and non-essential output]' \
 		'1:command:->commands' \
 		'*::arg:->args'

@@ -168,7 +168,7 @@ Validation rules from https://www.conventionalcommits.org/en/v1.0.0/[Conventiona
 |—
 
 |Breaking footer required
-|Configurable (`--breaking-footer`)
+|Configurable (`-b`, `--breaking-footer`)
 |—
 |===
 

@@ -101,7 +101,7 @@ parse() {
 			-[c]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" "${OPTARG#??}"' ${1+'"$@"'}
 				;;
-			-[rdemqhV]?*) OPTARG=$1; shift
+			-[rdembqhV]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" -"${OPTARG#??}"' ${1+'"$@"'}
 				case $2 in --*) set -- "$1" unknown "$2" && REST=x; esac;OPTARG= ;;
 		esac
@@ -132,7 +132,7 @@ parse() {
 				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
 				MULTI_SCOPE="$OPTARG"
 				;;
-			'--breaking-footer'|'--no-breaking-footer')
+			'-b'|'--breaking-footer'|'--no-breaking-footer')
 				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
 				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
 				BREAKING_FOOTER="$OPTARG"
@@ -191,7 +191,7 @@ Options:
   -d, --{no-}defined-scope    Scope must exist in [scopes]
   -e, --{no-}enforce-patterns Scope must match file patterns (implies -d)
   -m, --{no-}multi-scope      Allow multiple scopes like feat(api,db):
-      --{no-}breaking-footer  Require BREAKING CHANGE footer when ! is used
+  -b, --{no-}breaking-footer  Require BREAKING CHANGE footer when ! is used
   -q, --quiet                 Suppress warnings and non-essential output
   -h, --help                  
   -V, --version               
