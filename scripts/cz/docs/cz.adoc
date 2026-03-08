@@ -213,6 +213,29 @@ Install the commit-msg hook::
 
   cz hook install
 
+Validate PR titles in GitHub Actions::
++
+[source,yaml]
+----
+- uses: cachix/install-nix-action@v30
+
+- name: Pre-build cz
+  run: nix build --no-link github:proventuslabs/scriptorium#cz
+
+- name: Validate PR title
+  shell: nix shell github:proventuslabs/scriptorium#cz -c bash -e {0}
+  env:
+    GH_TOKEN: ${{ github.token }}
+    PR_TITLE: ${{ github.event.pull_request.title }}
+    PR_NUMBER: ${{ github.event.number }}
+  run: |
+    FILES=$(gh pr view "$PR_NUMBER" --json files -q '.files[].path')
+    if ! OUTPUT=$(echo "$PR_TITLE" | cz lint --paths "$FILES" 2>&1); then
+      echo "::error title=Invalid PR Title::$OUTPUT"
+      exit 1
+    fi
+----
+
 == EXIT STATUS
 
 *0*::

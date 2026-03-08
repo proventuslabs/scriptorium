@@ -21,9 +21,13 @@ jobs:
 
       - uses: cachix/install-nix-action@v30
 
+      - name: Pre-build devShell
+        run: nix build --no-link '.#devShells.'$(nix eval --impure --raw --expr builtins.currentSystem)'.default'
+
       - name: Check formatting
+        shell: nix develop -c bash -e {0}
         run: |
-          nix develop --command make fmt NAME=utils
+          make fmt NAME=utils
           changed=$(git diff --name-only -- 'utils/*.sh')
           if [ -n "$changed" ]; then
             echo "$changed" | while IFS= read -r file; do
@@ -33,9 +37,10 @@ jobs:
           fi
 
       - name: Lint
+        shell: nix develop -c bash -e {0}
         run: |
           set -o pipefail
-          nix develop --command make lint NAME=utils SHELLCHECK_FORMAT="-f gcc" 2>&1 | \
+          make lint NAME=utils SHELLCHECK_FORMAT="-f gcc" 2>&1 | \
             sed -E 's/^([^:]+):([0-9]+):([0-9]+): (error|warning): (.*)$/::\4 file=\1,line=\2,col=\3::\5/; s/^([^:]+):([0-9]+):([0-9]+): (info): (.*)$/::notice file=\1,line=\2,col=\3::\5/'
 
   test:
@@ -46,5 +51,9 @@ jobs:
 
       - uses: cachix/install-nix-action@v30
 
+      - name: Pre-build devShell
+        run: nix build --no-link '.#devShells.'$(nix eval --impure --raw --expr builtins.currentSystem)'.default'
+
       - name: Run tests
-        run: nix develop --command make test NAME=utils
+        shell: nix develop -c bash -e {0}
+        run: make test NAME=utils
