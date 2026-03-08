@@ -28,6 +28,7 @@ cmd_parse() {
 		[[ -v CFG_SETTINGS[defined_scope] ]] && echo "  defined-scope = ${CFG_SETTINGS[defined_scope]}"
 		[[ -v CFG_SETTINGS[enforce_patterns] ]] && echo "  enforce-patterns = ${CFG_SETTINGS[enforce_patterns]}"
 		[[ -v CFG_SETTINGS[multi_scope] ]] && echo "  multi-scope = ${CFG_SETTINGS[multi_scope]}"
+		[[ -v CFG_SETTINGS[breaking_footer] ]] && echo "  breaking-footer = ${CFG_SETTINGS[breaking_footer]}"
 		echo
 	fi
 
