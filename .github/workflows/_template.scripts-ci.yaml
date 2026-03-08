@@ -124,33 +124,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: cachix/install-nix-action@v30
-
-      - name: Build script
-        run: nix develop --command make build NAME=${{ inputs.script }}
+      - uses: cachix/install-nix-action@v31
 
       - name: Verify artifacts are up to date
         run: |
+          nix develop --command make build NAME=${{ inputs.script }}
           changed_files=$(git diff --name-only dist/${{ inputs.script }}/)
           if [ -n "$changed_files" ]; then
             echo "$changed_files" | while IFS= read -r file; do
               echo "::error file=$file::Artifact out of sync with source. Run 'make build NAME=${{ inputs.script }}' and commit."
             done
-            echo ""
-            echo "❌ Committed artifacts don't match source."
             exit 1
           fi
-          echo "✅ Artifacts are up to date."
 
-  nix-build:
-    name: Nix build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: cachix/install-nix-action@v31
-
-      - name: Build package
+      - name: Nix build
         run: nix build .#${{ inputs.script }} -L
 
       - name: Verify output
