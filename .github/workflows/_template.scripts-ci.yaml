@@ -142,6 +142,29 @@ jobs:
           fi
           echo "✅ Artifacts are up to date."
 
+  nix-build:
+    name: Nix build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      - name: Build package
+        run: nix build .#${{ inputs.script }} -L
+
+      - name: Verify output
+        run: |
+          bin="./result/bin/${{ inputs.script }}"
+          size=$(wc -c < "$bin")
+
+          if [ "$size" -eq 0 ]; then
+            echo "::error::${{ inputs.script }} binary is 0 bytes"
+            exit 1
+          fi
+
+          echo "${{ inputs.script }}: $size bytes, OK"
+
   completions-sync:
     name: Completions sync
     runs-on: ubuntu-latest
