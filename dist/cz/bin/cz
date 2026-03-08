@@ -692,6 +692,12 @@ cmd_lint() {
 		return 1
 	}
 
+	local rest="${message#*$'\n'}"
+	[[ "$rest" != "$message" && "${rest%%$'\n'*}" != "" ]] && {
+		_err "body MUST begin one blank line after the description"
+		return 1
+	}
+
 	if [[ "${BREAKING_FOOTER-unset}" == "1" ]]; then
 		breaking_footer=true
 	elif [[ "${BREAKING_FOOTER-unset}" == "" ]]; then
