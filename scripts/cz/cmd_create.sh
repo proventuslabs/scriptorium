@@ -3,6 +3,8 @@
 # cz create - compose a commit message interactively
 
 # @bundle source
+. ./helpers.sh
+# @bundle source
 . ./config.sh
 
 # Gum wrapper - exits 130 on cancel
@@ -15,8 +17,8 @@ _scope_input_custom() { _gum input --header "Enter scope:" --placeholder "e.g., 
 cmd_create() {
 	# Check gum dependency
 	if ! command -v gum &>/dev/null; then
-		echo "cz: error: gum is required for interactive mode" >&2
-		echo "See: https://github.com/charmbracelet/gum" >&2
+		_err "gum is required for interactive mode"
+		_hint "See: https://github.com/charmbracelet/gum"
 		exit 1
 	fi
 
@@ -102,7 +104,7 @@ cmd_create() {
 	local description=""
 	while [[ -z "$description" ]]; do
 		description=$(_gum input --header "Description (required):" --placeholder "Short summary of the change")
-		[[ -z "$description" ]] && echo "cz: error: description cannot be empty" >&2
+		[[ -z "$description" ]] && _err "description MUST immediately follow the colon and space"
 	done
 
 	# Get body (optional)
@@ -115,7 +117,7 @@ cmd_create() {
 		local breaking_explanation=""
 		while [[ -z "$breaking_explanation" ]]; do
 			breaking_explanation=$(_gum write --header "Breaking change explanation (required):" --placeholder "Describe what breaks and how to migrate...")
-			[[ -z "$breaking_explanation" ]] && echo "cz: error: breaking change explanation is required" >&2
+			[[ -z "$breaking_explanation" ]] && _err "breaking change explanation is required"
 		done
 		footer="BREAKING CHANGE: $breaking_explanation"
 	else

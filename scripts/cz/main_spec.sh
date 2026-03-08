@@ -112,28 +112,28 @@ Describe 'cz'
 				Data "   "
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "commits MUST be prefixed with a type"
 			End
 
 			It 'rejects missing colon'
 				Data "feat add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "commits MUST be prefixed with a type"
 			End
 
 			It 'rejects missing description after colon'
 				Data "feat:"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "commits MUST be prefixed with a type"
 			End
 
 			It 'rejects missing description after colon and space'
 				Data "feat: "
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "commits MUST be prefixed with a type"
 			End
 
 			It 'rejects unknown type'
@@ -147,28 +147,28 @@ Describe 'cz'
 				Data "FEAT: add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "commits MUST be prefixed with a type"
 			End
 
 			It 'rejects breaking ! without BREAKING CHANGE footer'
 				Data "feat!: breaking change"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "BREAKING CHANGE:"
+				The stderr should include "BREAKING CHANGE footer"
 			End
 
 			It 'rejects empty scope'
 				Data "feat(): add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "commits MUST be prefixed with a type"
 			End
 
 			It 'rejects whitespace-only description'
 				Data "feat:    "
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "description cannot be empty"
+				The stderr should include "description MUST immediately follow the colon and space"
 			End
 		End
 
@@ -839,7 +839,7 @@ EOF
 				Data "feat!: breaking change"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "breaking change (!) requires 'BREAKING CHANGE:' footer"
+				The stderr should include "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
 			End
 
 			It 'allows breaking change without footer when --no-breaking-footer is set'
@@ -852,7 +852,7 @@ EOF
 				Data "feat!: breaking change"
 				When run script "$BIN" --breaking-footer lint
 				The status should be failure
-				The stderr should include "breaking change (!) requires 'BREAKING CHANGE:' footer"
+				The stderr should include "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
 			End
 
 			It 'accepts breaking change with footer when --breaking-footer is set'
@@ -899,13 +899,34 @@ EOF
 				Data "feat!: breaking change"
 				When run script "$BIN" --breaking-footer lint
 				The status should be failure
-				The stderr should include "breaking change (!) requires 'BREAKING CHANGE:' footer"
+				The stderr should include "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
 			End
 
 			It 'has no effect on non-breaking commits'
 				Data "feat: normal commit"
 				When run script "$BIN" --no-breaking-footer lint
 				The status should be success
+			End
+
+			It 'accepts BREAKING-CHANGE footer as synonym for BREAKING CHANGE'
+				Data
+					#|feat!: breaking change
+					#|
+					#|BREAKING-CHANGE: this is breaking
+				End
+				When run script "$BIN" lint
+				The status should be success
+			End
+
+			It 'rejects lowercase breaking change footer'
+				Data
+					#|feat!: breaking change
+					#|
+					#|breaking change: this is breaking
+				End
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "BREAKING CHANGE"
 			End
 		End
 
@@ -1898,7 +1919,7 @@ MOCK
 			Data "invalid message"
 			When run script "$BIN"
 			The status should be failure
-			The stderr should include "invalid commit format"
+			The stderr should include "commits MUST be prefixed with a type"
 		End
 	End
 
@@ -1993,7 +2014,7 @@ EOF
 			Data "feat:    "
 			When run script "$BIN" lint
 			The status should be failure
-			The stderr should include "empty"
+			The stderr should include "description MUST immediately follow the colon and space"
 		End
 
 		It 'handles config keys with hyphens correctly'

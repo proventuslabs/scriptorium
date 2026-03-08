@@ -107,8 +107,9 @@ in a terminal, or *lint* mode if receiving input on standard input.
   Disallow multiple scopes. Overrides `multi-scope` config.
 
 *--breaking-footer*::
-  Require a `BREAKING CHANGE:` footer when the commit has a breaking change
-  indicator (`!`). Overrides `breaking-footer` config. Default when unset: true.
+  Require a `BREAKING CHANGE:` (or `BREAKING-CHANGE:`) footer when the commit
+  has a breaking change indicator (`!`). Overrides `breaking-footer` config.
+  Default when unset: true.
 
 *--no-breaking-footer*::
   Allow breaking changes without a `BREAKING CHANGE:` footer. Overrides
@@ -173,7 +174,7 @@ The *-r*, *-d*, and *-e* flags affect the *lint* command:
 |Scope required and must match patterns
 
 |*--breaking-footer*
-|Breaking `!` requires `BREAKING CHANGE:` footer (default)
+|Breaking `!` requires `BREAKING CHANGE:` or `BREAKING-CHANGE:` footer (default)
 
 |*--no-breaking-footer*
 |Breaking `!` allowed without footer

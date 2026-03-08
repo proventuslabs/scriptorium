@@ -2,13 +2,16 @@
 
 # cz hook - manage the commit-msg git hook
 
+# @bundle source
+. ./helpers.sh
+
 cmd_hook() {
 	local action="${1:-status}"
 
 	# Find git directory
 	local git_dir
 	git_dir="$(git rev-parse --git-dir 2>/dev/null)" || {
-		echo "cz: error: not a git repository" >&2
+		_err "not a git repository"
 		return 1
 	}
 
@@ -26,8 +29,8 @@ cmd_hook() {
 			hook_status "$hook_path" "$hook_marker"
 			;;
 		*)
-			echo "cz: error: unknown hook action '$action'" >&2
-			echo "Usage: cz hook [install|uninstall|status]" >&2
+			_err "unknown hook action '$action'"
+			_hint "Usage: cz hook [install|uninstall|status]"
 			return 2
 			;;
 	esac
@@ -42,8 +45,8 @@ hook_install() {
 			echo "cz: hook already installed"
 			return 0
 		else
-			echo "cz: error: existing commit-msg hook found" >&2
-			echo "Remove it manually or add 'cz lint < \"\$1\"' to it" >&2
+			_err "existing commit-msg hook found"
+			_hint "Remove it manually or add 'cz lint < \"\$1\"' to it"
 			return 1
 		fi
 	fi
@@ -77,7 +80,7 @@ hook_uninstall() {
 	fi
 
 	if ! grep -q "$hook_marker" "$hook_path" 2>/dev/null; then
-		echo "cz: error: commit-msg hook was not installed by cz" >&2
+		_err "commit-msg hook was not installed by cz"
 		return 1
 	fi
 

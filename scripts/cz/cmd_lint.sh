@@ -7,9 +7,6 @@
 # @bundle source
 . ./path_validator.sh
 
-# Output helpers - respect QUIET flag
-_err() { [[ -n "${QUIET:-}" ]] || echo "cz: error: $1" >&2; }
-_hint() { [[ -n "${QUIET:-}" ]] || echo "$1" >&2; }
 _scope_err() {
 	_err "unknown scope '$1'"
 	_hint "Defined scopes: ${!CFG_SCOPES[*]}"
@@ -54,8 +51,9 @@ cmd_lint() {
 	local pattern='^([a-z]+)(\(([a-zA-Z0-9_@/,*-]+)\))?(!)?: (.+)$'
 
 	if [[ ! "$first_line" =~ $pattern ]]; then
-		_err "invalid commit format"
-		_hint "Expected: <type>[(scope)]: <description>"
+		# Spec #1: commits MUST be prefixed with a type, followed by colon and space
+		_err "commits MUST be prefixed with a type, followed by a colon and space"
+		_hint "Expected: <type>[(<scope>)][!]: <description>"
 		return 1
 	fi
 
@@ -69,9 +67,9 @@ cmd_lint() {
 		return 1
 	fi
 
-	# Validate description is not empty
+	# Spec #5: description MUST immediately follow the colon and space
 	[[ -z "$description" || "$description" =~ ^[[:space:]]*$ ]] && {
-		_err "description cannot be empty"
+		_err "description MUST immediately follow the colon and space"
 		return 1
 	}
 
@@ -84,9 +82,12 @@ cmd_lint() {
 		breaking_footer="${CFG_SETTINGS[breaking_footer]:-true}"
 	fi
 
-	# Validate breaking change has BREAKING CHANGE footer
-	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[[:space:]]CHANGE: ]] && {
-		_err "breaking change (!) requires 'BREAKING CHANGE:' footer"
+	# Spec #13: if included in the type/scope prefix, breaking changes MUST
+	# be indicated by a BREAKING CHANGE footer
+	# Spec #16: BREAKING-CHANGE MUST be synonymous with BREAKING CHANGE
+	# Spec #15: BREAKING CHANGE MUST be uppercase
+	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[-[:space:]]CHANGE: ]] && {
+		_err "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
 		return 1
 	}
 
