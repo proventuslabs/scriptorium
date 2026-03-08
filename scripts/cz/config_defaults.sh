@@ -11,6 +11,7 @@ format_config() {
 	echo "# defined-scope = false    # -d: scope must exist in [scopes]"
 	echo "# enforce-patterns = false # -e: scope must match file patterns"
 	echo "# multi-scope = false      # -m: allow feat(api,db):"
+	echo "# breaking-footer = true   # breaking ! requires BREAKING CHANGE footer"
 	echo
 	echo "[scopes]"
 	echo "# Define scopes and their file patterns"

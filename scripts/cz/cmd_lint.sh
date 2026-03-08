@@ -74,8 +74,17 @@ cmd_lint() {
 		return 1
 	}
 
+	# Determine breaking-footer mode
+	if [[ "${BREAKING_FOOTER-unset}" == "1" ]]; then
+		breaking_footer=true
+	elif [[ "${BREAKING_FOOTER-unset}" == "" ]]; then
+		breaking_footer=false
+	else
+		breaking_footer="${CFG_SETTINGS[breaking_footer]:-true}"
+	fi
+
 	# Validate breaking change has BREAKING CHANGE footer
-	[[ -n "$breaking" && ! "$message" =~ BREAKING[[:space:]]CHANGE: ]] && {
+	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[[:space:]]CHANGE: ]] && {
 		_err "breaking change (!) requires 'BREAKING CHANGE:' footer"
 		return 1
 	}

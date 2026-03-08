@@ -834,6 +834,81 @@ EOF
 			End
 		End
 
+		Describe '--{no-}breaking-footer flag'
+			It 'requires BREAKING CHANGE footer by default when ! is present'
+				Data "feat!: breaking change"
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "breaking change (!) requires 'BREAKING CHANGE:' footer"
+			End
+
+			It 'allows breaking change without footer when --no-breaking-footer is set'
+				Data "feat!: breaking change"
+				When run script "$BIN" --no-breaking-footer lint
+				The status should be success
+			End
+
+			It 'requires footer when --breaking-footer is set and ! is present'
+				Data "feat!: breaking change"
+				When run script "$BIN" --breaking-footer lint
+				The status should be failure
+				The stderr should include "breaking change (!) requires 'BREAKING CHANGE:' footer"
+			End
+
+			It 'accepts breaking change with footer when --breaking-footer is set'
+				Data:expand
+					#|feat!: breaking change
+					#|
+					#|BREAKING CHANGE: this is breaking
+				End
+				When run script "$BIN" --breaking-footer lint
+				The status should be success
+			End
+
+			It '--no-breaking-footer overrides config breaking-footer = true'
+				cat > .gitcommitizen << 'EOF'
+[settings]
+breaking-footer = true
+[types]
+feat = Feature
+EOF
+				Data "feat!: breaking change"
+				When run script "$BIN" --no-breaking-footer lint
+				The status should be success
+			End
+
+			It 'config breaking-footer = false allows breaking change without footer'
+				cat > .gitcommitizen << 'EOF'
+[settings]
+breaking-footer = false
+[types]
+feat = Feature
+EOF
+				Data "feat!: breaking change"
+				When run script "$BIN" lint
+				The status should be success
+			End
+
+			It '--breaking-footer overrides config breaking-footer = false'
+				cat > .gitcommitizen << 'EOF'
+[settings]
+breaking-footer = false
+[types]
+feat = Feature
+EOF
+				Data "feat!: breaking change"
+				When run script "$BIN" --breaking-footer lint
+				The status should be failure
+				The stderr should include "breaking change (!) requires 'BREAKING CHANGE:' footer"
+			End
+
+			It 'has no effect on non-breaking commits'
+				Data "feat: normal commit"
+				When run script "$BIN" --no-breaking-footer lint
+				The status should be success
+			End
+		End
+
 		#───────────────────────────────────────────────────────────
 		# Wildcard scope
 		#───────────────────────────────────────────────────────────
