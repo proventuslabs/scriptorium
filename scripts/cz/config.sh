@@ -3,6 +3,8 @@
 # Find and load .gitcommitizen configuration
 
 # @bundle source
+. ./helpers.sh
+# @bundle source
 . ./config_defaults.sh
 # @bundle source
 . ./config_parser.sh
@@ -40,7 +42,7 @@ find_config() {
 load_config() {
 	if [[ -n "$CONFIG_FILE" ]]; then
 		if [[ ! -f "$CONFIG_FILE" ]]; then
-			echo "cz: error: config file not found: $CONFIG_FILE" >&2
+			_err config-not-found "$CONFIG_FILE"
 			exit 1
 		fi
 
@@ -48,7 +50,7 @@ load_config() {
 
 		# If no types defined, use default types but preserve settings/scopes
 		if [[ ${#CFG_TYPES[@]} -eq 0 ]]; then
-			[[ -z "${QUIET:-}" ]] && echo "cz: warning: no [types] in $CONFIG_FILE, using defaults" >&2
+			_hint "cz: warning: no [types] in $CONFIG_FILE, using defaults"
 			_set_default_types
 		fi
 	else

@@ -98,6 +98,56 @@ Describe 'cz'
 		End
 
 		#───────────────────────────────────────────────────────────
+		# Body blank line (spec: body MUST begin one blank line)
+		#───────────────────────────────────────────────────────────
+		Describe 'body blank line'
+			It 'accepts single-line message (no body)'
+				Data "docs: correct spelling of CHANGELOG"
+				When run script "$BIN" lint
+				The status should be success
+			End
+
+			It 'accepts message with blank line before body'
+				Data
+					#|fix: prevent racing of requests
+					#|
+					#|Introduce a request id and a reference to latest request. Dismiss
+					#|incoming responses other than from latest request.
+				End
+				When run script "$BIN" lint
+				The status should be success
+			End
+
+			It 'rejects body without blank line separator'
+				Data
+					#|fix: prevent racing of requests
+					#|Introduce a request id and a reference to latest request.
+				End
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "[body-leading-blank]"
+			End
+
+			It 'rejects footer without blank line separator'
+				Data
+					#|feat: allow provided config object to extend other configs
+					#|BREAKING CHANGE: `extends` key in config file is now used for extending other config files
+				End
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "[body-leading-blank]"
+			End
+
+			It 'accepts message with only a trailing newline'
+				Data
+					#|docs: correct spelling of CHANGELOG
+				End
+				When run script "$BIN" lint
+				The status should be success
+			End
+		End
+
+		#───────────────────────────────────────────────────────────
 		# Invalid conventional commits
 		#───────────────────────────────────────────────────────────
 		Describe 'invalid messages'
@@ -105,70 +155,70 @@ Describe 'cz'
 				Data ""
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "empty commit message"
+				The stderr should include "[empty-message]"
 			End
 
 			It 'rejects whitespace-only message'
 				Data "   "
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects missing colon'
 				Data "feat add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects missing description after colon'
 				Data "feat:"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects missing description after colon and space'
 				Data "feat: "
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects unknown type'
 				Data "unknown: some change"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "unknown type"
+				The stderr should include "[type-enum]"
 			End
 
 			It 'rejects uppercase type'
 				Data "FEAT: add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects breaking ! without BREAKING CHANGE footer'
 				Data "feat!: breaking change"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "BREAKING CHANGE:"
+				The stderr should include "[breaking-footer]"
 			End
 
 			It 'rejects empty scope'
 				Data "feat(): add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "invalid commit format"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects whitespace-only description'
 				Data "feat:    "
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "description cannot be empty"
+				The stderr should include "[description-empty]"
 			End
 		End
 
@@ -202,7 +252,7 @@ EOF
 				Data "feat: not in config"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "unknown type"
+				The stderr should include "[type-enum]"
 			End
 
 			It 'uses --config-file option'
@@ -229,8 +279,8 @@ EOF
 				Data "feat: something"
 				When run script "$BIN" --config-file nonexistent.ini lint
 				The status should be failure
-				The stderr should include "config file not found"
 				The stderr should include "nonexistent.ini"
+				The stderr should include "[config-not-found]"
 			End
 
 			It 'handles config with only scopes (uses default types)'
@@ -341,7 +391,7 @@ EOF
 				Data "feat(api): add endpoint"
 				When run script "$BIN" -e lint --paths "src/ui/button.tsx"
 				The status should be failure
-				The stderr should include "does not match scope"
+				The stderr should include "[files-scope-mismatch]"
 			End
 
 			It 'fails when some files do not match scope'
@@ -394,7 +444,7 @@ EOF
 				Data "feat(scripts): update script"
 				When run script "$BIN" -e lint --paths "scripts/nested/main.sh"
 				The status should be failure
-				The stderr should include "does not match scope"
+				The stderr should include "[files-scope-mismatch]"
 			End
 
 			It 'matches multi-pattern scope (first pattern)'
@@ -486,7 +536,7 @@ EOF
 				Data "feat(api,ui): cross-cutting change"
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "multi-scope not enabled"
+				The stderr should include "[multi-scope-disabled]"
 			End
 
 			It 'rejects multi-scope by default when validating files'
@@ -501,7 +551,7 @@ EOF
 				Data "feat(api,ui): cross-cutting change"
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "multi-scope not enabled"
+				The stderr should include "[multi-scope-disabled]"
 			End
 
 			It 'rejects multi-scope with unknown scope'
@@ -518,7 +568,7 @@ EOF
 				Data "feat(api,unknown): change"
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 			End
 
 			It '--multi-scope flag enables multi-scope without config'
@@ -550,7 +600,7 @@ EOF
 				Data "feat(api,ui): cross-cutting change"
 				When run script "$BIN" --no-multi-scope -e lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "multi-scope not enabled"
+				The stderr should include "[multi-scope-disabled]"
 			End
 
 			It '-m shorthand enables multi-scope'
@@ -593,7 +643,7 @@ EOF
 				Data "feat(api,ui): cross-cutting change"
 				When run script "$BIN" -m -e lint --paths "src/api/handler.go" --paths "src/other/file.txt"
 				The status should be failure
-				The stderr should include "does not match"
+				The stderr should include "[files-scopes-mismatch]"
 			End
 		End
 
@@ -612,7 +662,7 @@ EOF
 				Data "feat(unknown): add feature"
 				When run script "$BIN" -d lint
 				The status should be failure
-				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 			End
 
 			It 'accepts defined scope when -d is set'
@@ -649,7 +699,7 @@ EOF
 				Data "feat(anything): add feature"
 				When run script "$BIN" -d lint
 				The status should be failure
-				The stderr should include "no scopes defined"
+				The stderr should include "[scope-missing-config]"
 			End
 
 			It '--no-defined-scope overrides config'
@@ -682,7 +732,7 @@ EOF
 				Data "feat(unknown): add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 			End
 		End
 
@@ -698,7 +748,7 @@ EOF
 				Data "feat: add feature"
 				When run script "$BIN" -r lint
 				The status should be failure
-				The stderr should include "scope required"
+				The stderr should include "[scope-required]"
 			End
 
 			It 'accepts scope when -r is set'
@@ -759,7 +809,7 @@ EOF
 				Data "feat(api): add endpoint"
 				When run script "$BIN" -e lint --paths "src/ui/button.tsx"
 				The status should be failure
-				The stderr should include "does not match scope"
+				The stderr should include "[files-scope-mismatch]"
 			End
 
 			It 'passes when scope matches files with -e'
@@ -772,7 +822,7 @@ EOF
 				Data "feat: add feature"
 				When run script "$BIN" -e lint --paths "src/api/handler.go"
 				The status should be failure
-				The stderr should include "scope required"
+				The stderr should include "[scope-file-required]"
 			End
 
 			It 'allows no scope for unscoped files when -e is set'
@@ -785,14 +835,14 @@ EOF
 				Data "feat(unknown): add feature"
 				When run script "$BIN" -e lint --paths "other/file.txt"
 				The status should be failure
-				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 			End
 
 			It '-e with unknown scope shows defined scopes hint'
 				Data "feat(unknown): add feature"
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 				The stderr should include "api"
 				The stderr should include "ui"
 			End
@@ -827,7 +877,7 @@ EOF
 				Data "feat(api): add endpoint"
 				When run script "$BIN" lint --paths "src/ui/button.tsx"
 				The status should be failure
-				The stderr should include "does not match scope"
+				The stderr should include "[files-scope-mismatch]"
 			End
 
 			It 'config enforce-patterns without defined-scope rejects unknown scope'
@@ -844,7 +894,7 @@ EOF
 				Data "feat(unknown): add feature"
 				When run script "$BIN" lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 			End
 		End
 
@@ -853,7 +903,7 @@ EOF
 				Data "feat!: breaking change"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "breaking change (!) requires 'BREAKING CHANGE:' footer"
+				The stderr should include "[breaking-footer]"
 			End
 
 			It 'allows breaking change without footer when --no-breaking-footer is set'
@@ -866,7 +916,7 @@ EOF
 				Data "feat!: breaking change"
 				When run script "$BIN" --breaking-footer lint
 				The status should be failure
-				The stderr should include "breaking change (!) requires 'BREAKING CHANGE:' footer"
+				The stderr should include "[breaking-footer]"
 			End
 
 			It 'accepts breaking change with footer when --breaking-footer is set'
@@ -913,13 +963,55 @@ EOF
 				Data "feat!: breaking change"
 				When run script "$BIN" --breaking-footer lint
 				The status should be failure
-				The stderr should include "breaking change (!) requires 'BREAKING CHANGE:' footer"
+				The stderr should include "[breaking-footer]"
 			End
 
 			It 'has no effect on non-breaking commits'
 				Data "feat: normal commit"
 				When run script "$BIN" --no-breaking-footer lint
 				The status should be success
+			End
+
+			It 'accepts BREAKING-CHANGE footer as synonym for BREAKING CHANGE'
+				Data
+					#|feat!: breaking change
+					#|
+					#|BREAKING-CHANGE: this is breaking
+				End
+				When run script "$BIN" lint
+				The status should be success
+			End
+
+			It 'accepts BREAKING-CHANGE footer with --breaking-footer flag'
+				Data
+					#|feat!: breaking change
+					#|
+					#|BREAKING-CHANGE: this is breaking
+				End
+				When run script "$BIN" --breaking-footer lint
+				The status should be success
+			End
+
+			It 'rejects BREAKING!CHANGE as footer (not a valid separator)'
+				Data
+					#|feat!: breaking change
+					#|
+					#|BREAKING!CHANGE: this is breaking
+				End
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "[breaking-footer]"
+			End
+
+			It 'rejects lowercase breaking change footer'
+				Data
+					#|feat!: breaking change
+					#|
+					#|breaking change: this is breaking
+				End
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "[breaking-footer]"
 			End
 		End
 
@@ -1007,7 +1099,7 @@ EOF
 				touch .gitcommitizen
 				When run script "$BIN" init -o .gitcommitizen
 				The status should be failure
-				The stderr should include "already exists"
+				The stderr should include "[file-exists]"
 			End
 
 			It '-f overwrites existing file'
@@ -1100,7 +1192,7 @@ EOF
 				printf '#!/bin/sh\necho "other"\n' > .git/hooks/commit-msg
 				When run script "$BIN" hook install
 				The status should be failure
-				The stderr should include "existing commit-msg hook"
+				The stderr should include "[hook-exists]"
 			End
 		End
 
@@ -1124,7 +1216,7 @@ EOF
 				printf '#!/bin/sh\necho "other"\n' > .git/hooks/commit-msg
 				When run script "$BIN" hook uninstall
 				The status should be failure
-				The stderr should include "not installed by cz"
+				The stderr should include "[hook-foreign]"
 			End
 		End
 
@@ -1133,28 +1225,28 @@ EOF
 				rm -rf .git
 				When run script "$BIN" hook status
 				The status should be failure
-				The stderr should include "not a git repository"
+				The stderr should include "[not-git-repo]"
 			End
 
 			It 'install errors outside git repo'
 				rm -rf .git
 				When run script "$BIN" hook install
 				The status should be failure
-				The stderr should include "not a git repository"
+				The stderr should include "[not-git-repo]"
 			End
 
 			It 'uninstall errors outside git repo'
 				rm -rf .git
 				When run script "$BIN" hook uninstall
 				The status should be failure
-				The stderr should include "not a git repository"
+				The stderr should include "[not-git-repo]"
 			End
 		End
 
 		It 'errors with unknown subcommand'
 			When run script "$BIN" hook unknown
 			The status should be failure
-			The stderr should include "unknown"
+			The stderr should include "[hook-action-unknown]"
 		End
 	End
 
@@ -1248,8 +1340,8 @@ EOF
 		It 'fails if explicit config file does not exist'
 			When run script "$BIN" --config-file /nonexistent/config parse
 			The status should be failure
-			The stderr should include "config file not found"
 			The stderr should include "/nonexistent/config"
+			The stderr should include "[config-not-found]"
 		End
 	End
 
@@ -1264,7 +1356,7 @@ EOF
 				command -v gum &>/dev/null && Skip "gum is installed system-wide"
 				When run script "$BIN" create
 				The status should be failure
-				The stderr should include "gum is required"
+				The stderr should include "[gum-not-found]"
 			End
 		End
 
@@ -1918,7 +2010,7 @@ MOCK
 			Data "invalid message"
 			When run script "$BIN"
 			The status should be failure
-			The stderr should include "invalid commit format"
+			The stderr should include "[header-format]"
 		End
 	End
 
@@ -1985,7 +2077,7 @@ EOF
 			Data "feat(unknown): add feature"
 			When run script "$BIN" --defined-scope lint
 			The status should be failure
-			The stderr should include "unknown scope"
+			The stderr should include "[scope-enum]"
 			The stderr should include "api"
 			The stderr should include "ui"
 		End
@@ -2013,7 +2105,7 @@ EOF
 			Data "feat:    "
 			When run script "$BIN" lint
 			The status should be failure
-			The stderr should include "empty"
+			The stderr should include "[description-empty]"
 		End
 
 		It 'handles config keys with hyphens correctly'

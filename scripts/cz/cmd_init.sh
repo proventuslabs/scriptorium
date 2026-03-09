@@ -3,6 +3,8 @@
 # cz init - generate a starter .gitcommitizen file
 
 # @bundle source
+. ./helpers.sh
+# @bundle source
 . ./config_defaults.sh
 
 cmd_init() {
@@ -16,7 +18,7 @@ cmd_init() {
 
 	# Write to file
 	if [[ -f "$OUTPUT_FILE" && -z "${FORCE:-}" ]]; then
-		echo "cz: error: '$OUTPUT_FILE' already exists (use -f to overwrite)" >&2
+		_err file-exists "$OUTPUT_FILE"
 		return 1
 	fi
 

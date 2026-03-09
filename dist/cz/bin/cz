@@ -101,7 +101,7 @@ parse() {
 			-[c]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" "${OPTARG#??}"' ${1+'"$@"'}
 				;;
-			-[rdemqhV]?*) OPTARG=$1; shift
+			-[rdembqhV]?*) OPTARG=$1; shift
 				eval 'set -- "${OPTARG%"${OPTARG#??}"}" -"${OPTARG#??}"' ${1+'"$@"'}
 				case $2 in --*) set -- "$1" unknown "$2" && REST=x; esac;OPTARG= ;;
 		esac
@@ -132,7 +132,7 @@ parse() {
 				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
 				MULTI_SCOPE="$OPTARG"
 				;;
-			'--breaking-footer'|'--no-breaking-footer')
+			'-b'|'--breaking-footer'|'--no-breaking-footer')
 				[ "${OPTARG:-}" ] && OPTARG=${OPTARG#*\=} && set "noarg" "$1" && break
 				eval '[ ${OPTARG+x} ] &&:' && OPTARG='1' || OPTARG=''
 				BREAKING_FOOTER="$OPTARG"
@@ -191,7 +191,7 @@ Options:
   -d, --{no-}defined-scope    Scope must exist in [scopes]
   -e, --{no-}enforce-patterns Scope must match file patterns (implies -d)
   -m, --{no-}multi-scope      Allow multiple scopes like feat(api,db):
-      --{no-}breaking-footer  Require BREAKING CHANGE footer when ! is used
+  -b, --{no-}breaking-footer  Require BREAKING CHANGE footer when ! is used
   -q, --quiet                 Suppress warnings and non-essential output
   -h, --help                  
   -V, --version               
@@ -214,6 +214,60 @@ GETOPTIONSHERE
 # --- begin: scripts/cz/config.sh ---
 
 
+# --- begin: scripts/cz/helpers.sh ---
+
+
+# --- begin: scripts/cz/error_codes.sh ---
+
+
+# @start-kcov-exclude - static data table
+declare -gA ERR_CODES=(
+	["empty-message"]="empty commit message"
+	["header-format"]="commits MUST be prefixed with a type, followed by a colon and space"
+	["type-enum"]="unknown type '%s'"
+	["description-empty"]="description MUST immediately follow the colon and space"
+	["body-leading-blank"]="body MUST begin one blank line after the description"
+	["breaking-footer"]="if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
+	["scope-required"]="scope required"
+	["scope-enum"]="unknown scope '%s'"
+	["scope-missing-config"]="scope '%s' used but no scopes defined in config"
+	["scope-file-required"]="scope required for scoped files"
+	["multi-scope-disabled"]="multi-scope not enabled"
+	["files-scope-mismatch"]="files do not match scope '%s'"
+	["files-scopes-mismatch"]="files do not match scopes '%s'"
+	["config-not-found"]="config file not found: %s"
+	["gum-not-found"]="gum is required for interactive mode"
+	["description-required"]="description MUST NOT be empty"
+	["breaking-explanation"]="breaking change explanation is required"
+	["file-exists"]="'%s' already exists (use -f to overwrite)"
+	["not-git-repo"]="not a git repository"
+	["hook-action-unknown"]="unknown hook action '%s'"
+	["hook-exists"]="existing commit-msg hook found"
+	["hook-foreign"]="commit-msg hook was not installed by cz"
+)
+# @end-kcov-exclude
+# --- end: scripts/cz/error_codes.sh ---
+
+_err() {
+	[[ -n "${QUIET:-}" ]] && return
+	local code="$1"
+	shift
+	local msg="${ERR_CODES[$code]}"
+	if [[ -n "$msg" ]]; then
+		printf -v msg "$msg" "$@"
+		echo "cz: error: $msg [$code]" >&2
+	else
+		echo "cz: error: $code $* [unknown]" >&2
+	fi
+}
+_hint() { [[ -n "${QUIET:-}" ]] || echo "$1" >&2; }
+
+_trim() {
+	local v="${!1}"
+	v="${v#"${v%%[![:space:]]*}"}"
+	printf -v "$1" '%s' "${v%"${v##*[![:space:]]}"}"
+}
+# --- end: scripts/cz/helpers.sh ---
 # --- begin: scripts/cz/config_defaults.sh ---
 
 format_config() {
@@ -330,14 +384,14 @@ find_config() {
 load_config() {
 	if [[ -n "$CONFIG_FILE" ]]; then
 		if [[ ! -f "$CONFIG_FILE" ]]; then
-			echo "cz: error: config file not found: $CONFIG_FILE" >&2
+			_err config-not-found "$CONFIG_FILE"
 			exit 1
 		fi
 
 		parse_config <"$CONFIG_FILE"
 
 		if [[ ${#CFG_TYPES[@]} -eq 0 ]]; then
-			[[ -z "${QUIET:-}" ]] && echo "cz: warning: no [types] in $CONFIG_FILE, using defaults" >&2
+			_hint "cz: warning: no [types] in $CONFIG_FILE, using defaults"
 			_set_default_types
 		fi
 	else
@@ -393,6 +447,7 @@ cmd_parse() {
 # --- begin: scripts/cz/cmd_init.sh ---
 
 
+# --- skipped (already included): scripts/cz/helpers.sh ---
 # --- skipped (already included): scripts/cz/config_defaults.sh ---
 
 cmd_init() {
@@ -404,7 +459,7 @@ cmd_init() {
 	fi
 
 	if [[ -f "$OUTPUT_FILE" && -z "${FORCE:-}" ]]; then
-		echo "cz: error: '$OUTPUT_FILE' already exists (use -f to overwrite)" >&2
+		_err file-exists "$OUTPUT_FILE"
 		return 1
 	fi
 
@@ -414,12 +469,14 @@ cmd_init() {
 # --- begin: scripts/cz/cmd_hook.sh ---
 
 
+# --- skipped (already included): scripts/cz/helpers.sh ---
+
 cmd_hook() {
 	local action="${1:-status}"
 
 	local git_dir
 	git_dir="$(git rev-parse --git-dir 2>/dev/null)" || {
-		echo "cz: error: not a git repository" >&2
+		_err not-git-repo
 		return 1
 	}
 
@@ -437,8 +494,8 @@ cmd_hook() {
 			hook_status "$hook_path" "$hook_marker"
 			;;
 		*)
-			echo "cz: error: unknown hook action '$action'" >&2
-			echo "Usage: cz hook [install|uninstall|status]" >&2
+			_err hook-action-unknown "$action"
+			_hint "Usage: cz hook [install|uninstall|status]"
 			return 2
 			;;
 	esac
@@ -453,8 +510,8 @@ hook_install() {
 			echo "cz: hook already installed"
 			return 0
 		else
-			echo "cz: error: existing commit-msg hook found" >&2
-			echo "Remove it manually or add 'cz lint < \"\$1\"' to it" >&2
+			_err hook-exists
+			_hint "Remove it manually or add 'cz lint < \"\$1\"' to it"
 			return 1
 		fi
 	fi
@@ -485,7 +542,7 @@ hook_uninstall() {
 	fi
 
 	if ! grep -q "$hook_marker" "$hook_path" 2>/dev/null; then
-		echo "cz: error: commit-msg hook was not installed by cz" >&2
+		_err hook-foreign
 		return 1
 	fi
 
@@ -518,15 +575,7 @@ hook_status() {
 # --- begin: scripts/cz/path_validator.sh ---
 
 
-# --- begin: scripts/cz/helpers.sh ---
-
-
-_trim() {
-	local v="${!1}"
-	v="${v#"${v%%[![:space:]]*}"}"
-	printf -v "$1" '%s' "${v%"${v##*[![:space:]]}"}"
-}
-# --- end: scripts/cz/helpers.sh ---
+# --- skipped (already included): scripts/cz/helpers.sh ---
 # --- skipped (already included): scripts/cz/config_parser.sh ---
 
 file_matches_pattern() {
@@ -633,10 +682,8 @@ validate_strict_no_scope() {
 }
 # --- end: scripts/cz/path_validator.sh ---
 
-_err() { [[ -n "${QUIET:-}" ]] || echo "cz: error: $1" >&2; }
-_hint() { [[ -n "${QUIET:-}" ]] || echo "$1" >&2; }
 _scope_err() {
-	_err "unknown scope '$1'"
+	_err scope-enum "$1"
 	_hint "Defined scopes: ${!CFG_SCOPES[*]}"
 }
 _show_errors() {
@@ -663,7 +710,7 @@ cmd_lint() {
 	message="$(cat)"
 
 	[[ -z "$message" ]] && {
-		_err "empty commit message"
+		_err empty-message
 		return 1
 	}
 
@@ -673,8 +720,8 @@ cmd_lint() {
 	local pattern='^([a-z]+)(\(([a-zA-Z0-9_@/,*-]+)\))?(!)?: (.+)$'
 
 	if [[ ! "$first_line" =~ $pattern ]]; then
-		_err "invalid commit format"
-		_hint "Expected: <type>[(scope)]: <description>"
+		_err header-format
+		_hint "Expected: <type>[(<scope>)][!]: <description>"
 		return 1
 	fi
 
@@ -682,13 +729,19 @@ cmd_lint() {
 	local breaking="${BASH_REMATCH[4]}" description="${BASH_REMATCH[5]}"
 
 	if [[ ! -v CFG_TYPES["$type"] ]]; then
-		_err "unknown type '$type'"
+		_err type-enum "$type"
 		_hint "Allowed types: ${!CFG_TYPES[*]}"
 		return 1
 	fi
 
 	[[ -z "$description" || "$description" =~ ^[[:space:]]*$ ]] && {
-		_err "description cannot be empty"
+		_err description-empty
+		return 1
+	}
+
+	local rest="${message#*$'\n'}"
+	[[ "$rest" != "$message" && "${rest%%$'\n'*}" != "" ]] && {
+		_err body-leading-blank
 		return 1
 	}
 
@@ -700,8 +753,8 @@ cmd_lint() {
 		breaking_footer="${CFG_SETTINGS[breaking_footer]:-true}"
 	fi
 
-	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[[:space:]]CHANGE: ]] && {
-		_err "breaking change (!) requires 'BREAKING CHANGE:' footer"
+	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[-\ ]CHANGE: ]] && {
+		_err breaking-footer
 		return 1
 	}
 
@@ -755,13 +808,13 @@ validate_paths_if_needed() {
 	fi
 
 	if [[ "$require_scope" == "true" && -z "$scope" ]]; then
-		_err "scope required"
+		_err scope-required
 		return 1
 	fi
 
 	if [[ "$defined_scope" == "true" && -n "$scope" ]]; then
 		[[ ${#CFG_SCOPES[@]} -eq 0 ]] && {
-			_err "scope '$scope' used but no scopes defined in config"
+			_err scope-missing-config "$scope"
 			return 1
 		}
 		if is_multi_scope "$scope"; then
@@ -780,7 +833,7 @@ validate_paths_if_needed() {
 
 	if [[ -z "$scope" ]]; then
 		if ! validate_strict_no_scope "${files[@]}"; then
-			_err "scope required for scoped files"
+			_err scope-file-required
 			_show_errors "${STRICT_MATCHES[@]}"
 			_hint "Hint: add a scope that matches these files"
 			return 1
@@ -792,13 +845,13 @@ validate_paths_if_needed() {
 
 	if is_multi_scope "$scope"; then
 		[[ "$multi_scope" != "true" ]] && {
-			_err "multi-scope not enabled"
+			_err multi-scope-disabled
 			_hint "Use --multi-scope flag or set multi-scope = true in [settings]"
 			return 1
 		}
 		_check_scopes_exist "$scope" || return 1
 		if ! validate_files_against_scopes "$scope" "${files[@]}"; then
-			_err "files do not match scopes '$scope'"
+			_err files-scopes-mismatch "$scope"
 			_show_errors "${VALIDATION_ERRORS[@]}"
 			return 1
 		fi
@@ -810,7 +863,7 @@ validate_paths_if_needed() {
 		return 1
 	}
 	if ! validate_files_against_scope "$scope" "${files[@]}"; then
-		_err "files do not match scope '$scope'"
+		_err files-scope-mismatch "$scope"
 		_show_errors "${VALIDATION_ERRORS[@]}"
 		return 1
 	fi
@@ -819,6 +872,7 @@ validate_paths_if_needed() {
 # --- begin: scripts/cz/cmd_create.sh ---
 
 
+# --- skipped (already included): scripts/cz/helpers.sh ---
 # --- skipped (already included): scripts/cz/config.sh ---
 
 _gum() { gum "$@" || exit 130; }
@@ -828,8 +882,8 @@ _scope_input_custom() { _gum input --header "Enter scope:" --placeholder "e.g., 
 
 cmd_create() {
 	if ! command -v gum &>/dev/null; then
-		echo "cz: error: gum is required for interactive mode" >&2
-		echo "See: https://github.com/charmbracelet/gum" >&2
+		_err gum-not-found
+		_hint "See: https://github.com/charmbracelet/gum"
 		exit 1
 	fi
 
@@ -902,7 +956,7 @@ cmd_create() {
 	local description=""
 	while [[ -z "$description" ]]; do
 		description=$(_gum input --header "Description (required):" --placeholder "Short summary of the change")
-		[[ -z "$description" ]] && echo "cz: error: description cannot be empty" >&2
+		[[ -z "$description" ]] && _err description-required
 	done
 
 	local body
@@ -913,7 +967,7 @@ cmd_create() {
 		local breaking_explanation=""
 		while [[ -z "$breaking_explanation" ]]; do
 			breaking_explanation=$(_gum write --header "Breaking change explanation (required):" --placeholder "Describe what breaks and how to migrate...")
-			[[ -z "$breaking_explanation" ]] && echo "cz: error: breaking change explanation is required" >&2
+			[[ -z "$breaking_explanation" ]] && _err breaking-explanation
 		done
 		footer="BREAKING CHANGE: $breaking_explanation"
 	else

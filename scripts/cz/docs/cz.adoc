@@ -13,7 +13,7 @@ cz - conventional commit message builder
 
 == SYNOPSIS
 
-*cz* [*-r* | *--no-require-scope*] [*-d* | *--no-defined-scope*] [*-e* | *--no-enforce-patterns*] [*-m* | *--no-multi-scope*] [*--breaking-footer* | *--no-breaking-footer*] [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
+*cz* [*-r* | *--no-require-scope*] [*-d* | *--no-defined-scope*] [*-e* | *--no-enforce-patterns*] [*-m* | *--no-multi-scope*] [*-b* | *--no-breaking-footer*] [*-q*] [*-c* _FILE_] [_SUBCOMMAND_]
 
 *cz* *create* +
 *cz* *lint* [*-p* _PATH_]... +
@@ -108,9 +108,10 @@ in a terminal, or *lint* mode if receiving input on standard input.
 *--no-multi-scope*::
   Disallow multiple scopes. Overrides `multi-scope` config.
 
-*--breaking-footer*::
-  Require a `BREAKING CHANGE:` footer when the commit has a breaking change
-  indicator (`!`). Overrides `breaking-footer` config. Default when unset: true.
+*-b*, *--breaking-footer*::
+  Require a `BREAKING CHANGE:` (or `BREAKING-CHANGE:`) footer when the commit
+  has a breaking change indicator (`!`). Overrides `breaking-footer` config.
+  Default when unset: true.
 
 *--no-breaking-footer*::
   Allow breaking changes without a `BREAKING CHANGE:` footer. Overrides
@@ -174,8 +175,8 @@ The *-r*, *-d*, and *-e* flags affect the *lint* command:
 |*-r -e*
 |Scope required and must match patterns
 
-|*--breaking-footer*
-|Breaking `!` requires `BREAKING CHANGE:` footer (default)
+|*-b* / *--breaking-footer*
+|Breaking `!` requires `BREAKING CHANGE:` or `BREAKING-CHANGE:` footer (default)
 
 |*--no-breaking-footer*
 |Breaking `!` allowed without footer

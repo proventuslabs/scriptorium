@@ -7,11 +7,8 @@
 # @bundle source
 . ./path_validator.sh
 
-# Output helpers - respect QUIET flag
-_err() { [[ -n "${QUIET:-}" ]] || echo "cz: error: $1" >&2; }
-_hint() { [[ -n "${QUIET:-}" ]] || echo "$1" >&2; }
 _scope_err() {
-	_err "unknown scope '$1'"
+	_err scope-enum "$1"
 	_hint "Defined scopes: ${!CFG_SCOPES[*]}"
 }
 _show_errors() {
@@ -41,7 +38,7 @@ cmd_lint() {
 	message="$(cat)"
 
 	[[ -z "$message" ]] && {
-		_err "empty commit message"
+		_err empty-message
 		return 1
 	}
 
@@ -54,8 +51,9 @@ cmd_lint() {
 	local pattern='^([a-z]+)(\(([a-zA-Z0-9_@/,*-]+)\))?(!)?: (.+)$'
 
 	if [[ ! "$first_line" =~ $pattern ]]; then
-		_err "invalid commit format"
-		_hint "Expected: <type>[(scope)]: <description>"
+		# Spec #1: commits MUST be prefixed with a type, followed by colon and space
+		_err header-format
+		_hint "Expected: <type>[(<scope>)][!]: <description>"
 		return 1
 	fi
 
@@ -64,14 +62,22 @@ cmd_lint() {
 
 	# Validate type
 	if [[ ! -v CFG_TYPES["$type"] ]]; then
-		_err "unknown type '$type'"
+		_err type-enum "$type"
 		_hint "Allowed types: ${!CFG_TYPES[*]}"
 		return 1
 	fi
 
-	# Validate description is not empty
+	# Spec #5: description MUST immediately follow the colon and space
 	[[ -z "$description" || "$description" =~ ^[[:space:]]*$ ]] && {
-		_err "description cannot be empty"
+		_err description-empty
+		return 1
+	}
+
+	# Validate blank line after subject when body/footer present
+	# Spec: "body MUST begin one blank line after the description"
+	local rest="${message#*$'\n'}"
+	[[ "$rest" != "$message" && "${rest%%$'\n'*}" != "" ]] && {
+		_err body-leading-blank
 		return 1
 	}
 
@@ -84,9 +90,12 @@ cmd_lint() {
 		breaking_footer="${CFG_SETTINGS[breaking_footer]:-true}"
 	fi
 
-	# Validate breaking change has BREAKING CHANGE footer
-	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[[:space:]]CHANGE: ]] && {
-		_err "breaking change (!) requires 'BREAKING CHANGE:' footer"
+	# Spec #13: if included in the type/scope prefix, breaking changes MUST
+	# be indicated by a BREAKING CHANGE footer
+	# Spec #16: BREAKING-CHANGE MUST be synonymous with BREAKING CHANGE
+	# Spec #15: BREAKING CHANGE MUST be uppercase
+	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[-\ ]CHANGE: ]] && {
+		_err breaking-footer
 		return 1
 	}
 
@@ -154,14 +163,14 @@ validate_paths_if_needed() {
 
 	# -r: require scope to be present
 	if [[ "$require_scope" == "true" && -z "$scope" ]]; then
-		_err "scope required"
+		_err scope-required
 		return 1
 	fi
 
 	# -d: validate scope exists in config (if scope provided)
 	if [[ "$defined_scope" == "true" && -n "$scope" ]]; then
 		[[ ${#CFG_SCOPES[@]} -eq 0 ]] && {
-			_err "scope '$scope' used but no scopes defined in config"
+			_err scope-missing-config "$scope"
 			return 1
 		}
 		if is_multi_scope "$scope"; then
@@ -183,7 +192,7 @@ validate_paths_if_needed() {
 	# No scope provided - check if files match any pattern
 	if [[ -z "$scope" ]]; then
 		if ! validate_strict_no_scope "${files[@]}"; then
-			_err "scope required for scoped files"
+			_err scope-file-required
 			_show_errors "${STRICT_MATCHES[@]}"
 			_hint "Hint: add a scope that matches these files"
 			return 1
@@ -197,14 +206,14 @@ validate_paths_if_needed() {
 	# Multi-scope validation
 	if is_multi_scope "$scope"; then
 		[[ "$multi_scope" != "true" ]] && {
-			_err "multi-scope not enabled"
+			_err multi-scope-disabled
 			_hint "Use --multi-scope flag or set multi-scope = true in [settings]"
 			return 1
 		}
 		# Validate scopes exist
 		_check_scopes_exist "$scope" || return 1
 		if ! validate_files_against_scopes "$scope" "${files[@]}"; then
-			_err "files do not match scopes '$scope'"
+			_err files-scopes-mismatch "$scope"
 			_show_errors "${VALIDATION_ERRORS[@]}"
 			return 1
 		fi
@@ -217,7 +226,7 @@ validate_paths_if_needed() {
 		return 1
 	}
 	if ! validate_files_against_scope "$scope" "${files[@]}"; then
-		_err "files do not match scope '$scope'"
+		_err files-scope-mismatch "$scope"
 		_show_errors "${VALIDATION_ERRORS[@]}"
 		return 1
 	fi

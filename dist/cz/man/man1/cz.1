@@ -31,7 +31,7 @@
 cz \- conventional commit message builder
 .SH "SYNOPSIS"
 .sp
-\fBcz\fP [\fB\-r\fP | \fB\-\-no\-require\-scope\fP] [\fB\-d\fP | \fB\-\-no\-defined\-scope\fP] [\fB\-e\fP | \fB\-\-no\-enforce\-patterns\fP] [\fB\-m\fP | \fB\-\-no\-multi\-scope\fP] [\fB\-\-breaking\-footer\fP | \fB\-\-no\-breaking\-footer\fP] [\fB\-q\fP] [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
+\fBcz\fP [\fB\-r\fP | \fB\-\-no\-require\-scope\fP] [\fB\-d\fP | \fB\-\-no\-defined\-scope\fP] [\fB\-e\fP | \fB\-\-no\-enforce\-patterns\fP] [\fB\-m\fP | \fB\-\-no\-multi\-scope\fP] [\fB\-b\fP | \fB\-\-no\-breaking\-footer\fP] [\fB\-q\fP] [\fB\-c\fP \fIFILE\fP] [\fISUBCOMMAND\fP]
 .sp
 \fBcz\fP \fBcreate\fP
 .br
@@ -157,10 +157,11 @@ Allow multiple scopes like \f(CRfeat(api,db):\fP. Overrides \f(CRmulti\-scope\fP
 Disallow multiple scopes. Overrides \f(CRmulti\-scope\fP config.
 .RE
 .sp
-\fB\-\-breaking\-footer\fP
+\fB\-b\fP, \fB\-\-breaking\-footer\fP
 .RS 4
-Require a \f(CRBREAKING CHANGE:\fP footer when the commit has a breaking change
-indicator (\f(CR!\fP). Overrides \f(CRbreaking\-footer\fP config. Default when unset: true.
+Require a \f(CRBREAKING CHANGE:\fP (or \f(CRBREAKING\-CHANGE:\fP) footer when the commit
+has a breaking change indicator (\f(CR!\fP). Overrides \f(CRbreaking\-footer\fP config.
+Default when unset: true.
 .RE
 .sp
 \fB\-\-no\-breaking\-footer\fP
@@ -287,10 +288,10 @@ Scope required and must match patterns
 T}
 T{
 .sp
-\fB\-\-breaking\-footer\fP
+\fB\-b\fP / \fB\-\-breaking\-footer\fP
 T}:T{
 .sp
-Breaking \f(CR!\fP requires \f(CRBREAKING CHANGE:\fP footer (default)
+Breaking \f(CR!\fP requires \f(CRBREAKING CHANGE:\fP or \f(CRBREAKING\-CHANGE:\fP footer (default)
 T}
 T{
 .sp
