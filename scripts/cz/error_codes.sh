@@ -5,6 +5,7 @@
 # Usage: _err <code> [args...]
 
 # shellcheck disable=SC2034 # ERR_CODES is used by _err in helpers.sh
+# @start-kcov-exclude - static data table
 declare -gA ERR_CODES=(
 	["empty-message"]="empty commit message"
 	["header-format"]="commits MUST be prefixed with a type, followed by a colon and space"
@@ -29,3 +30,4 @@ declare -gA ERR_CODES=(
 	["hook-exists"]="existing commit-msg hook found"
 	["hook-foreign"]="commit-msg hook was not installed by cz"
 )
+# @end-kcov-exclude

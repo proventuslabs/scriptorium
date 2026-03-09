@@ -220,6 +220,7 @@ GETOPTIONSHERE
 # --- begin: scripts/cz/error_codes.sh ---
 
 
+# @start-kcov-exclude - static data table
 declare -gA ERR_CODES=(
 	["empty-message"]="empty commit message"
 	["header-format"]="commits MUST be prefixed with a type, followed by a colon and space"
@@ -244,6 +245,7 @@ declare -gA ERR_CODES=(
 	["hook-exists"]="existing commit-msg hook found"
 	["hook-foreign"]="commit-msg hook was not installed by cz"
 )
+# @end-kcov-exclude
 # --- end: scripts/cz/error_codes.sh ---
 
 _err() {
