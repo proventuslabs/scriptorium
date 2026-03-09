@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.2.0](https://github.com/proventuslabs/scriptorium/compare/cz-v0.1.0...cz-v0.2.0) (2026-03-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* **cz:** align validation and errors to Conventional Commits spec ([#76](https://github.com/proventuslabs/scriptorium/issues/76))
+* **cz:** --paths no longer accepts space-separated paths. Use repeated --paths flags: --paths "file one" --paths "file two"
+
+### Features
+
+* **cz:** add --{no-}breaking-footer flag ([#72](https://github.com/proventuslabs/scriptorium/issues/72)) ([d22921f](https://github.com/proventuslabs/scriptorium/commit/d22921f9de08f6aaf838822e2d8babf865ae43ee))
+* **cz:** align validation and errors to Conventional Commits spec ([#76](https://github.com/proventuslabs/scriptorium/issues/76)) ([dde2edc](https://github.com/proventuslabs/scriptorium/commit/dde2edc9907027d2dd70f5ae6efe0202a54908f0))
+
+
+### Bug Fixes
+
+* **cz:** handle spaces in --paths file arguments ([#67](https://github.com/proventuslabs/scriptorium/issues/67)) ([d84893c](https://github.com/proventuslabs/scriptorium/commit/d84893c4bb7b37cbc86dfa3ac9f2bf9ee7880c7e))
+* **cz:** parse leftovers and cleanup ([#74](https://github.com/proventuslabs/scriptorium/issues/74)) ([75dcbf3](https://github.com/proventuslabs/scriptorium/commit/75dcbf3496b9e0b9673d52ceb6e00013aa04831f))
+
 ## 0.1.0 (2026-01-21)
 
 
