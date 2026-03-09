@@ -18,7 +18,7 @@ cmd_init() {
 
 	# Write to file
 	if [[ -f "$OUTPUT_FILE" && -z "${FORCE:-}" ]]; then
-		_err "'$OUTPUT_FILE' already exists (use -f to overwrite)"
+		_err file-exists "$OUTPUT_FILE"
 		return 1
 	fi
 

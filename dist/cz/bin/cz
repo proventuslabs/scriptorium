@@ -217,7 +217,47 @@ GETOPTIONSHERE
 # --- begin: scripts/cz/helpers.sh ---
 
 
-_err() { [[ -n "${QUIET:-}" ]] || echo "cz: error: $1" >&2; }
+# --- begin: scripts/cz/error_codes.sh ---
+
+
+declare -gA ERR_CODES=(
+	["empty-message"]="empty commit message"
+	["header-format"]="commits MUST be prefixed with a type, followed by a colon and space"
+	["type-enum"]="unknown type '%s'"
+	["description-empty"]="description MUST immediately follow the colon and space"
+	["body-leading-blank"]="body MUST begin one blank line after the description"
+	["breaking-footer"]="if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
+	["scope-required"]="scope required"
+	["scope-enum"]="unknown scope '%s'"
+	["scope-missing-config"]="scope '%s' used but no scopes defined in config"
+	["scope-file-required"]="scope required for scoped files"
+	["multi-scope-disabled"]="multi-scope not enabled"
+	["files-scope-mismatch"]="files do not match scope '%s'"
+	["files-scopes-mismatch"]="files do not match scopes '%s'"
+	["config-not-found"]="config file not found: %s"
+	["gum-not-found"]="gum is required for interactive mode"
+	["description-required"]="description MUST NOT be empty"
+	["breaking-explanation"]="breaking change explanation is required"
+	["file-exists"]="'%s' already exists (use -f to overwrite)"
+	["not-git-repo"]="not a git repository"
+	["hook-action-unknown"]="unknown hook action '%s'"
+	["hook-exists"]="existing commit-msg hook found"
+	["hook-foreign"]="commit-msg hook was not installed by cz"
+)
+# --- end: scripts/cz/error_codes.sh ---
+
+_err() {
+	[[ -n "${QUIET:-}" ]] && return
+	local code="$1"
+	shift
+	local msg="${ERR_CODES[$code]}"
+	if [[ -n "$msg" ]]; then
+		printf -v msg "$msg" "$@"
+		echo "cz: error: $msg [$code]" >&2
+	else
+		echo "cz: error: $code $* [unknown]" >&2
+	fi
+}
 _hint() { [[ -n "${QUIET:-}" ]] || echo "$1" >&2; }
 
 _trim() {
@@ -342,7 +382,7 @@ find_config() {
 load_config() {
 	if [[ -n "$CONFIG_FILE" ]]; then
 		if [[ ! -f "$CONFIG_FILE" ]]; then
-			_err "config file not found: $CONFIG_FILE"
+			_err config-not-found "$CONFIG_FILE"
 			exit 1
 		fi
 
@@ -417,7 +457,7 @@ cmd_init() {
 	fi
 
 	if [[ -f "$OUTPUT_FILE" && -z "${FORCE:-}" ]]; then
-		_err "'$OUTPUT_FILE' already exists (use -f to overwrite)"
+		_err file-exists "$OUTPUT_FILE"
 		return 1
 	fi
 
@@ -434,7 +474,7 @@ cmd_hook() {
 
 	local git_dir
 	git_dir="$(git rev-parse --git-dir 2>/dev/null)" || {
-		_err "not a git repository"
+		_err not-git-repo
 		return 1
 	}
 
@@ -452,7 +492,7 @@ cmd_hook() {
 			hook_status "$hook_path" "$hook_marker"
 			;;
 		*)
-			_err "unknown hook action '$action'"
+			_err hook-action-unknown "$action"
 			_hint "Usage: cz hook [install|uninstall|status]"
 			return 2
 			;;
@@ -468,7 +508,7 @@ hook_install() {
 			echo "cz: hook already installed"
 			return 0
 		else
-			_err "existing commit-msg hook found"
+			_err hook-exists
 			_hint "Remove it manually or add 'cz lint < \"\$1\"' to it"
 			return 1
 		fi
@@ -500,7 +540,7 @@ hook_uninstall() {
 	fi
 
 	if ! grep -q "$hook_marker" "$hook_path" 2>/dev/null; then
-		_err "commit-msg hook was not installed by cz"
+		_err hook-foreign
 		return 1
 	fi
 
@@ -641,7 +681,7 @@ validate_strict_no_scope() {
 # --- end: scripts/cz/path_validator.sh ---
 
 _scope_err() {
-	_err "unknown scope '$1'"
+	_err scope-enum "$1"
 	_hint "Defined scopes: ${!CFG_SCOPES[*]}"
 }
 _show_errors() {
@@ -668,7 +708,7 @@ cmd_lint() {
 	message="$(cat)"
 
 	[[ -z "$message" ]] && {
-		_err "empty commit message"
+		_err empty-message
 		return 1
 	}
 
@@ -678,7 +718,7 @@ cmd_lint() {
 	local pattern='^([a-z]+)(\(([a-zA-Z0-9_@/,*-]+)\))?(!)?: (.+)$'
 
 	if [[ ! "$first_line" =~ $pattern ]]; then
-		_err "commits MUST be prefixed with a type, followed by a colon and space"
+		_err header-format
 		_hint "Expected: <type>[(<scope>)][!]: <description>"
 		return 1
 	fi
@@ -687,13 +727,13 @@ cmd_lint() {
 	local breaking="${BASH_REMATCH[4]}" description="${BASH_REMATCH[5]}"
 
 	if [[ ! -v CFG_TYPES["$type"] ]]; then
-		_err "unknown type '$type'"
+		_err type-enum "$type"
 		_hint "Allowed types: ${!CFG_TYPES[*]}"
 		return 1
 	fi
 
 	[[ -z "$description" || "$description" =~ ^[[:space:]]*$ ]] && {
-		_err "description MUST immediately follow the colon and space"
+		_err description-empty
 		return 1
 	}
 
@@ -706,7 +746,7 @@ cmd_lint() {
 	fi
 
 	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[\ -]CHANGE: ]] && {
-		_err "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
+		_err breaking-footer
 		return 1
 	}
 
@@ -757,13 +797,13 @@ validate_paths_if_needed() {
 	fi
 
 	if [[ "$require_scope" == "true" && -z "$scope" ]]; then
-		_err "scope required"
+		_err scope-required
 		return 1
 	fi
 
 	if [[ "$defined_scope" == "true" && -n "$scope" ]]; then
 		[[ ${#CFG_SCOPES[@]} -eq 0 ]] && {
-			_err "scope '$scope' used but no scopes defined in config"
+			_err scope-missing-config "$scope"
 			return 1
 		}
 		if is_multi_scope "$scope"; then
@@ -782,7 +822,7 @@ validate_paths_if_needed() {
 
 	if [[ -z "$scope" ]]; then
 		if ! validate_strict_no_scope "${files[@]}"; then
-			_err "scope required for scoped files"
+			_err scope-file-required
 			_show_errors "${STRICT_MATCHES[@]}"
 			_hint "Hint: add a scope that matches these files"
 			return 1
@@ -794,13 +834,13 @@ validate_paths_if_needed() {
 
 	if is_multi_scope "$scope"; then
 		[[ "$multi_scope" != "true" ]] && {
-			_err "multi-scope not enabled"
+			_err multi-scope-disabled
 			_hint "Use --multi-scope flag or set multi-scope = true in [settings]"
 			return 1
 		}
 		_check_scopes_exist "$scope" || return 1
 		if ! validate_files_against_scopes "$scope" "${files[@]}"; then
-			_err "files do not match scopes '$scope'"
+			_err files-scopes-mismatch "$scope"
 			_show_errors "${VALIDATION_ERRORS[@]}"
 			return 1
 		fi
@@ -812,7 +852,7 @@ validate_paths_if_needed() {
 		return 1
 	}
 	if ! validate_files_against_scope "$scope" "${files[@]}"; then
-		_err "files do not match scope '$scope'"
+		_err files-scope-mismatch "$scope"
 		_show_errors "${VALIDATION_ERRORS[@]}"
 		return 1
 	fi
@@ -831,7 +871,7 @@ _scope_input_custom() { _gum input --header "Enter scope:" --placeholder "e.g., 
 
 cmd_create() {
 	if ! command -v gum &>/dev/null; then
-		_err "gum is required for interactive mode"
+		_err gum-not-found
 		_hint "See: https://github.com/charmbracelet/gum"
 		exit 1
 	fi
@@ -905,7 +945,7 @@ cmd_create() {
 	local description=""
 	while [[ -z "$description" ]]; do
 		description=$(_gum input --header "Description (required):" --placeholder "Short summary of the change")
-		[[ -z "$description" ]] && _err "description MUST NOT be empty"
+		[[ -z "$description" ]] && _err description-required
 	done
 
 	local body
@@ -916,7 +956,7 @@ cmd_create() {
 		local breaking_explanation=""
 		while [[ -z "$breaking_explanation" ]]; do
 			breaking_explanation=$(_gum write --header "Breaking change explanation (required):" --placeholder "Describe what breaks and how to migrate...")
-			[[ -z "$breaking_explanation" ]] && _err "breaking change explanation is required"
+			[[ -z "$breaking_explanation" ]] && _err breaking-explanation
 		done
 		footer="BREAKING CHANGE: $breaking_explanation"
 	else

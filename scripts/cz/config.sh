@@ -42,7 +42,7 @@ find_config() {
 load_config() {
 	if [[ -n "$CONFIG_FILE" ]]; then
 		if [[ ! -f "$CONFIG_FILE" ]]; then
-			_err "config file not found: $CONFIG_FILE"
+			_err config-not-found "$CONFIG_FILE"
 			exit 1
 		fi
 

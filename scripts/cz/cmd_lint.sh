@@ -8,7 +8,7 @@
 . ./path_validator.sh
 
 _scope_err() {
-	_err "unknown scope '$1'"
+	_err scope-enum "$1"
 	_hint "Defined scopes: ${!CFG_SCOPES[*]}"
 }
 _show_errors() {
@@ -38,7 +38,7 @@ cmd_lint() {
 	message="$(cat)"
 
 	[[ -z "$message" ]] && {
-		_err "empty commit message"
+		_err empty-message
 		return 1
 	}
 
@@ -52,7 +52,7 @@ cmd_lint() {
 
 	if [[ ! "$first_line" =~ $pattern ]]; then
 		# Spec #1: commits MUST be prefixed with a type, followed by colon and space
-		_err "commits MUST be prefixed with a type, followed by a colon and space"
+		_err header-format
 		_hint "Expected: <type>[(<scope>)][!]: <description>"
 		return 1
 	fi
@@ -62,14 +62,14 @@ cmd_lint() {
 
 	# Validate type
 	if [[ ! -v CFG_TYPES["$type"] ]]; then
-		_err "unknown type '$type'"
+		_err type-enum "$type"
 		_hint "Allowed types: ${!CFG_TYPES[*]}"
 		return 1
 	fi
 
 	# Spec #5: description MUST immediately follow the colon and space
 	[[ -z "$description" || "$description" =~ ^[[:space:]]*$ ]] && {
-		_err "description MUST immediately follow the colon and space"
+		_err description-empty
 		return 1
 	}
 
@@ -87,7 +87,7 @@ cmd_lint() {
 	# Spec #16: BREAKING-CHANGE MUST be synonymous with BREAKING CHANGE
 	# Spec #15: BREAKING CHANGE MUST be uppercase
 	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[\ -]CHANGE: ]] && {
-		_err "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
+		_err breaking-footer
 		return 1
 	}
 
@@ -150,14 +150,14 @@ validate_paths_if_needed() {
 
 	# -r: require scope to be present
 	if [[ "$require_scope" == "true" && -z "$scope" ]]; then
-		_err "scope required"
+		_err scope-required
 		return 1
 	fi
 
 	# -d: validate scope exists in config (if scope provided)
 	if [[ "$defined_scope" == "true" && -n "$scope" ]]; then
 		[[ ${#CFG_SCOPES[@]} -eq 0 ]] && {
-			_err "scope '$scope' used but no scopes defined in config"
+			_err scope-missing-config "$scope"
 			return 1
 		}
 		if is_multi_scope "$scope"; then
@@ -179,7 +179,7 @@ validate_paths_if_needed() {
 	# No scope provided - check if files match any pattern
 	if [[ -z "$scope" ]]; then
 		if ! validate_strict_no_scope "${files[@]}"; then
-			_err "scope required for scoped files"
+			_err scope-file-required
 			_show_errors "${STRICT_MATCHES[@]}"
 			_hint "Hint: add a scope that matches these files"
 			return 1
@@ -193,14 +193,14 @@ validate_paths_if_needed() {
 	# Multi-scope validation
 	if is_multi_scope "$scope"; then
 		[[ "$multi_scope" != "true" ]] && {
-			_err "multi-scope not enabled"
+			_err multi-scope-disabled
 			_hint "Use --multi-scope flag or set multi-scope = true in [settings]"
 			return 1
 		}
 		# Validate scopes exist
 		_check_scopes_exist "$scope" || return 1
 		if ! validate_files_against_scopes "$scope" "${files[@]}"; then
-			_err "files do not match scopes '$scope'"
+			_err files-scopes-mismatch "$scope"
 			_show_errors "${VALIDATION_ERRORS[@]}"
 			return 1
 		fi
@@ -213,7 +213,7 @@ validate_paths_if_needed() {
 		return 1
 	}
 	if ! validate_files_against_scope "$scope" "${files[@]}"; then
-		_err "files do not match scope '$scope'"
+		_err files-scope-mismatch "$scope"
 		_show_errors "${VALIDATION_ERRORS[@]}"
 		return 1
 	fi

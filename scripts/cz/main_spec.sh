@@ -106,6 +106,7 @@ Describe 'cz'
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "empty commit message"
+				The stderr should include "[empty-message]"
 			End
 
 			It 'rejects whitespace-only message'
@@ -113,6 +114,7 @@ Describe 'cz'
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "commits MUST be prefixed with a type"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects missing colon'
@@ -120,6 +122,7 @@ Describe 'cz'
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "commits MUST be prefixed with a type"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects missing description after colon'
@@ -127,6 +130,7 @@ Describe 'cz'
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "commits MUST be prefixed with a type"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects missing description after colon and space'
@@ -134,6 +138,7 @@ Describe 'cz'
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "commits MUST be prefixed with a type"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects unknown type'
@@ -141,6 +146,7 @@ Describe 'cz'
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "unknown type"
+				The stderr should include "[type-enum]"
 			End
 
 			It 'rejects uppercase type'
@@ -148,6 +154,7 @@ Describe 'cz'
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "commits MUST be prefixed with a type"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects breaking ! without BREAKING CHANGE footer'
@@ -155,6 +162,7 @@ Describe 'cz'
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "BREAKING CHANGE footer"
+				The stderr should include "[breaking-footer]"
 			End
 
 			It 'rejects empty scope'
@@ -162,6 +170,7 @@ Describe 'cz'
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "commits MUST be prefixed with a type"
+				The stderr should include "[header-format]"
 			End
 
 			It 'rejects whitespace-only description'
@@ -169,6 +178,7 @@ Describe 'cz'
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "description MUST immediately follow the colon and space"
+				The stderr should include "[description-empty]"
 			End
 		End
 
@@ -203,6 +213,7 @@ EOF
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "unknown type"
+				The stderr should include "[type-enum]"
 			End
 
 			It 'uses --config-file option'
@@ -231,6 +242,7 @@ EOF
 				The status should be failure
 				The stderr should include "config file not found"
 				The stderr should include "nonexistent.ini"
+				The stderr should include "[config-not-found]"
 			End
 
 			It 'handles config with only scopes (uses default types)'
@@ -342,6 +354,7 @@ EOF
 				When run script "$BIN" -e lint --paths "src/ui/button.tsx"
 				The status should be failure
 				The stderr should include "does not match scope"
+				The stderr should include "[files-scope-mismatch]"
 			End
 
 			It 'fails when some files do not match scope'
@@ -395,6 +408,7 @@ EOF
 				When run script "$BIN" -e lint --paths "scripts/nested/main.sh"
 				The status should be failure
 				The stderr should include "does not match scope"
+				The stderr should include "[files-scope-mismatch]"
 			End
 
 			It 'matches multi-pattern scope (first pattern)'
@@ -473,6 +487,7 @@ EOF
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "multi-scope not enabled"
+				The stderr should include "[multi-scope-disabled]"
 			End
 
 			It 'rejects multi-scope by default when validating files'
@@ -488,6 +503,7 @@ EOF
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "multi-scope not enabled"
+				The stderr should include "[multi-scope-disabled]"
 			End
 
 			It 'rejects multi-scope with unknown scope'
@@ -505,6 +521,7 @@ EOF
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 			End
 
 			It '--multi-scope flag enables multi-scope without config'
@@ -537,6 +554,7 @@ EOF
 				When run script "$BIN" --no-multi-scope -e lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "multi-scope not enabled"
+				The stderr should include "[multi-scope-disabled]"
 			End
 
 			It '-m shorthand enables multi-scope'
@@ -580,6 +598,7 @@ EOF
 				When run script "$BIN" -m -e lint --paths "src/api/handler.go src/other/file.txt"
 				The status should be failure
 				The stderr should include "does not match"
+				The stderr should include "[files-scopes-mismatch]"
 			End
 		End
 
@@ -599,6 +618,7 @@ EOF
 				When run script "$BIN" -d lint
 				The status should be failure
 				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 			End
 
 			It 'accepts defined scope when -d is set'
@@ -636,6 +656,7 @@ EOF
 				When run script "$BIN" -d lint
 				The status should be failure
 				The stderr should include "no scopes defined"
+				The stderr should include "[scope-missing-config]"
 			End
 
 			It '--no-defined-scope overrides config'
@@ -669,6 +690,7 @@ EOF
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 			End
 		End
 
@@ -685,6 +707,7 @@ EOF
 				When run script "$BIN" -r lint
 				The status should be failure
 				The stderr should include "scope required"
+				The stderr should include "[scope-required]"
 			End
 
 			It 'accepts scope when -r is set'
@@ -746,6 +769,7 @@ EOF
 				When run script "$BIN" -e lint --paths "src/ui/button.tsx"
 				The status should be failure
 				The stderr should include "does not match scope"
+				The stderr should include "[files-scope-mismatch]"
 			End
 
 			It 'passes when scope matches files with -e'
@@ -759,6 +783,7 @@ EOF
 				When run script "$BIN" -e lint --paths "src/api/handler.go"
 				The status should be failure
 				The stderr should include "scope required"
+				The stderr should include "[scope-file-required]"
 			End
 
 			It 'allows no scope for unscoped files when -e is set'
@@ -772,6 +797,7 @@ EOF
 				When run script "$BIN" -e lint --paths "other/file.txt"
 				The status should be failure
 				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 			End
 
 			It '-e with unknown scope shows defined scopes hint'
@@ -779,6 +805,7 @@ EOF
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 				The stderr should include "api"
 				The stderr should include "ui"
 			End
@@ -814,6 +841,7 @@ EOF
 				When run script "$BIN" lint --paths "src/ui/button.tsx"
 				The status should be failure
 				The stderr should include "does not match scope"
+				The stderr should include "[files-scope-mismatch]"
 			End
 
 			It 'config enforce-patterns without defined-scope rejects unknown scope'
@@ -831,6 +859,7 @@ EOF
 				When run script "$BIN" lint --paths "src/api/x.go"
 				The status should be failure
 				The stderr should include "unknown scope"
+				The stderr should include "[scope-enum]"
 			End
 		End
 
@@ -840,6 +869,7 @@ EOF
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
+				The stderr should include "[breaking-footer]"
 			End
 
 			It 'allows breaking change without footer when --no-breaking-footer is set'
@@ -853,6 +883,7 @@ EOF
 				When run script "$BIN" --breaking-footer lint
 				The status should be failure
 				The stderr should include "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
+				The stderr should include "[breaking-footer]"
 			End
 
 			It 'accepts breaking change with footer when --breaking-footer is set'
@@ -900,6 +931,7 @@ EOF
 				When run script "$BIN" --breaking-footer lint
 				The status should be failure
 				The stderr should include "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
+				The stderr should include "[breaking-footer]"
 			End
 
 			It 'has no effect on non-breaking commits'
@@ -937,6 +969,7 @@ EOF
 				When run script "$BIN" lint
 				The status should be failure
 				The stderr should include "BREAKING CHANGE"
+				The stderr should include "[breaking-footer]"
 			End
 		End
 
@@ -1025,6 +1058,7 @@ EOF
 				When run script "$BIN" init -o .gitcommitizen
 				The status should be failure
 				The stderr should include "already exists"
+				The stderr should include "[file-exists]"
 			End
 
 			It '-f overwrites existing file'
@@ -1112,6 +1146,7 @@ EOF
 				When run script "$BIN" hook install
 				The status should be failure
 				The stderr should include "existing commit-msg hook"
+				The stderr should include "[hook-exists]"
 			End
 		End
 
@@ -1136,6 +1171,7 @@ EOF
 				When run script "$BIN" hook uninstall
 				The status should be failure
 				The stderr should include "not installed by cz"
+				The stderr should include "[hook-foreign]"
 			End
 		End
 
@@ -1145,6 +1181,7 @@ EOF
 				When run script "$BIN" hook status
 				The status should be failure
 				The stderr should include "not a git repository"
+				The stderr should include "[not-git-repo]"
 			End
 
 			It 'install errors outside git repo'
@@ -1152,6 +1189,7 @@ EOF
 				When run script "$BIN" hook install
 				The status should be failure
 				The stderr should include "not a git repository"
+				The stderr should include "[not-git-repo]"
 			End
 
 			It 'uninstall errors outside git repo'
@@ -1159,6 +1197,7 @@ EOF
 				When run script "$BIN" hook uninstall
 				The status should be failure
 				The stderr should include "not a git repository"
+				The stderr should include "[not-git-repo]"
 			End
 		End
 
@@ -1166,6 +1205,7 @@ EOF
 			When run script "$BIN" hook unknown
 			The status should be failure
 			The stderr should include "unknown"
+			The stderr should include "[hook-action-unknown]"
 		End
 	End
 
@@ -1261,6 +1301,7 @@ EOF
 			The status should be failure
 			The stderr should include "config file not found"
 			The stderr should include "/nonexistent/config"
+			The stderr should include "[config-not-found]"
 		End
 	End
 
@@ -1276,6 +1317,7 @@ EOF
 				When run script "$BIN" create
 				The status should be failure
 				The stderr should include "gum is required"
+				The stderr should include "[gum-not-found]"
 			End
 		End
 
@@ -1930,6 +1972,7 @@ MOCK
 			When run script "$BIN"
 			The status should be failure
 			The stderr should include "commits MUST be prefixed with a type"
+			The stderr should include "[header-format]"
 		End
 	End
 
@@ -1997,6 +2040,7 @@ EOF
 			When run script "$BIN" --defined-scope lint
 			The status should be failure
 			The stderr should include "unknown scope"
+			The stderr should include "[scope-enum]"
 			The stderr should include "api"
 			The stderr should include "ui"
 		End
@@ -2025,6 +2069,7 @@ EOF
 			When run script "$BIN" lint
 			The status should be failure
 			The stderr should include "description MUST immediately follow the colon and space"
+			The stderr should include "[description-empty]"
 		End
 
 		It 'handles config keys with hyphens correctly'

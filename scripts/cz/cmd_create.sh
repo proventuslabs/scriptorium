@@ -17,7 +17,7 @@ _scope_input_custom() { _gum input --header "Enter scope:" --placeholder "e.g., 
 cmd_create() {
 	# Check gum dependency
 	if ! command -v gum &>/dev/null; then
-		_err "gum is required for interactive mode"
+		_err gum-not-found
 		_hint "See: https://github.com/charmbracelet/gum"
 		exit 1
 	fi
@@ -104,7 +104,7 @@ cmd_create() {
 	local description=""
 	while [[ -z "$description" ]]; do
 		description=$(_gum input --header "Description (required):" --placeholder "Short summary of the change")
-		[[ -z "$description" ]] && _err "description MUST NOT be empty"
+		[[ -z "$description" ]] && _err description-required
 	done
 
 	# Get body (optional)
@@ -117,7 +117,7 @@ cmd_create() {
 		local breaking_explanation=""
 		while [[ -z "$breaking_explanation" ]]; do
 			breaking_explanation=$(_gum write --header "Breaking change explanation (required):" --placeholder "Describe what breaks and how to migrate...")
-			[[ -z "$breaking_explanation" ]] && _err "breaking change explanation is required"
+			[[ -z "$breaking_explanation" ]] && _err breaking-explanation
 		done
 		footer="BREAKING CHANGE: $breaking_explanation"
 	else
