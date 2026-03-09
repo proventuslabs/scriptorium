@@ -19,3 +19,61 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: googleapis/release-please-action@v4
+
+  rebuild-dist:
+    name: Rebuild dist for release PRs
+    needs: release-please
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Find release-please branches
+        id: check
+        run: |
+          components=""
+          for component in cz dotenv jwt theme; do
+            branch="release-please--branches--main--components--${component}"
+            if git ls-remote --exit-code origin "refs/heads/${branch}" > /dev/null 2>&1; then
+              components="${components} ${component}"
+            fi
+          done
+          components="${components# }"
+          echo "components=$components" >> "$GITHUB_OUTPUT"
+          echo "found=$([[ -n "$components" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - if: steps.check.outputs.found == 'true'
+        uses: cachix/install-nix-action@v31
+
+      - if: steps.check.outputs.found == 'true'
+        name: Pre-build devShell
+        run: nix build --no-link '.#devShells.'$(nix eval --impure --raw --expr builtins.currentSystem)'.default'
+
+      - if: steps.check.outputs.found == 'true'
+        name: Rebuild and push dist artifacts
+        shell: nix develop -c bash -e {0}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for component in ${{ steps.check.outputs.components }}; do
+            branch="release-please--branches--main--components--${component}"
+            echo "::group::${component}"
+            git fetch origin "${branch}"
+            git checkout "${branch}"
+
+            make build NAME="${component}"
+
+            git add "dist/${component}/"
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: rebuild dist for ${component}"
+              git push origin "${branch}"
+              echo "Pushed updated dist for ${component}"
+            else
+              echo "No dist changes for ${component}"
+            fi
+
+            git checkout main
+            echo "::endgroup::"
+          done
