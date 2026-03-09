@@ -73,6 +73,14 @@ cmd_lint() {
 		return 1
 	}
 
+	# Validate blank line after subject when body/footer present
+	# Spec: "body MUST begin one blank line after the description"
+	local rest="${message#*$'\n'}"
+	[[ "$rest" != "$message" && "${rest%%$'\n'*}" != "" ]] && {
+		_err body-leading-blank
+		return 1
+	}
+
 	# Determine breaking-footer mode
 	if [[ "${BREAKING_FOOTER-unset}" == "1" ]]; then
 		breaking_footer=true

@@ -98,6 +98,56 @@ Describe 'cz'
 		End
 
 		#───────────────────────────────────────────────────────────
+		# Body blank line (spec: body MUST begin one blank line)
+		#───────────────────────────────────────────────────────────
+		Describe 'body blank line'
+			It 'accepts single-line message (no body)'
+				Data "docs: correct spelling of CHANGELOG"
+				When run script "$BIN" lint
+				The status should be success
+			End
+
+			It 'accepts message with blank line before body'
+				Data
+					#|fix: prevent racing of requests
+					#|
+					#|Introduce a request id and a reference to latest request. Dismiss
+					#|incoming responses other than from latest request.
+				End
+				When run script "$BIN" lint
+				The status should be success
+			End
+
+			It 'rejects body without blank line separator'
+				Data
+					#|fix: prevent racing of requests
+					#|Introduce a request id and a reference to latest request.
+				End
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "[body-leading-blank]"
+			End
+
+			It 'rejects footer without blank line separator'
+				Data
+					#|feat: allow provided config object to extend other configs
+					#|BREAKING CHANGE: `extends` key in config file is now used for extending other config files
+				End
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "[body-leading-blank]"
+			End
+
+			It 'accepts message with only a trailing newline'
+				Data
+					#|docs: correct spelling of CHANGELOG
+				End
+				When run script "$BIN" lint
+				The status should be success
+			End
+		End
+
+		#───────────────────────────────────────────────────────────
 		# Invalid conventional commits
 		#───────────────────────────────────────────────────────────
 		Describe 'invalid messages'
