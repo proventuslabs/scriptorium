@@ -978,6 +978,17 @@ EOF
 				The status should be success
 			End
 
+			It 'rejects BREAKING!CHANGE as footer (not a valid separator)'
+				Data
+					#|feat!: breaking change
+					#|
+					#|BREAKING!CHANGE: this is breaking
+				End
+				When run script "$BIN" lint
+				The status should be failure
+				The stderr should include "[breaking-footer]"
+			End
+
 			It 'rejects lowercase breaking change footer'
 				Data
 					#|feat!: breaking change

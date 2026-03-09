@@ -753,7 +753,7 @@ cmd_lint() {
 		breaking_footer="${CFG_SETTINGS[breaking_footer]:-true}"
 	fi
 
-	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[\ -]CHANGE: ]] && {
+	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[-\ ]CHANGE: ]] && {
 		_err breaking-footer
 		return 1
 	}

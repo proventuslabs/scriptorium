@@ -94,7 +94,7 @@ cmd_lint() {
 	# be indicated by a BREAKING CHANGE footer
 	# Spec #16: BREAKING-CHANGE MUST be synonymous with BREAKING CHANGE
 	# Spec #15: BREAKING CHANGE MUST be uppercase
-	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[\ -]CHANGE: ]] && {
+	[[ "$breaking_footer" == "true" && -n "$breaking" && ! "$message" =~ BREAKING[-\ ]CHANGE: ]] && {
 		_err breaking-footer
 		return 1
 	}
