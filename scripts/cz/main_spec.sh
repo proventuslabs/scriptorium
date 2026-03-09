@@ -333,7 +333,7 @@ EOF
 
 			It 'passes with multiple files matching scope'
 				Data "feat(api): add endpoint"
-				When run script "$BIN" lint --paths "src/api/handler.go src/api/routes.go"
+				When run script "$BIN" lint --paths "src/api/handler.go" --paths "src/api/routes.go"
 				The status should be success
 			End
 
@@ -346,7 +346,7 @@ EOF
 
 			It 'fails when some files do not match scope'
 				Data "feat(api): add endpoint"
-				When run script "$BIN" -e lint --paths "src/api/handler.go src/ui/button.tsx"
+				When run script "$BIN" -e lint --paths "src/api/handler.go" --paths "src/ui/button.tsx"
 				The status should be failure
 				The stderr should include "src/ui/button.tsx"
 			End
@@ -415,13 +415,27 @@ EOF
 				The status should be success
 			End
 
-			# Note: paths with spaces cannot be tested via CLI because --files
-			# uses space-separated values. The underlying path_validator
-			# supports them, but the CLI interface doesn't.
+			It 'handles filenames with spaces'
+				Data "feat(docs): update docs"
+				When run script "$BIN" -e lint --paths "docs/my folder/file.txt"
+				The status should be success
+			End
+
+			It 'handles multiple filenames with spaces via repeated --paths'
+				Data "feat(docs): update docs"
+				When run script "$BIN" -e lint --paths "docs/my folder/a.txt" --paths "docs/my folder/b.txt"
+				The status should be success
+			End
 
 			It 'skips path validation when no files provided'
 				Data "feat(api): add endpoint"
 				When run script "$BIN" lint
+				The status should be success
+			End
+
+			It 'skips path validation when --paths is empty'
+				Data "feat(api): add endpoint"
+				When run script "$BIN" -e lint --paths ""
 				The status should be success
 			End
 
@@ -453,7 +467,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" lint --paths "src/api/handler.go src/ui/button.tsx"
+				When run script "$BIN" lint --paths "src/api/handler.go" --paths "src/ui/button.tsx"
 				The status should be success
 			End
 
@@ -517,7 +531,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" --multi-scope lint --paths "src/api/handler.go src/ui/button.tsx"
+				When run script "$BIN" --multi-scope lint --paths "src/api/handler.go" --paths "src/ui/button.tsx"
 				The status should be success
 			End
 
@@ -549,7 +563,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" -m lint --paths "src/api/handler.go src/ui/button.tsx"
+				When run script "$BIN" -m lint --paths "src/api/handler.go" --paths "src/ui/button.tsx"
 				The status should be success
 			End
 
@@ -563,7 +577,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" -m -e lint --paths "src/api/handler.go src/ui/button.tsx"
+				When run script "$BIN" -m -e lint --paths "src/api/handler.go" --paths "src/ui/button.tsx"
 				The status should be success
 			End
 
@@ -577,7 +591,7 @@ api = src/api/**
 ui = src/ui/**
 EOF
 				Data "feat(api,ui): cross-cutting change"
-				When run script "$BIN" -m -e lint --paths "src/api/handler.go src/other/file.txt"
+				When run script "$BIN" -m -e lint --paths "src/api/handler.go" --paths "src/other/file.txt"
 				The status should be failure
 				The stderr should include "does not match"
 			End
@@ -1059,6 +1073,12 @@ EOF
 			It 'hook contains cz lint command with paths flag'
 				When run script "$BIN" hook install
 				The contents of file ".git/hooks/commit-msg" should include 'cz lint --paths "$files"'
+				The output should include "Installed"
+			End
+
+			It 'hook passes files newline-separated (no tr)'
+				When run script "$BIN" hook install
+				The contents of file ".git/hooks/commit-msg" should not include "tr"
 				The output should include "Installed"
 			End
 
