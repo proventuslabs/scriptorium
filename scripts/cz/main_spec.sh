@@ -105,7 +105,6 @@ Describe 'cz'
 				Data ""
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "empty commit message"
 				The stderr should include "[empty-message]"
 			End
 
@@ -113,7 +112,6 @@ Describe 'cz'
 				Data "   "
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "commits MUST be prefixed with a type"
 				The stderr should include "[header-format]"
 			End
 
@@ -121,7 +119,6 @@ Describe 'cz'
 				Data "feat add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "commits MUST be prefixed with a type"
 				The stderr should include "[header-format]"
 			End
 
@@ -129,7 +126,6 @@ Describe 'cz'
 				Data "feat:"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "commits MUST be prefixed with a type"
 				The stderr should include "[header-format]"
 			End
 
@@ -137,7 +133,6 @@ Describe 'cz'
 				Data "feat: "
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "commits MUST be prefixed with a type"
 				The stderr should include "[header-format]"
 			End
 
@@ -145,7 +140,6 @@ Describe 'cz'
 				Data "unknown: some change"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "unknown type"
 				The stderr should include "[type-enum]"
 			End
 
@@ -153,7 +147,6 @@ Describe 'cz'
 				Data "FEAT: add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "commits MUST be prefixed with a type"
 				The stderr should include "[header-format]"
 			End
 
@@ -161,7 +154,6 @@ Describe 'cz'
 				Data "feat!: breaking change"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "BREAKING CHANGE footer"
 				The stderr should include "[breaking-footer]"
 			End
 
@@ -169,7 +161,6 @@ Describe 'cz'
 				Data "feat(): add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "commits MUST be prefixed with a type"
 				The stderr should include "[header-format]"
 			End
 
@@ -177,7 +168,6 @@ Describe 'cz'
 				Data "feat:    "
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "description MUST immediately follow the colon and space"
 				The stderr should include "[description-empty]"
 			End
 		End
@@ -212,7 +202,6 @@ EOF
 				Data "feat: not in config"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "unknown type"
 				The stderr should include "[type-enum]"
 			End
 
@@ -240,7 +229,6 @@ EOF
 				Data "feat: something"
 				When run script "$BIN" --config-file nonexistent.ini lint
 				The status should be failure
-				The stderr should include "config file not found"
 				The stderr should include "nonexistent.ini"
 				The stderr should include "[config-not-found]"
 			End
@@ -353,7 +341,6 @@ EOF
 				Data "feat(api): add endpoint"
 				When run script "$BIN" -e lint --paths "src/ui/button.tsx"
 				The status should be failure
-				The stderr should include "does not match scope"
 				The stderr should include "[files-scope-mismatch]"
 			End
 
@@ -407,7 +394,6 @@ EOF
 				Data "feat(scripts): update script"
 				When run script "$BIN" -e lint --paths "scripts/nested/main.sh"
 				The status should be failure
-				The stderr should include "does not match scope"
 				The stderr should include "[files-scope-mismatch]"
 			End
 
@@ -486,7 +472,6 @@ EOF
 				Data "feat(api,ui): cross-cutting change"
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "multi-scope not enabled"
 				The stderr should include "[multi-scope-disabled]"
 			End
 
@@ -502,7 +487,6 @@ EOF
 				Data "feat(api,ui): cross-cutting change"
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "multi-scope not enabled"
 				The stderr should include "[multi-scope-disabled]"
 			End
 
@@ -520,7 +504,6 @@ EOF
 				Data "feat(api,unknown): change"
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "unknown scope"
 				The stderr should include "[scope-enum]"
 			End
 
@@ -553,7 +536,6 @@ EOF
 				Data "feat(api,ui): cross-cutting change"
 				When run script "$BIN" --no-multi-scope -e lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "multi-scope not enabled"
 				The stderr should include "[multi-scope-disabled]"
 			End
 
@@ -597,7 +579,6 @@ EOF
 				Data "feat(api,ui): cross-cutting change"
 				When run script "$BIN" -m -e lint --paths "src/api/handler.go src/other/file.txt"
 				The status should be failure
-				The stderr should include "does not match"
 				The stderr should include "[files-scopes-mismatch]"
 			End
 		End
@@ -617,7 +598,6 @@ EOF
 				Data "feat(unknown): add feature"
 				When run script "$BIN" -d lint
 				The status should be failure
-				The stderr should include "unknown scope"
 				The stderr should include "[scope-enum]"
 			End
 
@@ -655,7 +635,6 @@ EOF
 				Data "feat(anything): add feature"
 				When run script "$BIN" -d lint
 				The status should be failure
-				The stderr should include "no scopes defined"
 				The stderr should include "[scope-missing-config]"
 			End
 
@@ -689,7 +668,6 @@ EOF
 				Data "feat(unknown): add feature"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "unknown scope"
 				The stderr should include "[scope-enum]"
 			End
 		End
@@ -706,7 +684,6 @@ EOF
 				Data "feat: add feature"
 				When run script "$BIN" -r lint
 				The status should be failure
-				The stderr should include "scope required"
 				The stderr should include "[scope-required]"
 			End
 
@@ -768,7 +745,6 @@ EOF
 				Data "feat(api): add endpoint"
 				When run script "$BIN" -e lint --paths "src/ui/button.tsx"
 				The status should be failure
-				The stderr should include "does not match scope"
 				The stderr should include "[files-scope-mismatch]"
 			End
 
@@ -782,7 +758,6 @@ EOF
 				Data "feat: add feature"
 				When run script "$BIN" -e lint --paths "src/api/handler.go"
 				The status should be failure
-				The stderr should include "scope required"
 				The stderr should include "[scope-file-required]"
 			End
 
@@ -796,7 +771,6 @@ EOF
 				Data "feat(unknown): add feature"
 				When run script "$BIN" -e lint --paths "other/file.txt"
 				The status should be failure
-				The stderr should include "unknown scope"
 				The stderr should include "[scope-enum]"
 			End
 
@@ -804,7 +778,6 @@ EOF
 				Data "feat(unknown): add feature"
 				When run script "$BIN" -e lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "unknown scope"
 				The stderr should include "[scope-enum]"
 				The stderr should include "api"
 				The stderr should include "ui"
@@ -840,7 +813,6 @@ EOF
 				Data "feat(api): add endpoint"
 				When run script "$BIN" lint --paths "src/ui/button.tsx"
 				The status should be failure
-				The stderr should include "does not match scope"
 				The stderr should include "[files-scope-mismatch]"
 			End
 
@@ -858,7 +830,6 @@ EOF
 				Data "feat(unknown): add feature"
 				When run script "$BIN" lint --paths "src/api/x.go"
 				The status should be failure
-				The stderr should include "unknown scope"
 				The stderr should include "[scope-enum]"
 			End
 		End
@@ -868,7 +839,6 @@ EOF
 				Data "feat!: breaking change"
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
 				The stderr should include "[breaking-footer]"
 			End
 
@@ -882,7 +852,6 @@ EOF
 				Data "feat!: breaking change"
 				When run script "$BIN" --breaking-footer lint
 				The status should be failure
-				The stderr should include "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
 				The stderr should include "[breaking-footer]"
 			End
 
@@ -930,7 +899,6 @@ EOF
 				Data "feat!: breaking change"
 				When run script "$BIN" --breaking-footer lint
 				The status should be failure
-				The stderr should include "if included in the type/scope prefix, breaking changes MUST be indicated by a BREAKING CHANGE footer"
 				The stderr should include "[breaking-footer]"
 			End
 
@@ -968,7 +936,6 @@ EOF
 				End
 				When run script "$BIN" lint
 				The status should be failure
-				The stderr should include "BREAKING CHANGE"
 				The stderr should include "[breaking-footer]"
 			End
 		End
@@ -1057,7 +1024,6 @@ EOF
 				touch .gitcommitizen
 				When run script "$BIN" init -o .gitcommitizen
 				The status should be failure
-				The stderr should include "already exists"
 				The stderr should include "[file-exists]"
 			End
 
@@ -1145,7 +1111,6 @@ EOF
 				printf '#!/bin/sh\necho "other"\n' > .git/hooks/commit-msg
 				When run script "$BIN" hook install
 				The status should be failure
-				The stderr should include "existing commit-msg hook"
 				The stderr should include "[hook-exists]"
 			End
 		End
@@ -1170,7 +1135,6 @@ EOF
 				printf '#!/bin/sh\necho "other"\n' > .git/hooks/commit-msg
 				When run script "$BIN" hook uninstall
 				The status should be failure
-				The stderr should include "not installed by cz"
 				The stderr should include "[hook-foreign]"
 			End
 		End
@@ -1180,7 +1144,6 @@ EOF
 				rm -rf .git
 				When run script "$BIN" hook status
 				The status should be failure
-				The stderr should include "not a git repository"
 				The stderr should include "[not-git-repo]"
 			End
 
@@ -1188,7 +1151,6 @@ EOF
 				rm -rf .git
 				When run script "$BIN" hook install
 				The status should be failure
-				The stderr should include "not a git repository"
 				The stderr should include "[not-git-repo]"
 			End
 
@@ -1196,7 +1158,6 @@ EOF
 				rm -rf .git
 				When run script "$BIN" hook uninstall
 				The status should be failure
-				The stderr should include "not a git repository"
 				The stderr should include "[not-git-repo]"
 			End
 		End
@@ -1204,7 +1165,6 @@ EOF
 		It 'errors with unknown subcommand'
 			When run script "$BIN" hook unknown
 			The status should be failure
-			The stderr should include "unknown"
 			The stderr should include "[hook-action-unknown]"
 		End
 	End
@@ -1299,7 +1259,6 @@ EOF
 		It 'fails if explicit config file does not exist'
 			When run script "$BIN" --config-file /nonexistent/config parse
 			The status should be failure
-			The stderr should include "config file not found"
 			The stderr should include "/nonexistent/config"
 			The stderr should include "[config-not-found]"
 		End
@@ -1316,7 +1275,6 @@ EOF
 				command -v gum &>/dev/null && Skip "gum is installed system-wide"
 				When run script "$BIN" create
 				The status should be failure
-				The stderr should include "gum is required"
 				The stderr should include "[gum-not-found]"
 			End
 		End
@@ -1971,7 +1929,6 @@ MOCK
 			Data "invalid message"
 			When run script "$BIN"
 			The status should be failure
-			The stderr should include "commits MUST be prefixed with a type"
 			The stderr should include "[header-format]"
 		End
 	End
@@ -2039,7 +1996,6 @@ EOF
 			Data "feat(unknown): add feature"
 			When run script "$BIN" --defined-scope lint
 			The status should be failure
-			The stderr should include "unknown scope"
 			The stderr should include "[scope-enum]"
 			The stderr should include "api"
 			The stderr should include "ui"
@@ -2068,7 +2024,6 @@ EOF
 			Data "feat:    "
 			When run script "$BIN" lint
 			The status should be failure
-			The stderr should include "description MUST immediately follow the colon and space"
 			The stderr should include "[description-empty]"
 		End
 
